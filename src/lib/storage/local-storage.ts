@@ -1,14 +1,7 @@
 import { logger } from "../logger";
+import { StorageKeys } from "./local-keys";
 
 export class LocalStorage {
-  private static readonly KEYS = {
-    ACCESS_TOKEN: "orbic:auth:accessToken",
-    REFRESH_TOKEN: "orbic:auth:refreshToken",
-    SESSION_ID: "orbic:auth:sessionId",
-    LAST_SYNC: "orbic:app:last_sync",
-    PREFERENCES: "orbic:app:preferences",
-  } as const;
-
   /**
    * Store authentication tokens securely
    */
@@ -18,9 +11,9 @@ export class LocalStorage {
     sessionId: string
   ): void {
     try {
-      localStorage.setItem(this.KEYS.ACCESS_TOKEN, accessToken);
-      localStorage.setItem(this.KEYS.REFRESH_TOKEN, refreshToken);
-      localStorage.setItem(this.KEYS.SESSION_ID, sessionId);
+      localStorage.setItem(StorageKeys.ACCESS_TOKEN, accessToken);
+      localStorage.setItem(StorageKeys.REFRESH_TOKEN, refreshToken);
+      localStorage.setItem(StorageKeys.SESSION_ID, sessionId);
 
       logger.debug("Auth tokens stored successfully", {
         hasAccessToken: !!accessToken,
@@ -43,9 +36,9 @@ export class LocalStorage {
   } {
     try {
       const tokens = {
-        accessToken: localStorage.getItem(this.KEYS.ACCESS_TOKEN),
-        refreshToken: localStorage.getItem(this.KEYS.REFRESH_TOKEN),
-        sessionId: localStorage.getItem(this.KEYS.SESSION_ID),
+        accessToken: localStorage.getItem(StorageKeys.ACCESS_TOKEN),
+        refreshToken: localStorage.getItem(StorageKeys.REFRESH_TOKEN),
+        sessionId: localStorage.getItem(StorageKeys.SESSION_ID),
       };
 
       logger.debug("Retrieved auth tokens from localStorage", {
@@ -71,9 +64,9 @@ export class LocalStorage {
   static clearAuthData(): void {
     try {
       const keysToRemove = [
-        this.KEYS.ACCESS_TOKEN,
-        this.KEYS.REFRESH_TOKEN,
-        this.KEYS.SESSION_ID,
+        StorageKeys.ACCESS_TOKEN,
+        StorageKeys.REFRESH_TOKEN,
+        StorageKeys.SESSION_ID,
       ];
 
       keysToRemove.forEach((key) => {
@@ -91,7 +84,7 @@ export class LocalStorage {
    */
   static setLastSync(timestamp: Date): void {
     try {
-      localStorage.setItem(this.KEYS.LAST_SYNC, timestamp.toISOString());
+      localStorage.setItem(StorageKeys.LAST_SYNC, timestamp.toISOString());
     } catch (error) {
       logger.error("Failed to store last sync timestamp:", error);
     }
@@ -102,7 +95,7 @@ export class LocalStorage {
    */
   static getLastSync(): Date | null {
     try {
-      const timestamp = localStorage.getItem(this.KEYS.LAST_SYNC);
+      const timestamp = localStorage.getItem(StorageKeys.LAST_SYNC);
       return timestamp ? new Date(timestamp) : null;
     } catch (error) {
       logger.error("Failed to retrieve last sync timestamp:", error);

@@ -12,6 +12,7 @@ interface UseAuthReturn {
   error: string | null;
   initialized: boolean;
   isAuthenticated: boolean;
+  user: User | null;
   login: (data: {
     user: User;
     accessToken: string;
@@ -36,6 +37,7 @@ export const useAuth = (): UseAuthReturn => {
     refreshToken,
     initialized,
     isAuthenticated,
+    user,
   } = useAuthStore();
 
   // Check saved tokens on mount
@@ -172,6 +174,7 @@ export const useAuth = (): UseAuthReturn => {
     isAuthenticated,
     error,
     initialized,
+    user,
     login,
     logout,
     refreshAuth,
