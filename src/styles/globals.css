@@ -1,0 +1,145 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 210 40% 98%;
+    --background-dark: 222 47% 11%;
+  }
+  
+  body {
+    @apply bg-background text-text-primary font-sans antialiased dark:bg-gray-900 dark:text-gray-100;
+  }
+  
+  h1 {
+    @apply text-3xl font-bold md:text-4xl dark:text-white;
+  }
+  
+  h2 {
+    @apply text-2xl font-bold md:text-3xl dark:text-white;
+  }
+  
+  h3 {
+    @apply text-xl font-bold md:text-2xl dark:text-white;
+  }
+  
+  h4 {
+    @apply text-lg font-medium md:text-xl dark:text-white;
+  }
+  
+  h5 {
+    @apply text-base font-medium md:text-lg dark:text-white;
+  }
+}
+
+@layer components {
+  .btn {
+    @apply inline-flex items-center justify-center rounded-xl px-4 py-2.5 font-medium 
+    text-white shadow-button transition-all duration-200 ease-in-out focus:outline-none 
+    focus:ring-2 focus:ring-opacity-50 disabled:cursor-not-allowed disabled:opacity-50;
+  }
+  
+  .btn-primary {
+    @apply btn bg-gradient-to-r from-primary-600 to-primary-700 hover:from-primary-700 
+    hover:to-primary-800 focus:ring-primary-500 shadow-lg shadow-primary-500/20 hover:shadow-lg 
+    hover:shadow-primary-600/30 active:shadow-sm active:scale-95
+    dark:from-primary-500 dark:to-primary-600 dark:hover:from-primary-600 dark:hover:to-primary-700;
+  }
+  
+  .btn-secondary {
+    @apply btn bg-gradient-to-r from-secondary-500 to-secondary-600 hover:from-secondary-600 
+    hover:to-secondary-700 focus:ring-secondary-400 shadow-lg shadow-secondary-500/20 hover:shadow-lg 
+    hover:shadow-secondary-600/30 active:shadow-sm active:scale-95
+    dark:from-secondary-400 dark:to-secondary-500 dark:hover:from-secondary-500 dark:hover:to-secondary-600;
+  }
+  
+  .btn-accent {
+    @apply btn bg-gradient-to-r from-accent-500 to-accent-600 hover:from-accent-600 
+    hover:to-accent-700 focus:ring-accent-400 shadow-lg shadow-accent-500/20 hover:shadow-lg 
+    hover:shadow-accent-600/30 active:shadow-sm active:scale-95
+    dark:from-accent-400 dark:to-accent-500 dark:hover:from-accent-500 dark:hover:to-accent-600;
+  }
+  
+  .btn-outline {
+    @apply btn bg-transparent border-2 border-primary-500 text-primary-600 hover:bg-primary-50 
+    focus:ring-primary-400 active:scale-95
+    dark:border-primary-400 dark:text-primary-300 dark:hover:bg-primary-900/20;
+  }
+  
+  .card {
+    @apply bg-white dark:bg-gray-800 rounded-2xl shadow-card transition-shadow duration-200 overflow-hidden;
+  }
+  
+  .card-hover {
+    @apply hover:shadow-card-hover;
+  }
+  
+  .input-field {
+    @apply block w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 
+    px-3 py-2.5 text-gray-900 dark:text-gray-100 focus:border-primary-500 dark:focus:border-primary-400 
+    focus:outline-none focus:ring-1 focus:ring-primary-500 dark:focus:ring-primary-400;
+  }
+  
+  .label {
+    @apply block text-sm font-medium text-text-secondary dark:text-gray-300 mb-1.5;
+  }
+  
+  .badge {
+    @apply inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium;
+  }
+  
+  .badge-primary {
+    @apply badge bg-primary-100 dark:bg-primary-900 text-primary-800 dark:text-primary-200;
+  }
+  
+  .badge-secondary {
+    @apply badge bg-secondary-100 dark:bg-secondary-900 text-secondary-800 dark:text-secondary-200;
+  }
+  
+  .badge-accent {
+    @apply badge bg-accent-100 dark:bg-accent-900 text-accent-800 dark:text-accent-200;
+  }
+}
+
+/* Custom animations */
+@keyframes float {
+  0% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+  100% {
+    transform: translateY(0px);
+  }
+}
+
+.animate-float {
+  animation: float 3s ease-in-out infinite;
+}
+
+/* Progress bar styling */
+.progress-ring-circle {
+  transition: stroke-dashoffset 0.35s;
+  transform: rotate(-90deg);
+  transform-origin: 50% 50%;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  @apply bg-background dark:bg-gray-800;
+}
+
+::-webkit-scrollbar-thumb {
+  @apply bg-primary-300 dark:bg-primary-700 rounded-full;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  @apply bg-primary-400 dark:bg-primary-600;
+}
