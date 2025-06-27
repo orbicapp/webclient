@@ -9,6 +9,7 @@ import {
   Zap, 
   Flame, 
   Trophy,
+  Rocket,
   Target,
   Sparkles,
   Shield,
