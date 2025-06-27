@@ -286,6 +286,8 @@ export const GET_COURSE_LEVELS_QUERY = gql`
       _id
       title
       description
+      chapterId
+      courseId
       order
       createdAt
       updatedAt
