@@ -11,6 +11,7 @@ import {
   Target,
   Flame,
   Shield,
+  Rocket,
   Gem
 } from "lucide-react";
 
