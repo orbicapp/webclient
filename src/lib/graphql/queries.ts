@@ -59,6 +59,7 @@ export const GET_CHAPTER_QUERY = gql`
       _id
       title
       description
+      courseId
       order
       levelsCount
       createdAt
@@ -73,6 +74,7 @@ export const GET_COURSE_CHAPTERS_QUERY = gql`
       _id
       title
       description
+      courseId
       order
       levelsCount
       createdAt
@@ -86,15 +88,16 @@ export const GET_COURSE_QUERY = gql`
   query Course($id: ID!) {
     course(id: $id) {
       _id
+      author
       title
       description
-      category
       lang
-      visibility
-      isApproved
+      category
+      chaptersCount
       thumbnailId
       bannerId
-      author
+      visibility
+      isApproved
       createdAt
       updatedAt
     }
@@ -106,13 +109,18 @@ export const GET_COURSES_QUERY = gql`
     courses(filter: $filter, limit: $limit, offset: $offset) {
       courses {
         _id
+        author
         title
         description
-        category
         lang
-        visibility
+        category
+        chaptersCount
         thumbnailId
+        bannerId
+        visibility
+        isApproved
         createdAt
+        updatedAt
       }
       total
       limit
@@ -127,13 +135,18 @@ export const GET_MY_COURSES_QUERY = gql`
     myCourses(limit: $limit, offset: $offset) {
       courses {
         _id
+        author
         title
         description
-        category
         lang
-        visibility
+        category
+        chaptersCount
         thumbnailId
+        bannerId
+        visibility
+        isApproved
         createdAt
+        updatedAt
       }
       total
       limit
@@ -148,13 +161,18 @@ export const GET_PUBLIC_COURSES_QUERY = gql`
     publicCourses(limit: $limit, offset: $offset) {
       courses {
         _id
+        author
         title
         description
-        category
         lang
-        visibility
+        category
+        chaptersCount
         thumbnailId
+        bannerId
+        visibility
+        isApproved
         createdAt
+        updatedAt
       }
       total
       limit
@@ -169,88 +187,19 @@ export const GET_CURRENT_GAME_SESSION_QUERY = gql`
   query CurrentGameSession {
     currentGameSession {
       _id
+      userId
       levelId
       chapterId
       courseId
-      userId
-      status
+      lives
       startTime
       endTime
+      status
+      stars
       score
       maxScore
-      stars
-      lives
-      currentQuestionIndex
       createdAt
       updatedAt
-    }
-  }
-`;
-
-export const GET_LEVEL_PROGRESS_QUERY = gql`
-  query LevelProgress($levelId: ID!) {
-    levelProgress(levelId: $levelId) {
-      levelId
-      isCompleted
-      bestScore
-      bestStars
-      totalTimeSpent
-      attempts
-      recentAttempts {
-        sessionId
-        score
-        stars
-        timeSpent
-        completedAt
-      }
-    }
-  }
-`;
-
-export const GET_COURSE_GAME_PROGRESS_QUERY = gql`
-  query CourseGameProgress($courseId: ID!) {
-    courseGameProgress(courseId: $courseId) {
-      courseId
-      isCompleted
-      totalChapters
-      completedChapters
-      totalLevels
-      completedLevels
-      totalStars
-      maxPossibleStars
-      completionPercentage
-      chapterProgress {
-        chapterId
-        title
-        isCompleted
-        isLocked
-        totalLevels
-        completedLevels
-        totalStars
-        maxPossibleStars
-      }
-    }
-  }
-`;
-
-export const GET_MY_STATS_QUERY = gql`
-  query MyStats {
-    myStats {
-      currentStreak
-      longestStreak
-      totalCoursesCompleted
-      totalLevelsCompleted
-      totalScore
-      totalStarsEarned
-      totalTimeSpent
-      totalLivesLost
-      categoriesStats {
-        category
-        coursesCompleted
-        levelsCompleted
-        totalScore
-        totalStars
-      }
     }
   }
 `;
@@ -258,19 +207,19 @@ export const GET_MY_STATS_QUERY = gql`
 export const GET_LEVEL_COMPLETION_QUERY = gql`
   query LevelCompletion($sessionId: ID!) {
     levelCompletion(sessionId: $sessionId) {
-      chapterId
-      courseId
       levelId
+      courseId
+      chapterId
       score
       maxScore
       stars
-      timeSpent
       correctAnswers
       totalQuestions
-      isChapterCompleted
-      isCourseCompleted
+      timeSpent
       isNewHighScore
       nextLevelId
+      isChapterCompleted
+      isCourseCompleted
     }
   }
 `;
@@ -282,6 +231,8 @@ export const GET_LEVEL_QUERY = gql`
       _id
       title
       description
+      chapterId
+      courseId
       order
       questions {
         type
@@ -327,6 +278,19 @@ export const GET_CHAPTER_LEVELS_QUERY = gql`
   }
 `;
 
+export const GET_COURSE_LEVELS_QUERY = gql`
+  query CourseLevels($courseId: ID!) {
+    courseLevels(courseId: $courseId) {
+      _id
+      title
+      description
+      order
+      createdAt
+      updatedAt
+    }
+  }
+`;
+
 // ==================== Progress Module ====================
 export const GET_COURSE_PROGRESS_QUERY = gql`
   query CourseProgress($courseId: ID!) {
@@ -334,13 +298,37 @@ export const GET_COURSE_PROGRESS_QUERY = gql`
       _id
       courseId
       userId
-      completed
-      currentChapter
-      currentLevel
+      isCompleted
+      completedAt
+      totalChapters
+      completedChapters
+      totalLevels
+      completedLevels
       totalScore
-      totalMaxScore
+      totalStars
+      totalTimeSpent
       createdAt
       updatedAt
+      chapterProgress {
+        chapterId
+        isCompleted
+        isUnlocked
+        completedLevels
+        totalLevels
+        totalStars
+        maxPossibleStars
+        completedAt
+      }
+      levelProgress {
+        levelId
+        completed
+        bestScore
+        bestStars
+        totalTimeSpent
+        attempts
+        firstCompletedAt
+        lastCompletedAt
+      }
     }
   }
 `;
@@ -351,11 +339,15 @@ export const GET_MY_PLAYING_COURSES_QUERY = gql`
       _id
       courseId
       userId
-      completed
-      currentChapter
-      currentLevel
+      isCompleted
+      completedAt
+      totalChapters
+      completedChapters
+      totalLevels
+      completedLevels
       totalScore
-      totalMaxScore
+      totalStars
+      totalTimeSpent
       createdAt
       updatedAt
     }
@@ -368,13 +360,48 @@ export const GET_MY_COMPLETED_COURSES_QUERY = gql`
       _id
       courseId
       userId
-      completed
-      currentChapter
-      currentLevel
+      isCompleted
+      completedAt
+      totalChapters
+      completedChapters
+      totalLevels
+      completedLevels
       totalScore
-      totalMaxScore
+      totalStars
+      totalTimeSpent
       createdAt
       updatedAt
+    }
+  }
+`;
+
+// ==================== Stats Module ====================
+
+export const GET_MY_STATS_QUERY = gql`
+  query MyStats {
+    myStats {
+      totalCoursesCompleted
+      totalLevelsCompleted
+      totalTimeSpent
+      totalLivesLost
+      totalStarsEarned
+      totalScore
+      currentSteak
+      longestStreak
+      categoriesStats {
+        category
+        coursesCompleted
+        levelsCompleted
+        totalStars
+        totalScore
+      }
+      dailyActivity {
+        date
+        levelsCompleted
+        timeSpent
+        starsEarned
+        score
+      }
     }
   }
 `;
@@ -419,9 +446,9 @@ export const GET_ME_QUERY = gql`
   query Me {
     me {
       _id
+      username
       email
       displayName
-      username
       isEmailVerified
       avatarId
       createdAt

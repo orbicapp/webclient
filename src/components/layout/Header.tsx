@@ -23,7 +23,7 @@ export function Header() {
           <div className="flex items-center md:hidden">
             <RocketIcon className="w-7 h-7 text-primary-600" />
             <span className="text-xl font-bold ml-2 bg-gradient-to-r from-primary-600 to-primary-800 bg-clip-text text-transparent">
-              Orbicat
+              Orbic
             </span>
           </div>
 

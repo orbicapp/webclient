@@ -14,6 +14,7 @@ interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   fullWidth?: boolean;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   as?: any; // For polymorphic components
+  to?: string;
 }
 
 const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(

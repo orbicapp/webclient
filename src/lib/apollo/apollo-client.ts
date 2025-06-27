@@ -15,7 +15,7 @@ import { RetryLink } from "@apollo/client/link/retry";
 
 import { crossTabSync } from "../cross-tab-sync";
 import { logger } from "../logger";
-import { AuthService } from "../services/auth-service";
+import { AuthService } from "../../services/auth-service";
 import { LocalStorage } from "../storage/local-storage";
 
 class ApolloClientManager {

@@ -35,7 +35,7 @@ export function AuthLayout() {
                 animate={{ y: 0, opacity: 1 }}
                 transition={{ delay: 0.1, duration: 0.5 }}
               >
-                Orbicat
+                Orbic
               </motion.h1>
               <motion.p
                 className="mt-2 text-sm text-gray-600"
@@ -79,7 +79,7 @@ export function AuthLayout() {
             >
               <div className="bg-white/10 backdrop-blur-lg rounded-3xl p-8 shadow-2xl">
                 <h2 className="text-2xl font-bold text-white mb-4">
-                  Welcome to Orbicat!
+                  Welcome to Orbic!
                 </h2>
                 <p className="text-white/90 mb-6">
                   Embark on a journey of discovery with our gamified learning

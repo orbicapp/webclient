@@ -1,6 +1,6 @@
-import { apolloClient } from "../apollo/apollo-client";
-import { GET_ME_QUERY } from "../graphql";
-import { formatResult } from "../utils/service.utils";
+import { apolloClient } from "../lib/apollo/apollo-client";
+import { GET_ME_QUERY } from "../lib/graphql";
+import { formatResult } from "../lib/utils/service.utils";
 
 // DTOs
 export interface User {

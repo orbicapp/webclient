@@ -1,5 +1,5 @@
 import { logger } from "../logger";
-import { StorageKeys } from "./local-keys";
+import { LocalKeys } from "./local-keys";
 
 export class LocalStorage {
   /**
@@ -11,9 +11,9 @@ export class LocalStorage {
     sessionId: string
   ): void {
     try {
-      localStorage.setItem(StorageKeys.ACCESS_TOKEN, accessToken);
-      localStorage.setItem(StorageKeys.REFRESH_TOKEN, refreshToken);
-      localStorage.setItem(StorageKeys.SESSION_ID, sessionId);
+      localStorage.setItem(LocalKeys.ACCESS_TOKEN, accessToken);
+      localStorage.setItem(LocalKeys.REFRESH_TOKEN, refreshToken);
+      localStorage.setItem(LocalKeys.SESSION_ID, sessionId);
 
       logger.debug("Auth tokens stored successfully", {
         hasAccessToken: !!accessToken,
@@ -36,9 +36,9 @@ export class LocalStorage {
   } {
     try {
       const tokens = {
-        accessToken: localStorage.getItem(StorageKeys.ACCESS_TOKEN),
-        refreshToken: localStorage.getItem(StorageKeys.REFRESH_TOKEN),
-        sessionId: localStorage.getItem(StorageKeys.SESSION_ID),
+        accessToken: localStorage.getItem(LocalKeys.ACCESS_TOKEN),
+        refreshToken: localStorage.getItem(LocalKeys.REFRESH_TOKEN),
+        sessionId: localStorage.getItem(LocalKeys.SESSION_ID),
       };
 
       logger.debug("Retrieved auth tokens from localStorage", {
@@ -64,9 +64,9 @@ export class LocalStorage {
   static clearAuthData(): void {
     try {
       const keysToRemove = [
-        StorageKeys.ACCESS_TOKEN,
-        StorageKeys.REFRESH_TOKEN,
-        StorageKeys.SESSION_ID,
+        LocalKeys.ACCESS_TOKEN,
+        LocalKeys.REFRESH_TOKEN,
+        LocalKeys.SESSION_ID,
       ];
 
       keysToRemove.forEach((key) => {
@@ -84,7 +84,7 @@ export class LocalStorage {
    */
   static setLastSync(timestamp: Date): void {
     try {
-      localStorage.setItem(StorageKeys.LAST_SYNC, timestamp.toISOString());
+      localStorage.setItem(LocalKeys.LAST_SYNC, timestamp.toISOString());
     } catch (error) {
       logger.error("Failed to store last sync timestamp:", error);
     }
@@ -95,7 +95,7 @@ export class LocalStorage {
    */
   static getLastSync(): Date | null {
     try {
-      const timestamp = localStorage.getItem(StorageKeys.LAST_SYNC);
+      const timestamp = localStorage.getItem(LocalKeys.LAST_SYNC);
       return timestamp ? new Date(timestamp) : null;
     } catch (error) {
       logger.error("Failed to retrieve last sync timestamp:", error);

@@ -1,4 +1,4 @@
-import { StorageKeys } from "@/lib/storage/local-keys";
+import { LocalKeys } from "@/lib/storage/local-keys";
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 
@@ -34,7 +34,7 @@ export const useSettingsStore = create<SettingsState>()(
         set((state) => ({ sidebarOpen: !state.sidebarOpen })),
     }),
     {
-      name: StorageKeys.PREFERENCES,
+      name: LocalKeys.PREFERENCES,
       onRehydrateStorage: (state) => {
         // Apply theme on page load
         if (state?.theme === "dark") {

@@ -40,7 +40,7 @@ export function Sidebar() {
         <RocketIcon className="w-8 h-8 text-primary-600" />
         {sidebarOpen && (
           <span className="text-2xl font-bold ml-2 bg-gradient-to-r from-primary-600 to-primary-800 bg-clip-text text-transparent">
-            Orbicat
+            Orbic
           </span>
         )}
       </div>

@@ -189,16 +189,19 @@ export const START_LEVEL_MUTATION = gql`
   mutation StartLevel($input: StartGameSessionInput!) {
     startLevel(input: $input) {
       _id
-      levelId
-      chapterId
+      userId
       courseId
-      status
+      chapterId
+      levelId
+      lives
       startTime
+      endTime
+      status
+      stars
       score
       maxScore
-      stars
-      lives
-      currentQuestionIndex
+      createdAt
+      updatedAt
     }
   }
 `;
@@ -208,21 +211,8 @@ export const SUBMIT_ANSWER_MUTATION = gql`
     submitAnswer(input: $input) {
       isCorrect
       livesRemaining
-      isLastQuestion
-      nextQuestionIndex
       correctAnswer
-    }
-  }
-`;
-
-export const SKIP_QUESTION_MUTATION = gql`
-  mutation SkipQuestion($sessionId: String!) {
-    skipQuestion(sessionId: $sessionId) {
-      isCorrect
-      livesRemaining
       isLastQuestion
-      nextQuestionIndex
-      correctAnswer
     }
   }
 `;

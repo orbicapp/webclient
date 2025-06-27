@@ -1,7 +1,7 @@
 import { create } from "zustand";
 import { devtools } from "zustand/middleware";
 
-import { User } from "@/lib/services/user-service";
+import { User } from "@/services/user-service";
 
 interface AuthState {
   user: User | null;

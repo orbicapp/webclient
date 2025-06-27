@@ -1,4 +1,4 @@
-export const StorageKeys = {
+export const LocalKeys = {
   ACCESS_TOKEN: "orbic:auth:accessToken",
   REFRESH_TOKEN: "orbic:auth:refreshToken",
   SESSION_ID: "orbic:auth:sessionId",

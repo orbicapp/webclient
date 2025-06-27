@@ -1,9 +1,9 @@
 import { useEffect, useState } from "react";
 
 import { logger } from "@/lib/logger";
-import { AuthService } from "@/lib/services/auth-service";
-import { SessionService } from "@/lib/services/session-service";
-import { User, UserService } from "@/lib/services/user-service";
+import { AuthService } from "@/services/auth-service";
+import { SessionService } from "@/services/session-service";
+import { User, UserService } from "@/services/user-service";
 import { LocalStorage } from "@/lib/storage/local-storage";
 import { useAuthStore } from "@/stores/auth-store";
 
@@ -53,6 +53,7 @@ export const useAuth = (): UseAuthReturn => {
       // If there are no tokens, set initialized to true
       if (!tokens.accessToken || !tokens.refreshToken || !tokens.sessionId) {
         setInitialized(true);
+        setIsLoading(false);
         return;
       }
 

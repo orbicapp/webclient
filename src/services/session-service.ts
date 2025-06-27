@@ -1,6 +1,6 @@
-import { apolloClient } from "../apollo/apollo-client";
-import { LOGOUT_MUTATION } from "../graphql";
-import { formatResult } from "../utils/service.utils";
+import { apolloClient } from "../lib/apollo/apollo-client";
+import { LOGOUT_MUTATION } from "../lib/graphql";
+import { formatResult } from "../lib/utils/service.utils";
 
 async function logout() {
   const { data, errors } = await apolloClient.mutate<{ logout: boolean }>({

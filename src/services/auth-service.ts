@@ -1,12 +1,12 @@
-import { apolloClient } from "../apollo/apollo-client";
+import { apolloClient } from "../lib/apollo/apollo-client";
 import {
   LOGIN_MUTATION,
   REFRESH_TOKEN_MUTATION,
   REGISTER_MUTATION,
   REQUEST_PASSWORD_RESET_MUTATION,
   VERIFY_EMAIL_MUTATION,
-} from "../graphql";
-import { formatResult } from "../utils/service.utils";
+} from "../lib/graphql";
+import { formatResult } from "../lib/utils/service.utils";
 import { User } from "./user-service";
 
 // DTOs (Outputs)

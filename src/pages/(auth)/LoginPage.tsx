@@ -7,7 +7,7 @@ import { Link, useNavigate } from "react-router-dom";
 import Button from "@/components/ui/Button";
 import Input from "@/components/ui/Input";
 import { useAuth } from "@/hooks/use-auth";
-import { AuthService, LoginInput } from "@/lib/services/auth-service";
+import { AuthService, LoginInput } from "@/services/auth-service";
 
 export function LoginPage() {
   const navigate = useNavigate();

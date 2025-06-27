@@ -5,9 +5,11 @@ import { Route, Routes, useLocation } from "react-router-dom";
 import { useAuth } from "./hooks/use-auth";
 import { AuthLayout } from "./layouts/AuthLayout";
 import { MainLayout } from "./layouts/MainLayout";
-import { DashboardPage } from "./pages/(app)/Dashboardage";
+import { DashboardPage } from "./pages/(app)/DashboardPage";
 import { LoginPage } from "./pages/(auth)/LoginPage";
 import { NotFoundPage } from "./pages/(misc)/NotFoundPage";
+import CourseDetailPage from "./pages/(app)/(courses)/CourseDetailPage";
+import { CourseListPage } from "./pages/(app)/(courses)/CourseListPage.tsx";
 
 function App() {
   const location = useLocation();
@@ -27,7 +29,7 @@ function App() {
           <div className="h-16 w-16 flex items-center justify-center rounded-full bg-gradient-to-br from-primary-600 to-primary-800 p-2 mx-auto mb-4">
             <Rocket size={30} className="text-white" />
           </div>
-          <h1 className="text-2xl font-bold text-primary-900 mb-2">Orbicat</h1>
+          <h1 className="text-2xl font-bold text-primary-900 mb-2">Orbic</h1>
           <div className="flex items-center justify-center space-x-2 text-gray-600">
             <Loader2 className="w-4 h-4 animate-spin" />
             <span>Loading...</span>
@@ -48,6 +50,8 @@ function App() {
         {/* Main App Routes */}
         <Route element={<MainLayout />}>
           <Route path="/" element={<DashboardPage />} />
+          <Route path="/courses" element={<CourseListPage />} />
+          <Route path="/course/:courseId" element={<CourseDetailPage />} />
         </Route>
 
         {/* Catch-all Not Found Route */}
