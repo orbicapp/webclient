@@ -9,6 +9,8 @@ import {
   SettingsIcon,
   UserIcon,
   UsersIcon,
+  TrophyIcon,
+  StarIcon,
 } from "lucide-react";
 
 export interface NavItem {
@@ -25,7 +27,7 @@ export interface NavCategory {
 
 export const navCategories: NavCategory[] = [
   {
-    title: "Dashboard",
+    title: "Main",
     items: [
       {
         name: "Overview",
@@ -40,10 +42,10 @@ export const navCategories: NavCategory[] = [
         mobile: true,
       },
       {
-        name: "Profile",
-        path: "/profile",
-        icon: <UserIcon className="w-5 h-5" />,
-        mobile: true,
+        name: "Achievements",
+        path: "/achievements",
+        icon: <TrophyIcon className="w-5 h-5" />,
+        mobile: false,
       },
     ],
   },
@@ -60,11 +62,36 @@ export const navCategories: NavCategory[] = [
         name: "Create",
         path: "/courses/create",
         icon: <PlusCircleIcon className="w-5 h-5" />,
+        mobile: false,
+      },
+      {
+        name: "Leaderboard",
+        path: "/leaderboard",
+        icon: <StarIcon className="w-5 h-5" />,
+        mobile: false,
       },
       {
         name: "Resources",
         path: "/resources",
         icon: <FileTextIcon className="w-5 h-5" />,
+        mobile: false,
+      },
+    ],
+  },
+  {
+    title: "Social",
+    items: [
+      {
+        name: "Friends",
+        path: "/friends",
+        icon: <UsersIcon className="w-5 h-5" />,
+        mobile: false,
+      },
+      {
+        name: "Groups",
+        path: "/groups",
+        icon: <UsersIcon className="w-5 h-5" />,
+        mobile: false,
       },
     ],
   },
@@ -72,9 +99,10 @@ export const navCategories: NavCategory[] = [
     title: "Account",
     items: [
       {
-        name: "Groups & Family",
-        path: "/social",
-        icon: <UsersIcon className="w-5 h-5" />,
+        name: "Profile",
+        path: "/profile",
+        icon: <UserIcon className="w-5 h-5" />,
+        mobile: true,
       },
       {
         name: "Settings",
@@ -86,11 +114,13 @@ export const navCategories: NavCategory[] = [
         name: "Help",
         path: "/help",
         icon: <HelpCircleIcon className="w-5 h-5" />,
+        mobile: false,
       },
       {
         name: "Logout",
         path: "/logout",
         icon: <LogOutIcon className="w-5 h-5" />,
+        mobile: false,
       },
     ],
   },
