@@ -164,7 +164,7 @@ export function CourseDetailPage() {
 
       <div className="max-w-4xl mx-auto px-4 py-8 relative z-10">
 
-        {levels.length}
+        {chapters.length}
         {/* Course Header */}
         <motion.div
           initial={{ opacity: 0, y: -50 }}
