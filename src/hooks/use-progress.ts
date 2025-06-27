@@ -1,7 +1,12 @@
 import { useEffect, useState } from "react";
 
-import { CourseProgress, ProgressService } from "@/services/progress-service";
+import { 
+  CourseProgress, 
+  CourseWithProgress, 
+  ProgressService 
+} from "@/services/progress-service";
 import { useProgressStore } from "@/stores/progress-store";
+import { useCourseStore } from "@/stores/course-store";
 
 /**
  * Hook to fetch and cache course progress
@@ -52,14 +57,15 @@ export const useCourseProgress = (
 };
 
 /**
- * Hook to fetch and cache playing courses
+ * Hook to fetch and cache courses with progress (replaces usePlayingCourses)
  */
-export const usePlayingCourses = (): [
+export const useCoursesWithProgress = (): [
   boolean,
-  CourseProgress[],
+  CourseWithProgress[],
   string | null
 ] => {
   const { getPlayingCourses, setPlayingCourses } = useProgressStore();
+  const { setCourses } = useCourseStore();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [initialized, setInitialized] = useState(false);
@@ -73,30 +79,46 @@ export const usePlayingCourses = (): [
       return;
     }
 
-    const fetchPlayingCourses = async () => {
+    const fetchCoursesWithProgress = async () => {
       setLoading(true);
       setError(null);
 
-      const [courses, error] = await ProgressService.getMyPlayingCourses();
-      if (courses) {
-        setPlayingCourses(courses);
+      const [coursesWithProgress, error] = await ProgressService.getMyCoursesWithProgress();
+      if (coursesWithProgress) {
+        // Cache courses in course store
+        const courses = coursesWithProgress.map(item => item.course);
+        setCourses(courses);
+
+        // Cache progress in progress store
+        const progressList = coursesWithProgress.map(item => item.progress);
+        setPlayingCourses(progressList);
       } else {
-        setError(error || "Failed to fetch playing courses");
+        setError(error || "Failed to fetch courses with progress");
       }
 
       setLoading(false);
       setInitialized(true);
     };
 
-    fetchPlayingCourses();
-  }, [playingCourses.length, setPlayingCourses]);
+    fetchCoursesWithProgress();
+  }, [playingCourses.length, setPlayingCourses, setCourses]);
 
   // Don't return data until first fetch attempt is complete
   if (!initialized) {
     return [true, [], null];
   }
 
-  return [loading, playingCourses, error];
+  // Combine cached data to return CourseWithProgress[]
+  const coursesWithProgress: CourseWithProgress[] = playingCourses.map(progress => {
+    const { getCourse } = useCourseStore.getState();
+    const course = getCourse(progress.courseId);
+    return {
+      course: course!,
+      progress
+    };
+  }).filter(item => item.course); // Filter out any missing courses
+
+  return [loading, coursesWithProgress, error];
 };
 
 /**
