@@ -39,9 +39,10 @@ export function CourseDetailPage() {
   const headerOpacity = useTransform(scrollY, [0, 300], [1, 0]);
   const headerScale = useTransform(scrollY, [0, 300], [1, 0.8]);
   
-  // Sticky panel transforms
-  const panelScale = useTransform(scrollY, [400, 800], [1, 0.8]);
-  const panelOpacity = useTransform(scrollY, [0, 200], [1, 0.95]);
+  // Sticky panel transforms - More dramatic scaling
+  const panelScale = useTransform(scrollY, [300, 600], [1, 0.7]);
+  const panelHeight = useTransform(scrollY, [300, 600], [1, 0.6]);
+  const panelWidth = useTransform(scrollY, [300, 600], [1, 0.8]);
 
   // Use the custom hook to calculate the level path
   const levelPath = useCoursePath({ 
@@ -184,7 +185,7 @@ export function CourseDetailPage() {
         ))}
       </div>
 
-      {/* Epic Course Header - Full Width */}
+      {/* Epic Course Header - Full Width and Responsive */}
       <motion.div
         className="relative z-10 w-full"
         style={{ opacity: headerOpacity, scale: headerScale }}
@@ -224,10 +225,10 @@ export function CourseDetailPage() {
             ))}
           </div>
 
-          {/* Content */}
+          {/* Content - Properly centered */}
           <div className="relative z-10 h-full flex items-center">
-            <div className="w-full px-4 sm:px-6 lg:px-8">
-              <div className="flex flex-col lg:flex-row items-end justify-between max-w-7xl mx-auto">
+            <div className="w-full px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
+              <div className="flex flex-col lg:flex-row items-end justify-between">
                 <div className="flex-1 mb-8 lg:mb-0">
                   {/* Badges */}
                   <motion.div
@@ -365,69 +366,83 @@ export function CourseDetailPage() {
         </div>
       </motion.div>
 
-      {/* Course Stats Dashboard - Sticky and Responsive */}
+      {/* Course Stats Dashboard - Sticky Floating Island */}
       {levelPath.length > 0 && (
         <motion.div
-          className="sticky top-4 z-40 mx-4 sm:mx-6 lg:mx-8 -mt-16 sm:-mt-20"
+          className="sticky top-4 z-40 flex justify-center px-4"
           style={{ 
             scale: panelScale,
-            opacity: panelOpacity
+            scaleY: panelHeight,
+            scaleX: panelWidth
           }}
           initial={{ opacity: 0, y: 50 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.7 }}
         >
-          <Card variant="glass" className="bg-black/40 backdrop-blur-xl border-white/20 max-w-7xl mx-auto">
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-6 text-center p-3 sm:p-6">
+          <Card variant="glass" className="bg-black/50 backdrop-blur-xl border-white/20 shadow-2xl rounded-2xl overflow-hidden">
+            <div className="grid grid-cols-4 gap-1 sm:gap-3 text-center p-2 sm:p-4">
               <motion.div
                 whileHover={{ scale: 1.05 }}
-                className="p-2 sm:p-4 rounded-xl bg-gradient-to-br from-blue-500/20 to-purple-500/20 border border-blue-500/30"
+                className="p-1 sm:p-3 rounded-lg bg-gradient-to-br from-blue-500/20 to-purple-500/20 border border-blue-500/30"
               >
-                <div className="text-xl sm:text-3xl font-bold text-blue-400 mb-1 sm:mb-2 flex items-center justify-center">
-                  <Target className="w-4 h-4 sm:w-6 sm:h-6 mr-1 sm:mr-2" />
-                  {courseStats.completedLevels}
+                <div className="text-sm sm:text-2xl font-bold text-blue-400 mb-1 flex items-center justify-center">
+                  <Target className="w-3 h-3 sm:w-5 sm:h-5 mr-1" />
+                  <span className="hidden sm:inline">{courseStats.completedLevels}</span>
+                  <span className="sm:hidden">{courseStats.completedLevels}</span>
                 </div>
-                <div className="text-xs sm:text-sm text-gray-300">
+                <div className="text-xs text-gray-300 hidden sm:block">
                   of {courseStats.totalLevels} Levels
                 </div>
+                <div className="text-xs text-gray-300 sm:hidden">
+                  Levels
+                </div>
               </motion.div>
               
               <motion.div
                 whileHover={{ scale: 1.05 }}
-                className="p-2 sm:p-4 rounded-xl bg-gradient-to-br from-purple-500/20 to-pink-500/20 border border-purple-500/30"
+                className="p-1 sm:p-3 rounded-lg bg-gradient-to-br from-purple-500/20 to-pink-500/20 border border-purple-500/30"
               >
-                <div className="text-xl sm:text-3xl font-bold text-purple-400 mb-1 sm:mb-2 flex items-center justify-center">
-                  <Crown className="w-4 h-4 sm:w-6 sm:h-6 mr-1 sm:mr-2" />
-                  {courseStats.completedChapters}
+                <div className="text-sm sm:text-2xl font-bold text-purple-400 mb-1 flex items-center justify-center">
+                  <Crown className="w-3 h-3 sm:w-5 sm:h-5 mr-1" />
+                  <span>{courseStats.completedChapters}</span>
                 </div>
-                <div className="text-xs sm:text-sm text-gray-300">
+                <div className="text-xs text-gray-300 hidden sm:block">
                   of {courseStats.totalChapters} Chapters
                 </div>
+                <div className="text-xs text-gray-300 sm:hidden">
+                  Chapters
+                </div>
               </motion.div>
               
               <motion.div
                 whileHover={{ scale: 1.05 }}
-                className="p-2 sm:p-4 rounded-xl bg-gradient-to-br from-yellow-500/20 to-orange-500/20 border border-yellow-500/30"
+                className="p-1 sm:p-3 rounded-lg bg-gradient-to-br from-yellow-500/20 to-orange-500/20 border border-yellow-500/30"
               >
-                <div className="text-xl sm:text-3xl font-bold text-yellow-400 mb-1 sm:mb-2 flex items-center justify-center">
-                  <Star className="w-4 h-4 sm:w-6 sm:h-6 mr-1 sm:mr-2" />
-                  {courseStats.totalStars}
+                <div className="text-sm sm:text-2xl font-bold text-yellow-400 mb-1 flex items-center justify-center">
+                  <Star className="w-3 h-3 sm:w-5 sm:h-5 mr-1" />
+                  <span>{courseStats.totalStars}</span>
                 </div>
-                <div className="text-xs sm:text-sm text-gray-300">
+                <div className="text-xs text-gray-300 hidden sm:block">
                   of {courseStats.maxPossibleStars} Stars
                 </div>
+                <div className="text-xs text-gray-300 sm:hidden">
+                  Stars
+                </div>
               </motion.div>
               
               <motion.div
                 whileHover={{ scale: 1.05 }}
-                className="p-2 sm:p-4 rounded-xl bg-gradient-to-br from-green-500/20 to-emerald-500/20 border border-green-500/30"
+                className="p-1 sm:p-3 rounded-lg bg-gradient-to-br from-green-500/20 to-emerald-500/20 border border-green-500/30"
               >
-                <div className="text-xl sm:text-3xl font-bold text-green-400 mb-1 sm:mb-2 flex items-center justify-center">
-                  <Zap className="w-4 h-4 sm:w-6 sm:h-6 mr-1 sm:mr-2" />
-                  {courseStats.progressPercentage}%
+                <div className="text-sm sm:text-2xl font-bold text-green-400 mb-1 flex items-center justify-center">
+                  <Zap className="w-3 h-3 sm:w-5 sm:h-5 mr-1" />
+                  <span>{courseStats.progressPercentage}%</span>
                 </div>
-                <div className="text-xs sm:text-sm text-gray-300">
+                <div className="text-xs text-gray-300 hidden sm:block">
                   Complete
+                </div>
+                <div className="text-xs text-gray-300 sm:hidden">
+                  Done
                 </div>
               </motion.div>
             </div>
