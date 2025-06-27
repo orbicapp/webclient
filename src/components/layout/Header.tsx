@@ -1,37 +1,34 @@
 import { useAuth } from "@/hooks/use-auth";
 import { useSettingsStore } from "@/stores/settings-store";
+import { useUserStats } from "@/hooks/use-stats";
 import { useResponsive } from "@/hooks/use-responsive";
 import {
-  ChevronDownIcon,
   MoonIcon,
-  RocketIcon,
   SearchIcon,
   SunIcon,
-  UsersIcon,
   BellIcon,
   MenuIcon,
   XIcon,
   Flame,
   Gem,
-  Zap,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useState } from "react";
-import Avatar from "../ui/Avatar";
 import ProgressRing from "../ui/ProgressRing";
-import Badge from "../ui/Badge";
 
 export function Header() {
-  const { theme, toggleTheme, sidebarOpen, toggleSidebar } = useSettingsStore();
+  const { theme, toggleTheme, toggleSidebar } = useSettingsStore();
   const { user } = useAuth();
   const { isMobile } = useResponsive();
   const [showMobileMenu, setShowMobileMenu] = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
 
-  // Mock user stats for gamification
-  const userLevel = 12;
-  const userXP = 2450;
-  const userStreak = 7;
+  // Get real user stats
+  const [statsLoading, stats] = useUserStats();
+
+  // Calculate user level from total score (simple formula)
+  const userLevel = stats ? Math.floor(stats.totalScore / 1000) + 1 : 1;
+  const levelProgress = stats ? ((stats.totalScore % 1000) / 1000) * 100 : 0;
 
   return (
     <>
@@ -72,21 +69,6 @@ export function Header() {
                   <MenuIcon className="w-5 h-5" />
                 </motion.button>
               )}
-
-              {/* Logo - Always visible */}
-              <motion.div 
-                className="flex items-center space-x-3"
-                whileHover={{ scale: 1.02 }}
-              >
-                <div className="w-10 h-10 bg-gradient-to-br from-primary-500 to-accent-500 rounded-2xl flex items-center justify-center shadow-lg">
-                  <RocketIcon className="w-6 h-6 text-white" />
-                </div>
-                {!isMobile && (
-                  <span className="text-2xl font-bold bg-gradient-to-r from-primary-600 to-accent-600 bg-clip-text text-transparent">
-                    Orbic
-                  </span>
-                )}
-              </motion.div>
             </div>
 
             {/* Center Section - Search (Desktop only) */}
@@ -108,7 +90,7 @@ export function Header() {
             {/* Right Section */}
             <div className="flex items-center space-x-2 sm:space-x-4">
               {/* User Stats (Desktop) */}
-              {!isMobile && (
+              {!isMobile && !statsLoading && stats && (
                 <motion.div 
                   className="flex items-center space-x-4 px-4 py-2 bg-gradient-to-r from-primary-50 to-accent-50 dark:from-gray-800 dark:to-gray-700 rounded-2xl border border-primary-200 dark:border-gray-600"
                   whileHover={{ scale: 1.02 }}
@@ -119,7 +101,7 @@ export function Header() {
                       <Flame className="w-4 h-4 text-white" />
                     </div>
                     <div className="text-sm">
-                      <div className="font-bold text-gray-900 dark:text-white">{userStreak}</div>
+                      <div className="font-bold text-gray-900 dark:text-white">{stats.currentStreak}</div>
                       <div className="text-xs text-gray-500 dark:text-gray-400">streak</div>
                     </div>
                   </div>
@@ -130,7 +112,7 @@ export function Header() {
                       <Gem className="w-4 h-4 text-white" />
                     </div>
                     <div className="text-sm">
-                      <div className="font-bold text-gray-900 dark:text-white">{userXP}</div>
+                      <div className="font-bold text-gray-900 dark:text-white">{stats.totalScore}</div>
                       <div className="text-xs text-gray-500 dark:text-gray-400">XP</div>
                     </div>
                   </div>
@@ -196,34 +178,15 @@ export function Header() {
                 </AnimatePresence>
               </div>
 
-              {/* User Profile */}
-              <div className="flex items-center space-x-3">
-                {/* Level Progress Ring */}
-                <ProgressRing progress={75} size={44} strokeWidth={3} variant="neon">
-                  <span className="text-xs font-bold text-gray-900 dark:text-white">{userLevel}</span>
-                </ProgressRing>
-
-                {/* User Info (Desktop) */}
-                {!isMobile && (
-                  <div className="text-right">
-                    <p className="text-sm font-bold text-gray-900 dark:text-white">
-                      {user?.displayName}
-                    </p>
-                    <p className="text-xs text-gray-500 dark:text-gray-400">
-                      Level {userLevel}
-                    </p>
-                  </div>
-                )}
-
-                {/* Avatar */}
-                <Avatar
-                  src={user?.avatarId}
-                  alt={user?.displayName}
-                  size={isMobile ? "md" : "lg"}
-                  variant="gradient"
-                  glow
-                />
-              </div>
+              {/* Level Progress Ring - Only this remains */}
+              <ProgressRing 
+                progress={levelProgress} 
+                size={44} 
+                strokeWidth={3} 
+                variant="neon"
+              >
+                <span className="text-xs font-bold text-gray-900 dark:text-white">{userLevel}</span>
+              </ProgressRing>
             </div>
           </div>
         </div>
@@ -247,17 +210,7 @@ export function Header() {
               transition={{ type: "spring", damping: 25, stiffness: 200 }}
               onClick={(e) => e.stopPropagation()}
             >
-              {/* Mobile menu content will be handled by the sidebar component */}
               <div className="p-6">
-                <div className="flex items-center space-x-3 mb-8">
-                  <div className="w-12 h-12 bg-gradient-to-br from-primary-500 to-accent-500 rounded-2xl flex items-center justify-center shadow-lg">
-                    <RocketIcon className="w-7 h-7 text-white" />
-                  </div>
-                  <span className="text-2xl font-bold bg-gradient-to-r from-primary-600 to-accent-600 bg-clip-text text-transparent">
-                    Orbic
-                  </span>
-                </div>
-
                 {/* Mobile search */}
                 <div className="relative mb-6">
                   <div className="absolute inset-y-0 left-0 flex items-center pl-4 pointer-events-none">
@@ -271,31 +224,33 @@ export function Header() {
                 </div>
 
                 {/* Mobile user stats */}
-                <div className="grid grid-cols-2 gap-4 mb-6">
-                  <div className="p-4 bg-gradient-to-r from-orange-50 to-red-50 dark:from-gray-800 dark:to-gray-700 rounded-2xl border border-orange-200 dark:border-gray-600">
-                    <div className="flex items-center space-x-3">
-                      <div className="w-10 h-10 bg-gradient-to-r from-orange-400 to-red-500 rounded-xl flex items-center justify-center">
-                        <Flame className="w-5 h-5 text-white" />
-                      </div>
-                      <div>
-                        <div className="font-bold text-gray-900 dark:text-white">{userStreak}</div>
-                        <div className="text-xs text-gray-500 dark:text-gray-400">day streak</div>
+                {!statsLoading && stats && (
+                  <div className="grid grid-cols-2 gap-4 mb-6">
+                    <div className="p-4 bg-gradient-to-r from-orange-50 to-red-50 dark:from-gray-800 dark:to-gray-700 rounded-2xl border border-orange-200 dark:border-gray-600">
+                      <div className="flex items-center space-x-3">
+                        <div className="w-10 h-10 bg-gradient-to-r from-orange-400 to-red-500 rounded-xl flex items-center justify-center">
+                          <Flame className="w-5 h-5 text-white" />
+                        </div>
+                        <div>
+                          <div className="font-bold text-gray-900 dark:text-white">{stats.currentStreak}</div>
+                          <div className="text-xs text-gray-500 dark:text-gray-400">day streak</div>
+                        </div>
                       </div>
                     </div>
-                  </div>
 
-                  <div className="p-4 bg-gradient-to-r from-yellow-50 to-orange-50 dark:from-gray-800 dark:to-gray-700 rounded-2xl border border-yellow-200 dark:border-gray-600">
-                    <div className="flex items-center space-x-3">
-                      <div className="w-10 h-10 bg-gradient-to-r from-yellow-400 to-orange-500 rounded-xl flex items-center justify-center">
-                        <Gem className="w-5 h-5 text-white" />
-                      </div>
-                      <div>
-                        <div className="font-bold text-gray-900 dark:text-white">{userXP}</div>
-                        <div className="text-xs text-gray-500 dark:text-gray-400">total XP</div>
+                    <div className="p-4 bg-gradient-to-r from-yellow-50 to-orange-50 dark:from-gray-800 dark:to-gray-700 rounded-2xl border border-yellow-200 dark:border-gray-600">
+                      <div className="flex items-center space-x-3">
+                        <div className="w-10 h-10 bg-gradient-to-r from-yellow-400 to-orange-500 rounded-xl flex items-center justify-center">
+                          <Gem className="w-5 h-5 text-white" />
+                        </div>
+                        <div>
+                          <div className="font-bold text-gray-900 dark:text-white">{stats.totalScore}</div>
+                          <div className="text-xs text-gray-500 dark:text-gray-400">total XP</div>
+                        </div>
                       </div>
                     </div>
                   </div>
-                </div>
+                )}
               </div>
             </motion.div>
           </motion.div>
