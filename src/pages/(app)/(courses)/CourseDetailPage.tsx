@@ -48,7 +48,7 @@ export function CourseDetailPage() {
   const { scrollY } = useScroll();
   const pathOffset = useTransform(scrollY, [0, 2000], [0, 100]);
 
-  if (loading || levelsLoading || chaptersLoading || progressLoading) {
+  if (loading || levelsLoading || chaptersLoading ) {
     return (
       <div className="min-h-screen bg-gradient-to-b from-primary-50 via-background to-accent-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900">
         <div className="max-w-4xl mx-auto px-4 py-8">
