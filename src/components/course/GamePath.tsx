@@ -14,7 +14,6 @@ import {
   Sparkles,
   Shield,
   Gem,
-  Rocket
 } from "lucide-react";
 
 import { LevelWithChapter } from "@/hooks/use-course-path";
