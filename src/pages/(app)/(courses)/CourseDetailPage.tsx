@@ -20,23 +20,13 @@ import { useCourse } from "@/hooks/use-course";
 import { useCourseLevels } from "@/hooks/use-level";
 import { useCourseChapters } from "@/hooks/use-chapter";
 import { useCourseProgress } from "@/hooks/use-progress";
-import { Level } from "@/services/level-service";
-import { Chapter } from "@/services/chapter-service";
+import { useCoursePath, useCourseStats } from "@/hooks/use-course-path";
 import { Card } from "@/components/ui/Card";
 import Badge from "@/components/ui/Badge";
 import Button from "@/components/ui/Button";
 import ProgressRing from "@/components/ui/ProgressRing";
 import { cn } from "@/lib/utils/class.utils";
 import { formatDate } from "@/lib/utils/class.utils";
-
-interface LevelWithChapter extends Level {
-  chapter: Chapter;
-  isChapterEnd: boolean;
-  levelIndex: number;
-  isCompleted: boolean;
-  isUnlocked: boolean;
-  stars: number;
-}
 
 export function CourseDetailPage() {
   const { courseId } = useParams<{ courseId: string }>();
@@ -47,6 +37,16 @@ export function CourseDetailPage() {
 
   const { scrollY } = useScroll();
   const pathOffset = useTransform(scrollY, [0, 2000], [0, 100]);
+
+  // Use the custom hook to calculate the level path
+  const levelPath = useCoursePath({ 
+    chapters: chapters || [], 
+    levels: levels || [], 
+    progress 
+  });
+
+  // Get course statistics
+  const courseStats = useCourseStats(levelPath);
 
   if (loading || levelsLoading || chaptersLoading || progressLoading) {
     return (
@@ -106,46 +106,8 @@ export function CourseDetailPage() {
   console.log("Chapters:", chapters);
   console.log("Levels:", levels);
   console.log("Progress:", progress);
-
-  // Combine levels with their chapters and create the path
-  const levelPath: LevelWithChapter[] = [];
-  let levelIndex = 0;
-
-  if (chapters && chapters.length > 0 && levels && levels.length > 0) {
-    chapters
-      .sort((a, b) => a.order - b.order)
-      .forEach((chapter) => {
-        const chapterLevels = levels
-          .filter((level) => level.chapterId === chapter._id)
-          .sort((a, b) => a.order - b.order);
-
-        chapterLevels.forEach((level, index) => {
-          const isChapterEnd = index === chapterLevels.length - 1;
-          const isCompleted = progress?.levelProgress?.some(
-            (lp) => lp.levelId === level._id && lp.completed
-          ) || false;
-          const isUnlocked = levelIndex === 0 || levelPath[levelIndex - 1]?.isCompleted || false;
-          const levelProgress = progress?.levelProgress?.find(
-            (lp) => lp.levelId === level._id
-          );
-          const stars = levelProgress?.score ? Math.min(3, Math.floor(levelProgress.score / 33.33)) : 0;
-
-          levelPath.push({
-            ...level,
-            chapter,
-            isChapterEnd,
-            levelIndex,
-            isCompleted,
-            isUnlocked,
-            stars,
-          });
-          levelIndex++;
-        });
-      });
-  }
-
-  const courseProgress = progress ? 
-    Math.round((progress.completedLevels / progress.totalLevels) * 100) : 0;
+  console.log("Level Path:", levelPath);
+  console.log("Course Stats:", courseStats);
 
   const thumbnailUrl = course.thumbnailId 
     ? `https://images.pexels.com/photos/${course.thumbnailId}/pexels-photo-${course.thumbnailId}.jpeg?auto=compress&cs=tinysrgb&w=1200&h=400&fit=crop`
@@ -198,10 +160,10 @@ export function CourseDetailPage() {
                     {course.category}
                   </Badge>
                   <Badge variant="outline" size="sm" className="text-white border-white/50">
-                    {course.chaptersCount} Chapters
+                    {courseStats.totalChapters} Chapters
                   </Badge>
                   <Badge variant="outline" size="sm" className="text-white border-white/50">
-                    {levels?.length || 0} Levels
+                    {courseStats.totalLevels} Levels
                   </Badge>
                 </div>
                 
@@ -233,14 +195,14 @@ export function CourseDetailPage() {
           {/* Progress Ring */}
           <div className="absolute top-8 right-8">
             <ProgressRing 
-              progress={courseProgress} 
+              progress={courseStats.progressPercentage} 
               size={100} 
               strokeWidth={8}
-              glow={courseProgress > 50}
-              variant={courseProgress > 75 ? "rainbow" : "neon"}
+              glow={courseStats.progressPercentage > 50}
+              variant={courseStats.progressPercentage > 75 ? "rainbow" : "neon"}
             >
               <div className="text-center">
-                <div className="text-xl font-bold text-white">{courseProgress}%</div>
+                <div className="text-xl font-bold text-white">{courseStats.progressPercentage}%</div>
                 <div className="text-sm text-gray-200">Complete</div>
               </div>
             </ProgressRing>
@@ -256,12 +218,62 @@ export function CourseDetailPage() {
             <br />
             Chapters: {chapters?.length || 0} | Levels: {levels?.length || 0} | Level Path: {levelPath.length}
             <br />
-            Course ID: {courseId}
+            Course ID: {courseId} | Progress: {courseStats.progressPercentage}%
+            <br />
+            Completed: {courseStats.completedLevels}/{courseStats.totalLevels} levels, {courseStats.completedChapters}/{courseStats.totalChapters} chapters
           </div>
         )}
 
+        {/* Course Stats Summary */}
+        {levelPath.length > 0 && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.3 }}
+            className="mb-8"
+          >
+            <Card variant="gradient" className="bg-gradient-to-r from-primary-500/10 to-accent-500/10 border-primary-200 dark:border-primary-700">
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
+                <div>
+                  <div className="text-2xl font-bold text-primary-600 dark:text-primary-400">
+                    {courseStats.completedLevels}
+                  </div>
+                  <div className="text-sm text-gray-600 dark:text-gray-400">
+                    of {courseStats.totalLevels} Levels
+                  </div>
+                </div>
+                <div>
+                  <div className="text-2xl font-bold text-accent-600 dark:text-accent-400">
+                    {courseStats.completedChapters}
+                  </div>
+                  <div className="text-sm text-gray-600 dark:text-gray-400">
+                    of {courseStats.totalChapters} Chapters
+                  </div>
+                </div>
+                <div>
+                  <div className="text-2xl font-bold text-yellow-600 dark:text-yellow-400 flex items-center justify-center">
+                    <Star className="w-5 h-5 mr-1" />
+                    {courseStats.totalStars}
+                  </div>
+                  <div className="text-sm text-gray-600 dark:text-gray-400">
+                    of {courseStats.maxPossibleStars} Stars
+                  </div>
+                </div>
+                <div>
+                  <div className="text-2xl font-bold text-secondary-600 dark:text-secondary-400">
+                    {courseStats.progressPercentage}%
+                  </div>
+                  <div className="text-sm text-gray-600 dark:text-gray-400">
+                    Complete
+                  </div>
+                </div>
+              </div>
+            </Card>
+          </motion.div>
+        )}
+
         {/* Show message if no chapters/levels */}
-        {(!chapters || chapters.length === 0) && (!levels || levels.length === 0) ? (
+        {levelPath.length === 0 ? (
           <Card className="text-center py-12">
             <div className="w-16 h-16 bg-gray-100 dark:bg-gray-800 rounded-full flex items-center justify-center mx-auto mb-4">
               <BookOpen className="w-8 h-8 text-gray-400" />
@@ -464,7 +476,7 @@ export function CourseDetailPage() {
             </div>
 
             {/* Course Completion Celebration */}
-            {courseProgress === 100 && (
+            {courseStats.isCompleted && (
               <motion.div
                 initial={{ opacity: 0, scale: 0 }}
                 animate={{ opacity: 1, scale: 1 }}
