@@ -237,7 +237,7 @@ export function CourseDetailPage() {
         <div className="relative">
           {/* Animated Path Line */}
           <motion.div
-            className="absolute left-8 top-0 bottom-0 w-1 bg-gradient-to-b from-primary-500 via-purple-500 to-accent-500 rounded-full shadow-lg shadow-primary-500/50"
+            className=" w-1 bg-gradient-to-b from-primary-500 via-purple-500 to-accent-500 rounded-full shadow-lg shadow-primary-500/50"
             style={{
               background: `linear-gradient(to bottom, 
                 #A042FF 0%, 
