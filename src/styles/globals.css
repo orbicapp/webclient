@@ -100,6 +100,100 @@
   .badge-accent {
     @apply badge bg-accent-100 dark:bg-accent-900 text-accent-800 dark:text-accent-200;
   }
+
+  /* Game-specific styles */
+  .game-path {
+    @apply relative overflow-hidden;
+  }
+
+  .level-node {
+    @apply relative w-16 h-16 rounded-full flex items-center justify-center shadow-2xl transition-all duration-300 cursor-pointer;
+  }
+
+  .level-node-completed {
+    @apply bg-gradient-to-br from-emerald-400 to-green-600 shadow-emerald-500/50;
+  }
+
+  .level-node-unlocked {
+    @apply bg-gradient-to-br from-blue-400 to-purple-600 shadow-blue-500/50 hover:scale-110;
+  }
+
+  .level-node-locked {
+    @apply bg-gradient-to-br from-gray-400 to-gray-600 shadow-gray-500/30;
+  }
+
+  .chapter-flag {
+    @apply relative;
+  }
+
+  .floating-particles {
+    @apply absolute inset-0 pointer-events-none;
+  }
+
+  .glow-effect {
+    @apply shadow-lg;
+    filter: drop-shadow(0 0 10px currentColor);
+  }
+
+  .neon-glow {
+    @apply shadow-2xl;
+    box-shadow: 
+      0 0 5px currentColor,
+      0 0 10px currentColor,
+      0 0 15px currentColor,
+      0 0 20px currentColor;
+  }
+
+  .text-glow {
+    text-shadow: 
+      0 0 10px currentColor,
+      0 0 20px currentColor,
+      0 0 30px currentColor;
+  }
+
+  .game-background {
+    background: 
+      radial-gradient(circle at 20% 80%, rgba(120, 119, 198, 0.3) 0%, transparent 50%),
+      radial-gradient(circle at 80% 20%, rgba(255, 119, 198, 0.3) 0%, transparent 50%),
+      radial-gradient(circle at 40% 40%, rgba(120, 219, 255, 0.3) 0%, transparent 50%);
+  }
+
+  .path-segment {
+    @apply transition-all duration-1000 ease-in-out;
+  }
+
+  .achievement-badge {
+    @apply inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold;
+    background: linear-gradient(45deg, #ffd700, #ffed4e);
+    color: #1a1a1a;
+    box-shadow: 0 4px 15px rgba(255, 215, 0, 0.4);
+  }
+
+  .epic-button {
+    @apply relative overflow-hidden;
+    background: linear-gradient(45deg, #667eea 0%, #764ba2 100%);
+    transition: all 0.3s ease;
+  }
+
+  .epic-button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 25px rgba(102, 126, 234, 0.4);
+  }
+
+  .epic-button::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+    transition: left 0.5s;
+  }
+
+  .epic-button:hover::before {
+    left: 100%;
+  }
 }
 
 /* Custom animations */
@@ -115,8 +209,90 @@
   }
 }
 
+@keyframes pulse-glow {
+  0%, 100% {
+    box-shadow: 0 0 5px currentColor;
+  }
+  50% {
+    box-shadow: 0 0 20px currentColor, 0 0 30px currentColor;
+  }
+}
+
+@keyframes sparkle {
+  0%, 100% {
+    opacity: 0;
+    transform: scale(0);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes path-draw {
+  from {
+    stroke-dashoffset: 1000;
+  }
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+@keyframes level-unlock {
+  0% {
+    transform: scale(0) rotate(-180deg);
+    opacity: 0;
+  }
+  50% {
+    transform: scale(1.2) rotate(0deg);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(1) rotate(0deg);
+    opacity: 1;
+  }
+}
+
+@keyframes chapter-complete {
+  0% {
+    transform: scale(1);
+  }
+  25% {
+    transform: scale(1.1) rotate(5deg);
+  }
+  50% {
+    transform: scale(1.2) rotate(-5deg);
+  }
+  75% {
+    transform: scale(1.1) rotate(2deg);
+  }
+  100% {
+    transform: scale(1) rotate(0deg);
+  }
+}
+
 .animate-float {
   animation: float 3s ease-in-out infinite;
+}
+
+.animate-pulse-glow {
+  animation: pulse-glow 2s ease-in-out infinite;
+}
+
+.animate-sparkle {
+  animation: sparkle 1.5s ease-in-out infinite;
+}
+
+.animate-path-draw {
+  animation: path-draw 2s ease-in-out forwards;
+}
+
+.animate-level-unlock {
+  animation: level-unlock 0.8s ease-out forwards;
+}
+
+.animate-chapter-complete {
+  animation: chapter-complete 0.6s ease-out;
 }
 
 /* Progress bar styling */
@@ -142,4 +318,47 @@
 
 ::-webkit-scrollbar-thumb:hover {
   @apply bg-primary-400 dark:bg-primary-600;
+}
+
+/* Game-specific responsive design */
+@media (max-width: 768px) {
+  .game-path {
+    padding: 1rem;
+  }
+  
+  .level-node {
+    @apply w-12 h-12;
+  }
+  
+  .chapter-flag {
+    transform: scale(0.8);
+  }
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+  .level-node-completed {
+    @apply bg-green-600 border-2 border-white;
+  }
+  
+  .level-node-unlocked {
+    @apply bg-blue-600 border-2 border-white;
+  }
+  
+  .level-node-locked {
+    @apply bg-gray-600 border-2 border-white;
+  }
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+  .animate-float,
+  .animate-pulse-glow,
+  .animate-sparkle {
+    animation: none;
+  }
+  
+  .level-node {
+    transition: none;
+  }
 }

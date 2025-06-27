@@ -1,19 +1,17 @@
 import { motion, useScroll, useTransform } from "framer-motion";
 import { useParams } from "react-router-dom";
 import { 
-  Flag, 
-  Star, 
-  Lock, 
-  Play, 
-  CheckCircle, 
-  Trophy, 
-  Zap, 
+  BookOpen,
+  Clock,
+  Users,
+  Star,
+  Trophy,
+  Zap,
   Crown,
   Target,
   Flame,
-  BookOpen,
-  Clock,
-  Users
+  Shield,
+  Gem
 } from "lucide-react";
 
 import { useCourse } from "@/hooks/use-course";
@@ -25,6 +23,7 @@ import { Card } from "@/components/ui/Card";
 import Badge from "@/components/ui/Badge";
 import Button from "@/components/ui/Button";
 import ProgressRing from "@/components/ui/ProgressRing";
+import { GamePath } from "@/components/course/GamePath";
 import { cn } from "@/lib/utils/class.utils";
 import { formatDate } from "@/lib/utils/class.utils";
 
@@ -36,7 +35,8 @@ export function CourseDetailPage() {
   const [progressLoading, progress] = useCourseProgress(courseId!);
 
   const { scrollY } = useScroll();
-  const pathOffset = useTransform(scrollY, [0, 2000], [0, 100]);
+  const headerOpacity = useTransform(scrollY, [0, 300], [1, 0]);
+  const headerScale = useTransform(scrollY, [0, 300], [1, 0.8]);
 
   // Use the custom hook to calculate the level path
   const levelPath = useCoursePath({ 
@@ -48,31 +48,67 @@ export function CourseDetailPage() {
   // Get course statistics
   const courseStats = useCourseStats(levelPath);
 
+  const handleLevelClick = (level: any) => {
+    console.log("Level clicked:", level);
+    // TODO: Navigate to level or start game session
+  };
+
   if (loading || levelsLoading || chaptersLoading || progressLoading) {
     return (
-      <div className="min-h-screen bg-gradient-to-b from-primary-50 via-background to-accent-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900">
-        {/* Full width banner skeleton */}
-        <div className="w-full h-64 bg-gradient-to-r from-gray-200 to-gray-300 dark:from-gray-700 dark:to-gray-600 animate-pulse mb-8"></div>
-        
-        <div className="max-w-4xl mx-auto px-4 py-8">
-          {/* Content Skeleton */}
-          <div className="animate-pulse mb-12">
-            <div className="h-8 bg-gray-200 dark:bg-gray-700 rounded-xl mb-4 w-3/4"></div>
-            <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded-lg w-1/2"></div>
-          </div>
-
-          {/* Path Skeleton */}
-          <div className="space-y-8">
-            {[1, 2, 3, 4, 5].map((i) => (
-              <div key={i} className="flex items-center space-x-6">
-                <div className="w-16 h-16 bg-gray-200 dark:bg-gray-700 rounded-full animate-pulse"></div>
-                <div className="flex-1">
-                  <div className="h-6 bg-gray-200 dark:bg-gray-700 rounded-lg mb-2 w-1/3"></div>
-                  <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded-lg w-2/3"></div>
-                </div>
-              </div>
-            ))}
-          </div>
+      <div className="min-h-screen bg-gradient-to-b from-indigo-900 via-purple-900 to-pink-900">
+        {/* Epic loading screen */}
+        <div className="flex items-center justify-center min-h-screen">
+          <motion.div
+            className="text-center"
+            initial={{ opacity: 0, scale: 0.5 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.8 }}
+          >
+            <motion.div
+              className="w-32 h-32 bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 rounded-full flex items-center justify-center mx-auto mb-8 shadow-2xl shadow-purple-500/50"
+              animate={{
+                rotate: 360,
+                scale: [1, 1.1, 1],
+              }}
+              transition={{
+                rotate: { duration: 2, repeat: Infinity, ease: "linear" },
+                scale: { duration: 1.5, repeat: Infinity },
+              }}
+            >
+              <Rocket className="w-16 h-16 text-white" />
+            </motion.div>
+            
+            <motion.h1
+              className="text-4xl font-bold text-white mb-4"
+              animate={{ opacity: [0.5, 1, 0.5] }}
+              transition={{ duration: 2, repeat: Infinity }}
+            >
+              Loading Adventure...
+            </motion.h1>
+            
+            <motion.div
+              className="flex justify-center space-x-2"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.5 }}
+            >
+              {[0, 1, 2].map((i) => (
+                <motion.div
+                  key={i}
+                  className="w-3 h-3 bg-white rounded-full"
+                  animate={{
+                    scale: [1, 1.5, 1],
+                    opacity: [0.5, 1, 0.5],
+                  }}
+                  transition={{
+                    duration: 1,
+                    repeat: Infinity,
+                    delay: i * 0.2,
+                  }}
+                />
+              ))}
+            </motion.div>
+          </motion.div>
         </div>
       </div>
     );
@@ -80,20 +116,25 @@ export function CourseDetailPage() {
 
   if (error || !course) {
     return (
-      <div className="min-h-screen bg-gradient-to-b from-error-50 to-background dark:from-gray-900 dark:to-gray-800 flex items-center justify-center">
-        <Card className="max-w-md mx-auto text-center">
+      <div className="min-h-screen bg-gradient-to-b from-red-900 via-pink-900 to-purple-900 flex items-center justify-center">
+        <Card className="max-w-md mx-auto text-center" variant="glass">
           <div className="p-8">
-            <div className="w-16 h-16 bg-error-100 dark:bg-error-900/30 rounded-full flex items-center justify-center mx-auto mb-4">
-              <BookOpen className="w-8 h-8 text-error-600 dark:text-error-400" />
-            </div>
-            <h1 className="text-2xl font-bold text-error-600 dark:text-error-400 mb-2">
-              Course Not Found
+            <motion.div
+              className="w-16 h-16 bg-red-500/20 rounded-full flex items-center justify-center mx-auto mb-4"
+              animate={{ scale: [1, 1.1, 1] }}
+              transition={{ duration: 2, repeat: Infinity }}
+            >
+              <BookOpen className="w-8 h-8 text-red-400" />
+            </motion.div>
+            <h1 className="text-2xl font-bold text-red-400 mb-2">
+              Quest Not Found
             </h1>
-            <p className="text-gray-600 dark:text-gray-400 mb-6">
-              {error || "The course you're looking for doesn't exist."}
+            <p className="text-gray-300 mb-6">
+              {error || "The adventure you're looking for doesn't exist."}
             </p>
-            <Button variant="primary" as="a" href="/courses">
-              Browse Courses
+            <Button variant="primary" as="a" href="/courses" glow>
+              <Target className="w-4 h-4 mr-2" />
+              Explore Quests
             </Button>
           </div>
         </Card>
@@ -101,432 +142,375 @@ export function CourseDetailPage() {
     );
   }
 
-  // Debug: Log the data to see what we're getting
-  console.log("=== COURSE DETAIL DEBUG ===");
-  console.log("Course:", course);
-  console.log("Chapters:", chapters?.map(c => ({ id: c._id, title: c.title, order: c.order })));
-  console.log("Levels:", levels?.map(l => ({ id: l._id, title: l.title, chapterId: l.chapterId, order: l.order })));
-  console.log("Progress:", progress);
-  console.log("Level Path:", levelPath);
-  console.log("Course Stats:", courseStats);
-
   const thumbnailUrl = course.thumbnailId 
     ? `https://images.pexels.com/photos/${course.thumbnailId}/pexels-photo-${course.thumbnailId}.jpeg?auto=compress&cs=tinysrgb&w=1200&h=400&fit=crop`
     : `https://images.pexels.com/photos/4144923/pexels-photo-4144923.jpeg?auto=compress&cs=tinysrgb&w=1200&h=400&fit=crop`;
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-primary-50 via-background to-accent-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 relative overflow-hidden">
-      {/* Animated Background Elements */}
+    <div className="min-h-screen bg-gradient-to-b from-indigo-900 via-purple-900 to-pink-900 relative overflow-hidden">
+      {/* Animated background elements */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <motion.div
-          className="absolute top-20 left-10 w-4 h-4 bg-primary-400/30 rounded-full"
-          animate={{ y: [0, -20, 0], opacity: [0.3, 0.7, 0.3] }}
-          transition={{ duration: 3, repeat: Infinity }}
-        />
-        <motion.div
-          className="absolute top-40 right-20 w-6 h-6 bg-accent-400/30 rounded-full"
-          animate={{ y: [0, -30, 0], opacity: [0.3, 0.8, 0.3] }}
-          transition={{ duration: 4, repeat: Infinity, delay: 1 }}
-        />
-        <motion.div
-          className="absolute bottom-40 left-1/4 w-3 h-3 bg-secondary-400/30 rounded-full"
-          animate={{ y: [0, -15, 0], opacity: [0.3, 0.6, 0.3] }}
-          transition={{ duration: 2.5, repeat: Infinity, delay: 2 }}
-        />
+        {/* Floating geometric shapes */}
+        {[...Array(20)].map((_, i) => (
+          <motion.div
+            key={i}
+            className="absolute"
+            style={{
+              left: `${Math.random() * 100}%`,
+              top: `${Math.random() * 100}%`,
+            }}
+            animate={{
+              y: [0, -30, 0],
+              x: [0, Math.random() * 20 - 10, 0],
+              rotate: [0, 360],
+              opacity: [0.1, 0.3, 0.1],
+            }}
+            transition={{
+              duration: 5 + Math.random() * 5,
+              repeat: Infinity,
+              delay: Math.random() * 2,
+            }}
+          >
+            <div className={cn(
+              "w-4 h-4 rounded-full",
+              i % 3 === 0 ? "bg-blue-400/20" : i % 3 === 1 ? "bg-purple-400/20" : "bg-pink-400/20"
+            )} />
+          </motion.div>
+        ))}
       </div>
 
-      {/* Full Width Course Header Banner */}
+      {/* Epic Course Header */}
       <motion.div
-        initial={{ opacity: 0, y: -50 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.8 }}
-        className="w-full mb-12"
+        className="relative z-10"
+        style={{ opacity: headerOpacity, scale: headerScale }}
       >
-        <div className="relative h-80 bg-gradient-to-r from-primary-600 via-purple-600 to-accent-600 overflow-hidden">
-          <img
-            src={thumbnailUrl}
-            alt={course.title}
-            className="w-full h-full object-cover mix-blend-overlay opacity-80"
-          />
+        <div className="relative h-96 overflow-hidden">
+          {/* Background image with overlay */}
+          <div className="absolute inset-0">
+            <img
+              src={thumbnailUrl}
+              alt={course.title}
+              className="w-full h-full object-cover"
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-black via-black/50 to-transparent" />
+            <div className="absolute inset-0 bg-gradient-to-r from-indigo-900/80 via-purple-900/60 to-pink-900/80" />
+          </div>
           
-          {/* Overlay Content */}
-          <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/30 to-transparent">
-            <div className="max-w-4xl mx-auto px-4 h-full flex items-end">
-              <div className="pb-12 text-white w-full">
-                <div className="flex flex-wrap gap-2 mb-4">
-                  <Badge variant="neon" size="sm">
-                    {course.lang.toUpperCase()}
-                  </Badge>
-                  <Badge variant="gradient" size="sm">
-                    {course.category}
-                  </Badge>
-                  <Badge variant="outline" size="sm" className="text-white border-white/50">
-                    {courseStats.totalChapters} Chapters
-                  </Badge>
-                  <Badge variant="outline" size="sm" className="text-white border-white/50">
-                    {courseStats.totalLevels} Levels
-                  </Badge>
-                </div>
-                
-                <h1 className="text-5xl font-bold mb-4 text-shadow-lg">
-                  {course.title}
-                </h1>
-                <p className="text-xl text-gray-200 mb-6 max-w-3xl leading-relaxed">
-                  {course.description}
-                </p>
-                
-                <div className="flex items-center space-x-8 text-sm">
-                  <div className="flex items-center space-x-2">
-                    <Users className="w-5 h-5" />
-                    <span>By {course.author}</span>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <Clock className="w-5 h-5" />
-                    <span>{formatDate(course.createdAt)}</span>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <BookOpen className="w-5 h-5" />
-                    <span>{course.visibility}</span>
-                  </div>
-                </div>
-              </div>
-            </div>
+          {/* Animated particles overlay */}
+          <div className="absolute inset-0">
+            {[...Array(30)].map((_, i) => (
+              <motion.div
+                key={i}
+                className="absolute w-1 h-1 bg-white rounded-full"
+                style={{
+                  left: `${Math.random() * 100}%`,
+                  top: `${Math.random() * 100}%`,
+                }}
+                animate={{
+                  opacity: [0, 1, 0],
+                  scale: [0, 1, 0],
+                }}
+                transition={{
+                  duration: 3,
+                  repeat: Infinity,
+                  delay: Math.random() * 3,
+                }}
+              />
+            ))}
           </div>
 
-          {/* Progress Ring */}
-          <div className="absolute top-8 right-8">
-            <ProgressRing 
-              progress={courseStats.progressPercentage} 
-              size={100} 
-              strokeWidth={8}
-              glow={courseStats.progressPercentage > 50}
-              variant={courseStats.progressPercentage > 75 ? "rainbow" : "neon"}
-            >
-              <div className="text-center">
-                <div className="text-xl font-bold text-white">{courseStats.progressPercentage}%</div>
-                <div className="text-sm text-gray-200">Complete</div>
+          {/* Content */}
+          <div className="relative z-10 h-full flex items-center">
+            <div className="max-w-6xl mx-auto px-6 w-full">
+              <div className="flex items-end justify-between">
+                <div className="flex-1">
+                  {/* Badges */}
+                  <motion.div
+                    className="flex flex-wrap gap-3 mb-6"
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.2 }}
+                  >
+                    <Badge variant="neon" size="md" glow>
+                      <Gem className="w-4 h-4 mr-2" />
+                      {course.lang.toUpperCase()}
+                    </Badge>
+                    <Badge variant="gradient" size="md" glow>
+                      <Shield className="w-4 h-4 mr-2" />
+                      {course.category}
+                    </Badge>
+                    <Badge variant="outline" size="md" className="text-white border-white/50 bg-white/10 backdrop-blur-sm">
+                      <Crown className="w-4 h-4 mr-2" />
+                      {courseStats.totalChapters} Chapters
+                    </Badge>
+                    <Badge variant="outline" size="md" className="text-white border-white/50 bg-white/10 backdrop-blur-sm">
+                      <Target className="w-4 h-4 mr-2" />
+                      {courseStats.totalLevels} Levels
+                    </Badge>
+                  </motion.div>
+                  
+                  {/* Title */}
+                  <motion.h1
+                    className="text-6xl font-bold text-white mb-6 leading-tight"
+                    initial={{ opacity: 0, y: 30 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.3 }}
+                    style={{
+                      textShadow: "0 0 30px rgba(255,255,255,0.5), 0 0 60px rgba(139,92,246,0.3)",
+                    }}
+                  >
+                    {course.title}
+                  </motion.h1>
+                  
+                  {/* Description */}
+                  <motion.p
+                    className="text-xl text-gray-200 mb-8 max-w-3xl leading-relaxed"
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.4 }}
+                  >
+                    {course.description}
+                  </motion.p>
+                  
+                  {/* Meta info */}
+                  <motion.div
+                    className="flex items-center space-x-8 text-sm text-gray-300"
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.5 }}
+                  >
+                    <div className="flex items-center space-x-2">
+                      <Users className="w-5 h-5 text-blue-400" />
+                      <span>By {course.author}</span>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <Clock className="w-5 h-5 text-purple-400" />
+                      <span>{formatDate(course.createdAt)}</span>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <BookOpen className="w-5 h-5 text-pink-400" />
+                      <span className="capitalize">{course.visibility}</span>
+                    </div>
+                  </motion.div>
+                </div>
+
+                {/* Epic Progress Ring */}
+                <motion.div
+                  className="ml-8"
+                  initial={{ opacity: 0, scale: 0 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  transition={{ delay: 0.6, type: "spring" }}
+                >
+                  <div className="relative">
+                    <ProgressRing 
+                      progress={courseStats.progressPercentage} 
+                      size={140} 
+                      strokeWidth={12}
+                      glow={courseStats.progressPercentage > 50}
+                      variant={courseStats.progressPercentage > 75 ? "rainbow" : "neon"}
+                    >
+                      <div className="text-center">
+                        <div className="text-3xl font-bold text-white mb-1">
+                          {courseStats.progressPercentage}%
+                        </div>
+                        <div className="text-sm text-gray-300">Complete</div>
+                        <div className="flex items-center justify-center mt-2">
+                          <Star className="w-4 h-4 text-yellow-400 mr-1" />
+                          <span className="text-sm text-yellow-400 font-semibold">
+                            {courseStats.totalStars}
+                          </span>
+                        </div>
+                      </div>
+                    </ProgressRing>
+                    
+                    {/* Floating achievement icons */}
+                    {courseStats.progressPercentage > 25 && (
+                      <motion.div
+                        className="absolute -top-4 -right-4 w-8 h-8 bg-gradient-to-r from-yellow-400 to-orange-500 rounded-full flex items-center justify-center"
+                        animate={{ 
+                          rotate: [0, 360],
+                          scale: [1, 1.2, 1]
+                        }}
+                        transition={{ 
+                          rotate: { duration: 3, repeat: Infinity },
+                          scale: { duration: 2, repeat: Infinity }
+                        }}
+                      >
+                        <Flame className="w-4 h-4 text-white" />
+                      </motion.div>
+                    )}
+                    
+                    {courseStats.progressPercentage > 75 && (
+                      <motion.div
+                        className="absolute -bottom-4 -left-4 w-8 h-8 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full flex items-center justify-center"
+                        animate={{ 
+                          scale: [1, 1.3, 1],
+                          opacity: [0.8, 1, 0.8]
+                        }}
+                        transition={{ duration: 1.5, repeat: Infinity }}
+                      >
+                        <Trophy className="w-4 h-4 text-white" />
+                      </motion.div>
+                    )}
+                  </div>
+                </motion.div>
               </div>
-            </ProgressRing>
+            </div>
           </div>
         </div>
       </motion.div>
 
-      <div className="max-w-4xl mx-auto px-4 pb-8 relative z-10">
-        {/* Debug Info */}
-        {process.env.NODE_ENV === 'development' && (
-          <div className="mb-8 p-4 bg-yellow-100 dark:bg-yellow-900/20 rounded-lg text-sm">
-            <strong>Debug Info:</strong>
-            <br />
-            Chapters: {chapters?.length || 0} | Levels: {levels?.length || 0} | Level Path: {levelPath.length}
-            <br />
-            Course ID: {courseId} | Progress: {courseStats.progressPercentage}%
-            <br />
-            Completed: {courseStats.completedLevels}/{courseStats.totalLevels} levels, {courseStats.completedChapters}/{courseStats.totalChapters} chapters
-            <br />
-            <strong>Chapter IDs:</strong> {chapters?.map(c => c._id).join(', ')}
-            <br />
-            <strong>Level Chapter IDs:</strong> {levels?.map(l => l.chapterId).join(', ')}
-          </div>
-        )}
-
-        {/* Course Stats Summary */}
-        {levelPath.length > 0 && (
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.3 }}
-            className="mb-8"
-          >
-            <Card variant="gradient" className="bg-gradient-to-r from-primary-500/10 to-accent-500/10 border-primary-200 dark:border-primary-700">
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
-                <div>
-                  <div className="text-2xl font-bold text-primary-600 dark:text-primary-400">
-                    {courseStats.completedLevels}
-                  </div>
-                  <div className="text-sm text-gray-600 dark:text-gray-400">
-                    of {courseStats.totalLevels} Levels
-                  </div>
+      {/* Course Stats Dashboard */}
+      {levelPath.length > 0 && (
+        <motion.div
+          className="relative z-10 -mt-20 mx-6"
+          initial={{ opacity: 0, y: 50 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.7 }}
+        >
+          <Card variant="glass" className="max-w-6xl mx-auto bg-black/40 backdrop-blur-xl border-white/20">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-6 text-center p-6">
+              <motion.div
+                whileHover={{ scale: 1.05 }}
+                className="p-4 rounded-xl bg-gradient-to-br from-blue-500/20 to-purple-500/20 border border-blue-500/30"
+              >
+                <div className="text-3xl font-bold text-blue-400 mb-2 flex items-center justify-center">
+                  <Target className="w-6 h-6 mr-2" />
+                  {courseStats.completedLevels}
                 </div>
-                <div>
-                  <div className="text-2xl font-bold text-accent-600 dark:text-accent-400">
-                    {courseStats.completedChapters}
-                  </div>
-                  <div className="text-sm text-gray-600 dark:text-gray-400">
-                    of {courseStats.totalChapters} Chapters
-                  </div>
+                <div className="text-sm text-gray-300">
+                  of {courseStats.totalLevels} Levels
                 </div>
-                <div>
-                  <div className="text-2xl font-bold text-yellow-600 dark:text-yellow-400 flex items-center justify-center">
-                    <Star className="w-5 h-5 mr-1" />
-                    {courseStats.totalStars}
-                  </div>
-                  <div className="text-sm text-gray-600 dark:text-gray-400">
-                    of {courseStats.maxPossibleStars} Stars
-                  </div>
+              </motion.div>
+              
+              <motion.div
+                whileHover={{ scale: 1.05 }}
+                className="p-4 rounded-xl bg-gradient-to-br from-purple-500/20 to-pink-500/20 border border-purple-500/30"
+              >
+                <div className="text-3xl font-bold text-purple-400 mb-2 flex items-center justify-center">
+                  <Crown className="w-6 h-6 mr-2" />
+                  {courseStats.completedChapters}
                 </div>
-                <div>
-                  <div className="text-2xl font-bold text-secondary-600 dark:text-secondary-400">
-                    {courseStats.progressPercentage}%
-                  </div>
-                  <div className="text-sm text-gray-600 dark:text-gray-400">
-                    Complete
-                  </div>
+                <div className="text-sm text-gray-300">
+                  of {courseStats.totalChapters} Chapters
                 </div>
-              </div>
-            </Card>
-          </motion.div>
-        )}
-
-        {/* Show message if no chapters/levels */}
-        {levelPath.length === 0 ? (
-          <Card className="text-center py-12">
-            <div className="w-16 h-16 bg-gray-100 dark:bg-gray-800 rounded-full flex items-center justify-center mx-auto mb-4">
-              <BookOpen className="w-8 h-8 text-gray-400" />
-            </div>
-            <h3 className="text-lg font-bold text-gray-900 dark:text-gray-100 mb-2">
-              Course Content Coming Soon
-            </h3>
-            <p className="text-gray-600 dark:text-gray-400 mb-4">
-              This course doesn't have any chapters or levels yet.
-            </p>
-            <div className="text-sm text-gray-500 dark:text-gray-500 bg-gray-50 dark:bg-gray-800 p-4 rounded-lg">
-              <strong>Technical Info:</strong><br />
-              Chapters: {chapters?.length || 0}, Levels: {levels?.length || 0}<br />
-              {chapters?.length > 0 && levels?.length > 0 && (
-                <span className="text-red-600 dark:text-red-400">
-                  ⚠️ Data exists but IDs don't match - check server data integrity
-                </span>
-              )}
+              </motion.div>
+              
+              <motion.div
+                whileHover={{ scale: 1.05 }}
+                className="p-4 rounded-xl bg-gradient-to-br from-yellow-500/20 to-orange-500/20 border border-yellow-500/30"
+              >
+                <div className="text-3xl font-bold text-yellow-400 mb-2 flex items-center justify-center">
+                  <Star className="w-6 h-6 mr-2" />
+                  {courseStats.totalStars}
+                </div>
+                <div className="text-sm text-gray-300">
+                  of {courseStats.maxPossibleStars} Stars
+                </div>
+              </motion.div>
+              
+              <motion.div
+                whileHover={{ scale: 1.05 }}
+                className="p-4 rounded-xl bg-gradient-to-br from-green-500/20 to-emerald-500/20 border border-green-500/30"
+              >
+                <div className="text-3xl font-bold text-green-400 mb-2 flex items-center justify-center">
+                  <Zap className="w-6 h-6 mr-2" />
+                  {courseStats.progressPercentage}%
+                </div>
+                <div className="text-sm text-gray-300">
+                  Complete
+                </div>
+              </motion.div>
             </div>
           </Card>
-        ) : (
-          /* Learning Path */
-          <div className="relative">
-            {/* Animated Path Line */}
-            <div className="absolute left-8 top-0 w-1 h-full bg-gradient-to-b from-primary-500 via-purple-500 to-accent-500 rounded-full shadow-lg shadow-primary-500/50"></div>
+        </motion.div>
+      )}
 
-            {/* Animated Path Glow */}
-            <motion.div
-              className="absolute left-7 top-0 w-3 h-full bg-gradient-to-b from-primary-400/50 via-purple-400/50 to-accent-400/50 rounded-full blur-sm"
-              animate={{ opacity: [0.5, 1, 0.5] }}
-              transition={{ duration: 2, repeat: Infinity }}
-            />
-
-            {/* Level Nodes */}
-            <div className="space-y-8 relative z-10">
-              {levelPath.map((level, index) => (
-                <motion.div
-                  key={level._id}
-                  initial={{ opacity: 0, x: -50 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: index * 0.1, duration: 0.6 }}
-                  className="relative"
-                >
-                  {/* Level Node */}
-                  <div className="flex items-center space-x-6">
-                    {/* Node Circle */}
-                    <motion.div
-                      className={cn(
-                        "relative w-16 h-16 rounded-full flex items-center justify-center shadow-lg transition-all duration-300 z-20",
-                        level.isCompleted
-                          ? "bg-gradient-to-br from-success-400 to-success-600 shadow-success-500/50"
-                          : level.isUnlocked
-                          ? "bg-gradient-to-br from-primary-500 to-purple-600 shadow-primary-500/50 hover:scale-110 cursor-pointer"
-                          : "bg-gradient-to-br from-gray-400 to-gray-600 shadow-gray-500/30"
-                      )}
-                      whileHover={level.isUnlocked ? { scale: 1.1 } : {}}
-                      whileTap={level.isUnlocked ? { scale: 0.95 } : {}}
-                    >
-                      {level.isCompleted ? (
-                        <CheckCircle className="w-8 h-8 text-white" />
-                      ) : level.isUnlocked ? (
-                        <Play className="w-8 h-8 text-white" />
-                      ) : (
-                        <Lock className="w-8 h-8 text-white" />
-                      )}
-
-                      {/* Level Number */}
-                      <div className="absolute -top-2 -right-2 w-6 h-6 bg-white dark:bg-gray-800 rounded-full flex items-center justify-center text-xs font-bold text-gray-700 dark:text-gray-300 border-2 border-gray-200 dark:border-gray-600">
-                        {level.levelIndex + 1}
-                      </div>
-
-                      {/* Stars */}
-                      {level.isCompleted && level.stars > 0 && (
-                        <div className="absolute -bottom-2 left-1/2 transform -translate-x-1/2 flex space-x-1">
-                          {[1, 2, 3].map((star) => (
-                            <Star
-                              key={star}
-                              className={cn(
-                                "w-3 h-3",
-                                star <= level.stars
-                                  ? "text-yellow-400 fill-current"
-                                  : "text-gray-300"
-                              )}
-                            />
-                          ))}
-                        </div>
-                      )}
-
-                      {/* Glow Effect for Active Level */}
-                      {level.isUnlocked && !level.isCompleted && (
-                        <motion.div
-                          className="absolute inset-0 rounded-full bg-primary-400/30"
-                          animate={{ scale: [1, 1.3, 1], opacity: [0.5, 0, 0.5] }}
-                          transition={{ duration: 2, repeat: Infinity }}
-                        />
-                      )}
-                    </motion.div>
-
-                    {/* Level Content */}
-                    <div className="flex-1">
-                      <Card 
-                        className={cn(
-                          "transition-all duration-300",
-                          level.isUnlocked ? "hover:shadow-lg cursor-pointer" : "opacity-75"
-                        )}
-                        hoverable={level.isUnlocked}
-                      >
-                        <div className="p-4">
-                          <div className="flex items-start justify-between mb-2">
-                            <div>
-                              <h3 className="text-lg font-bold text-gray-900 dark:text-gray-100 mb-1">
-                                {level.title}
-                              </h3>
-                              <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">
-                                {level.description}
-                              </p>
-                              <div className="flex items-center space-x-2">
-                                <Badge variant="secondary" size="sm">
-                                  {level.chapter.title}
-                                </Badge>
-                                <Badge variant="outline" size="sm">
-                                  {level.questions?.length || 0} Questions
-                                </Badge>
-                              </div>
-                            </div>
-
-                            {level.isUnlocked && (
-                              <Button
-                                variant={level.isCompleted ? "success" : "primary"}
-                                size="sm"
-                                className="shrink-0"
-                              >
-                                {level.isCompleted ? (
-                                  <>
-                                    <Trophy className="w-4 h-4 mr-2" />
-                                    Review
-                                  </>
-                                ) : (
-                                  <>
-                                    <Play className="w-4 h-4 mr-2" />
-                                    Start
-                                  </>
-                                )}
-                              </Button>
-                            )}
-                          </div>
-                        </div>
-                      </Card>
-                    </div>
-                  </div>
-
-                  {/* Chapter End Flag */}
-                  {level.isChapterEnd && (
-                    <motion.div
-                      initial={{ opacity: 0, scale: 0 }}
-                      animate={{ opacity: 1, scale: 1 }}
-                      transition={{ delay: (index * 0.1) + 0.3, duration: 0.5 }}
-                      className="absolute left-12 -bottom-4 z-30"
-                    >
-                      <div className="relative">
-                        {/* Flag Pole */}
-                        <div className="w-1 h-12 bg-gradient-to-b from-yellow-400 to-orange-500 rounded-full shadow-lg"></div>
-                        
-                        {/* Flag */}
-                        <motion.div
-                          className="absolute top-0 left-1 w-16 h-8 bg-gradient-to-r from-yellow-400 to-orange-500 rounded-r-lg shadow-lg flex items-center justify-center"
-                          animate={{ x: [0, 2, 0] }}
-                          transition={{ duration: 2, repeat: Infinity }}
-                        >
-                          <Crown className="w-4 h-4 text-white" />
-                        </motion.div>
-
-                        {/* Chapter Complete Badge */}
-                        <div className="absolute -bottom-8 left-1/2 transform -translate-x-1/2 whitespace-nowrap">
-                          <Badge variant="gradient" size="sm" className="shadow-lg">
-                            <Flag className="w-3 h-3 mr-1" />
-                            Chapter Complete!
-                          </Badge>
-                        </div>
-
-                        {/* Celebration Particles */}
-                        {level.isCompleted && (
-                          <>
-                            <motion.div
-                              className="absolute top-2 -left-2 w-2 h-2 bg-yellow-400 rounded-full"
-                              animate={{ 
-                                y: [0, -20, 0], 
-                                opacity: [1, 0, 1],
-                                scale: [1, 0.5, 1]
-                              }}
-                              transition={{ duration: 2, repeat: Infinity }}
-                            />
-                            <motion.div
-                              className="absolute top-1 -right-2 w-1.5 h-1.5 bg-orange-400 rounded-full"
-                              animate={{ 
-                                y: [0, -15, 0], 
-                                opacity: [1, 0, 1],
-                                scale: [1, 0.5, 1]
-                              }}
-                              transition={{ duration: 1.5, repeat: Infinity, delay: 0.5 }}
-                            />
-                          </>
-                        )}
-                      </div>
-                    </motion.div>
-                  )}
-                </motion.div>
-              ))}
-            </div>
-
-            {/* Course Completion Celebration */}
-            {courseStats.isCompleted && (
+      {/* Game Path */}
+      <div className="relative z-10 mt-12">
+        {levelPath.length === 0 ? (
+          <motion.div
+            className="max-w-4xl mx-auto px-6"
+            initial={{ opacity: 0, y: 50 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.8 }}
+          >
+            <Card variant="glass" className="text-center py-16 bg-black/40 backdrop-blur-xl border-white/20">
               <motion.div
-                initial={{ opacity: 0, scale: 0 }}
-                animate={{ opacity: 1, scale: 1 }}
-                transition={{ delay: 1, duration: 0.8 }}
-                className="mt-12 text-center"
+                className="w-24 h-24 bg-gradient-to-br from-gray-500 to-gray-700 rounded-full flex items-center justify-center mx-auto mb-6"
+                animate={{ 
+                  scale: [1, 1.1, 1],
+                  opacity: [0.7, 1, 0.7]
+                }}
+                transition={{ duration: 2, repeat: Infinity }}
               >
-                <Card variant="gradient" className="bg-gradient-to-r from-yellow-400 via-orange-500 to-red-500 text-white border-0 shadow-2xl shadow-orange-500/50">
-                  <div className="p-8">
-                    <motion.div
-                      animate={{ rotate: [0, 10, -10, 0] }}
-                      transition={{ duration: 2, repeat: Infinity }}
-                      className="w-20 h-20 bg-white/20 rounded-full flex items-center justify-center mx-auto mb-4"
-                    >
-                      <Trophy className="w-12 h-12 text-white" />
-                    </motion.div>
-                    <h2 className="text-3xl font-bold mb-2">Congratulations!</h2>
-                    <p className="text-lg text-white/90 mb-4">
-                      You've completed the entire course!
-                    </p>
-                    <div className="flex items-center justify-center space-x-4">
-                      <Badge variant="neon" size="lg">
-                        <Flame className="w-4 h-4 mr-2" />
-                        Course Master
-                      </Badge>
-                      <Badge variant="outline" size="lg" className="text-white border-white/50">
-                        <Zap className="w-4 h-4 mr-2" />
-                        {progress?.totalScore || 0} XP Earned
-                      </Badge>
-                    </div>
-                  </div>
-                </Card>
+                <BookOpen className="w-12 h-12 text-gray-300" />
               </motion.div>
-            )}
-          </div>
+              <h3 className="text-2xl font-bold text-white mb-4">
+                Adventure Coming Soon
+              </h3>
+              <p className="text-gray-300 mb-6 max-w-md mx-auto">
+                This quest doesn't have any chapters or levels yet. The adventure is being prepared!
+              </p>
+              <Button variant="primary" glow>
+                <Target className="w-4 h-4 mr-2" />
+                Explore Other Quests
+              </Button>
+            </Card>
+          </motion.div>
+        ) : (
+          <GamePath levelPath={levelPath} onLevelClick={handleLevelClick} />
         )}
       </div>
+
+      {/* Course Completion Celebration */}
+      {courseStats.isCompleted && (
+        <motion.div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 2 }}
+        >
+          <motion.div
+            className="text-center"
+            initial={{ scale: 0, rotate: -180 }}
+            animate={{ scale: 1, rotate: 0 }}
+            transition={{ type: "spring", duration: 1 }}
+          >
+            <motion.div
+              className="w-32 h-32 bg-gradient-to-r from-yellow-400 via-orange-500 to-red-500 rounded-full flex items-center justify-center mx-auto mb-8 shadow-2xl shadow-orange-500/50"
+              animate={{
+                rotate: [0, 360],
+                scale: [1, 1.2, 1],
+              }}
+              transition={{
+                rotate: { duration: 3, repeat: Infinity },
+                scale: { duration: 2, repeat: Infinity },
+              }}
+            >
+              <Trophy className="w-16 h-16 text-white" />
+            </motion.div>
+            
+            <h2 className="text-6xl font-bold text-white mb-4">
+              QUEST COMPLETED!
+            </h2>
+            <p className="text-2xl text-gray-300 mb-8">
+              You are now a master of {course.title}!
+            </p>
+            
+            <div className="flex items-center justify-center space-x-6">
+              <Badge variant="neon" size="lg" glow>
+                <Crown className="w-5 h-5 mr-2" />
+                Quest Master
+              </Badge>
+              <Badge variant="gradient" size="lg" glow>
+                <Zap className="w-5 h-5 mr-2" />
+                {progress?.totalScore || 0} XP Earned
+              </Badge>
+            </div>
+          </motion.div>
+        </motion.div>
+      )}
     </div>
   );
 }
