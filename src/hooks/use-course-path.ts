@@ -29,9 +29,18 @@ export const useCoursePath = ({
       chapters: chapters?.length || 0,
       levels: levels?.length || 0,
       progress: !!progress,
-      chaptersData: chapters,
-      levelsData: levels
     });
+
+    // Debug: Log all chapter IDs
+    console.log("useCoursePath - Chapter IDs:", chapters?.map(c => ({ id: c._id, title: c.title, order: c.order })));
+    
+    // Debug: Log all level chapter IDs
+    console.log("useCoursePath - Level chapter IDs:", levels?.map(l => ({ 
+      levelId: l._id, 
+      title: l.title, 
+      chapterId: l.chapterId, 
+      order: l.order 
+    })));
 
     const levelPath: LevelWithChapter[] = [];
     let levelIndex = 0;
@@ -47,28 +56,43 @@ export const useCoursePath = ({
       return levelPath;
     }
 
+    // Create a map of chapter IDs for faster lookup
+    const chapterMap = new Map(chapters.map(chapter => [chapter._id, chapter]));
+    console.log("useCoursePath - Chapter map keys:", Array.from(chapterMap.keys()));
+
+    // Group levels by chapter ID
+    const levelsByChapter = new Map<string, Level[]>();
+    levels.forEach(level => {
+      const chapterId = level.chapterId;
+      if (!levelsByChapter.has(chapterId)) {
+        levelsByChapter.set(chapterId, []);
+      }
+      levelsByChapter.get(chapterId)!.push(level);
+    });
+
+    console.log("useCoursePath - Levels by chapter:", 
+      Array.from(levelsByChapter.entries()).map(([chapterId, levels]) => ({
+        chapterId,
+        levelCount: levels.length,
+        hasChapter: chapterMap.has(chapterId)
+      }))
+    );
+
     // Sort chapters by order
     const sortedChapters = [...chapters].sort((a, b) => a.order - b.order);
     console.log("useCoursePath - Sorted chapters:", sortedChapters.map(c => ({ id: c._id, title: c.title, order: c.order })));
 
     sortedChapters.forEach((chapter) => {
       // Get levels for this chapter and sort by order
-      const chapterLevels = levels
-        .filter((level) => {
-          const matches = level.chapterId === chapter._id;
-          if (!matches) {
-            console.log(`Level ${level._id} (${level.title}) does not match chapter ${chapter._id} (${chapter.title})`);
-          }
-          return matches;
-        })
-        .sort((a, b) => a.order - b.order);
+      const chapterLevels = levelsByChapter.get(chapter._id) || [];
+      const sortedChapterLevels = chapterLevels.sort((a, b) => a.order - b.order);
 
-      console.log(`Chapter ${chapter.title} has ${chapterLevels.length} levels:`, 
-        chapterLevels.map(l => ({ id: l._id, title: l.title, order: l.order, chapterId: l.chapterId }))
+      console.log(`Chapter ${chapter.title} (${chapter._id}) has ${sortedChapterLevels.length} levels:`, 
+        sortedChapterLevels.map(l => ({ id: l._id, title: l.title, order: l.order }))
       );
 
-      chapterLevels.forEach((level, index) => {
-        const isChapterEnd = index === chapterLevels.length - 1;
+      sortedChapterLevels.forEach((level, index) => {
+        const isChapterEnd = index === sortedChapterLevels.length - 1;
         
         // Check if level is completed
         const isCompleted = progress?.levelProgress?.some(

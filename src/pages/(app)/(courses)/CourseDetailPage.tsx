@@ -102,9 +102,10 @@ export function CourseDetailPage() {
   }
 
   // Debug: Log the data to see what we're getting
+  console.log("=== COURSE DETAIL DEBUG ===");
   console.log("Course:", course);
-  console.log("Chapters:", chapters);
-  console.log("Levels:", levels);
+  console.log("Chapters:", chapters?.map(c => ({ id: c._id, title: c.title, order: c.order })));
+  console.log("Levels:", levels?.map(l => ({ id: l._id, title: l.title, chapterId: l.chapterId, order: l.order })));
   console.log("Progress:", progress);
   console.log("Level Path:", levelPath);
   console.log("Course Stats:", courseStats);
@@ -221,6 +222,10 @@ export function CourseDetailPage() {
             Course ID: {courseId} | Progress: {courseStats.progressPercentage}%
             <br />
             Completed: {courseStats.completedLevels}/{courseStats.totalLevels} levels, {courseStats.completedChapters}/{courseStats.totalChapters} chapters
+            <br />
+            <strong>Chapter IDs:</strong> {chapters?.map(c => c._id).join(', ')}
+            <br />
+            <strong>Level Chapter IDs:</strong> {levels?.map(l => l.chapterId).join(', ')}
           </div>
         )}
 
@@ -281,9 +286,18 @@ export function CourseDetailPage() {
             <h3 className="text-lg font-bold text-gray-900 dark:text-gray-100 mb-2">
               Course Content Coming Soon
             </h3>
-            <p className="text-gray-600 dark:text-gray-400">
+            <p className="text-gray-600 dark:text-gray-400 mb-4">
               This course doesn't have any chapters or levels yet.
             </p>
+            <div className="text-sm text-gray-500 dark:text-gray-500 bg-gray-50 dark:bg-gray-800 p-4 rounded-lg">
+              <strong>Technical Info:</strong><br />
+              Chapters: {chapters?.length || 0}, Levels: {levels?.length || 0}<br />
+              {chapters?.length > 0 && levels?.length > 0 && (
+                <span className="text-red-600 dark:text-red-400">
+                  ⚠️ Data exists but IDs don't match - check server data integrity
+                </span>
+              )}
+            </div>
           </Card>
         ) : (
           /* Learning Path */
