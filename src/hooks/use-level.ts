@@ -116,6 +116,7 @@ export const useCourseLevels = (
 
       const [levels, error] = await LevelService.getCourseLevels(courseId);
       if (levels) {
+        console.log(`Fetched ${levels.length} levels for course ${courseId}:`, levels);
         setCourseLevels(courseId, levels);
       } else {
         setError(error || "Failed to fetch course levels");

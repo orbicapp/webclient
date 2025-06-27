@@ -1,5 +1,5 @@
 import { apolloClient } from "../lib/apollo/apollo-client";
-import { GET_COURSE_LEVELS_QUERY, GET_LEVEL_QUERY } from "../lib/graphql";
+import { GET_COURSE_LEVELS_QUERY, GET_LEVEL_QUERY, GET_CHAPTER_LEVELS_QUERY } from "../lib/graphql";
 import { formatResult } from "../lib/utils/service.utils";
 
 // Types
@@ -68,7 +68,7 @@ export interface Level {
     const { data, errors } = await apolloClient.query<{
       chapterLevels: Level[];
     }>({
-      query: GET_LEVEL_QUERY,
+      query: GET_CHAPTER_LEVELS_QUERY,
       variables: { chapterId },
       fetchPolicy: "network-only",
     });

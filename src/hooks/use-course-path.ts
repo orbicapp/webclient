@@ -25,21 +25,47 @@ export const useCoursePath = ({
   progress 
 }: UseCoursePathOptions): LevelWithChapter[] => {
   return useMemo(() => {
+    console.log("useCoursePath - Input data:", {
+      chapters: chapters?.length || 0,
+      levels: levels?.length || 0,
+      progress: !!progress,
+      chaptersData: chapters,
+      levelsData: levels
+    });
+
     const levelPath: LevelWithChapter[] = [];
     let levelIndex = 0;
 
-    if (!chapters || chapters.length === 0 || !levels || levels.length === 0) {
+    // Early return if no data
+    if (!chapters || chapters.length === 0) {
+      console.log("useCoursePath - No chapters found");
+      return levelPath;
+    }
+
+    if (!levels || levels.length === 0) {
+      console.log("useCoursePath - No levels found");
       return levelPath;
     }
 
     // Sort chapters by order
     const sortedChapters = [...chapters].sort((a, b) => a.order - b.order);
+    console.log("useCoursePath - Sorted chapters:", sortedChapters.map(c => ({ id: c._id, title: c.title, order: c.order })));
 
     sortedChapters.forEach((chapter) => {
       // Get levels for this chapter and sort by order
       const chapterLevels = levels
-        .filter((level) => level.chapterId === chapter._id)
+        .filter((level) => {
+          const matches = level.chapterId === chapter._id;
+          if (!matches) {
+            console.log(`Level ${level._id} (${level.title}) does not match chapter ${chapter._id} (${chapter.title})`);
+          }
+          return matches;
+        })
         .sort((a, b) => a.order - b.order);
+
+      console.log(`Chapter ${chapter.title} has ${chapterLevels.length} levels:`, 
+        chapterLevels.map(l => ({ id: l._id, title: l.title, order: l.order, chapterId: l.chapterId }))
+      );
 
       chapterLevels.forEach((level, index) => {
         const isChapterEnd = index === chapterLevels.length - 1;
@@ -63,7 +89,7 @@ export const useCoursePath = ({
           ? Math.min(3, Math.floor(levelProgress.score / 33.33)) 
           : 0;
 
-        levelPath.push({
+        const levelWithChapter: LevelWithChapter = {
           ...level,
           chapter,
           isChapterEnd,
@@ -71,12 +97,14 @@ export const useCoursePath = ({
           isCompleted,
           isUnlocked,
           stars,
-        });
-        
+        };
+
+        levelPath.push(levelWithChapter);
         levelIndex++;
       });
     });
 
+    console.log("useCoursePath - Final level path:", levelPath.length, levelPath);
     return levelPath;
   }, [chapters, levels, progress]);
 };
@@ -102,7 +130,7 @@ export const useCourseStats = (levelPath: LevelWithChapter[]) => {
       return chapterLevels.every(level => level.isCompleted);
     });
 
-    return {
+    const stats = {
       totalLevels,
       completedLevels,
       totalStars,
@@ -112,5 +140,8 @@ export const useCourseStats = (levelPath: LevelWithChapter[]) => {
       completedChapters: completedChapters.length,
       isCompleted: progressPercentage === 100,
     };
+
+    console.log("useCourseStats - Calculated stats:", stats);
+    return stats;
   }, [levelPath]);
 };
