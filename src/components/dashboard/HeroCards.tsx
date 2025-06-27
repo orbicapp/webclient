@@ -74,7 +74,7 @@ export function HeroCards() {
             </h3>
             <Trophy className="w-6 h-6 text-secondary-600 dark:text-secondary-400" />
           </div>
-          
+
           {statsLoading ? (
             <div className="space-y-3">
               <div className="h-4 bg-secondary-200 dark:bg-secondary-700 rounded animate-pulse"></div>
@@ -90,10 +90,10 @@ export function HeroCards() {
                   </span>
                 </div>
                 <span className="font-bold text-secondary-900 dark:text-secondary-100">
-                  {stats.currentSteak} days
+                  {stats.currentStreak} days
                 </span>
               </div>
-              
+
               <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-2">
                   <Trophy className="w-4 h-4 text-yellow-500" />

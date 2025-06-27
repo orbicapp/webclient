@@ -425,7 +425,7 @@ export const GET_MY_STATS_QUERY = gql`
       totalLivesLost
       totalStarsEarned
       totalScore
-      currentSteak
+      currentStreak
       longestStreak
       categoryStats {
         category

@@ -27,7 +27,7 @@ export interface UserStats {
   totalLivesLost: number;
   totalStarsEarned: number;
   totalScore: number;
-  currentSteak: number;
+  currentStreak: number;
   longestStreak: number;
   categoryStats: CategoryStats[];
   dailyActivity: DailyActivity[];
