@@ -29,7 +29,7 @@ export interface UserStats {
   totalScore: number;
   currentSteak: number;
   longestStreak: number;
-  categoriesStats: CategoryStats[];
+  categoryStats: CategoryStats[];
   dailyActivity: DailyActivity[];
 }
 

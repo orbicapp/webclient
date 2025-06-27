@@ -427,7 +427,7 @@ export const GET_MY_STATS_QUERY = gql`
       totalScore
       currentSteak
       longestStreak
-      categoriesStats {
+      categoryStats {
         category
         coursesCompleted
         levelsCompleted
