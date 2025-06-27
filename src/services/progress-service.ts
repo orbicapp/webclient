@@ -1,9 +1,11 @@
 import { apolloClient } from "../lib/apollo/apollo-client";
 import {
   GET_COURSE_PROGRESS_QUERY,
+  GET_MY_COURSES_WITH_PROGRESS_QUERY,
   GET_MY_PLAYING_COURSES_QUERY,
 } from "../lib/graphql";
 import { formatResult } from "../lib/utils/service.utils";
+import { Course } from "./course-service";
 
 // DTOs
 export interface LevelProgress {
@@ -29,6 +31,11 @@ export interface CourseProgress {
   updatedAt: string;
 }
 
+export interface CourseWithProgress {
+  course: Course;
+  progress: CourseProgress;
+}
+
 // Actions
 async function getCourseProgress(courseId: string) {
   const { data, errors } = await apolloClient.query<{
@@ -42,7 +49,7 @@ async function getCourseProgress(courseId: string) {
   return formatResult<CourseProgress>(data?.courseProgress, errors);
 }
 
-async function myPlayingCourses() {
+async function getMyPlayingCourses() {
   const { data, errors } = await apolloClient.query<{
     myPlayingCourses: CourseProgress[];
   }>({
@@ -53,7 +60,7 @@ async function myPlayingCourses() {
   return formatResult<CourseProgress[]>(data?.myPlayingCourses, errors);
 }
 
-async function myCompletedCourses() {
+async function getMyCompletedCourses() {
   const { data, errors } = await apolloClient.query<{
     myCompletedCourses: CourseProgress[];
   }>({
@@ -64,8 +71,23 @@ async function myCompletedCourses() {
   return formatResult<CourseProgress[]>(data?.myCompletedCourses, errors);
 }
 
+async function getMyCoursesWithProgress() {
+  const { data, errors } = await apolloClient.query<{
+    myCoursesWithProgress: CourseWithProgress[];
+  }>({
+    query: GET_MY_COURSES_WITH_PROGRESS_QUERY,
+    fetchPolicy: "network-only",
+  });
+
+  return formatResult<CourseWithProgress[]>(
+    data?.myCoursesWithProgress,
+    errors
+  );
+}
+
 export const ProgressService = {
   getCourseProgress,
-  myPlayingCourses,
-  myCompletedCourses,
+  getMyPlayingCourses,
+  getMyCompletedCourses,
+  getMyCoursesWithProgress,
 };

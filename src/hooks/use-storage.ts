@@ -1,8 +1,6 @@
 import { useEffect, useState } from "react";
 
 import {
-  CompleteFileInput,
-  CreateFileInput,
   FileUpload,
   StorageService,
   UserStorageStats,
@@ -59,11 +57,7 @@ export const useUserFiles = (): [boolean, FileUpload[], string | null] => {
 export const useStorageStats = (
   forceRefresh = false
 ): [boolean, UserStorageStats | null, string | null] => {
-  const {
-    getStorageStats,
-    setStorageStats,
-    isStatsStale,
-  } = useStorageStore();
+  const { getStorageStats, setStorageStats, isStatsStale } = useStorageStore();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [initialized, setInitialized] = useState(false);
@@ -149,124 +143,4 @@ export const useFile = (
   }
 
   return [loading, file || null, error];
-};
-
-/**
- * Hook to create a new file
- */
-export const useCreateFile = (): [
-  (input: CreateFileInput) => Promise<FileUpload | null>,
-  boolean,
-  string | null
-] => {
-  const { addFile } = useStorageStore();
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-
-  const createFile = async (
-    input: CreateFileInput
-  ): Promise<FileUpload | null> => {
-    setLoading(true);
-    setError(null);
-
-    const [file, error] = await StorageService.createFile(input);
-    if (file) {
-      addFile(file);
-      setLoading(false);
-      return file;
-    } else {
-      setError(error || "Failed to create file");
-      setLoading(false);
-      return null;
-    }
-  };
-
-  return [createFile, loading, error];
-};
-
-/**
- * Hook to complete file upload
- */
-export const useCompleteFileUpload = (): [
-  (input: CompleteFileInput) => Promise<FileUpload | null>,
-  boolean,
-  string | null
-] => {
-  const { updateFile } = useStorageStore();
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-
-  const completeUpload = async (
-    input: CompleteFileInput
-  ): Promise<FileUpload | null> => {
-    setLoading(true);
-    setError(null);
-
-    const [file, error] = await StorageService.completeFileUpload(input);
-    if (file) {
-      updateFile(input.fileId, file);
-      setLoading(false);
-      return file;
-    } else {
-      setError(error || "Failed to complete file upload");
-      setLoading(false);
-      return null;
-    }
-  };
-
-  return [completeUpload, loading, error];
-};
-
-/**
- * Hook to delete a file
- */
-export const useDeleteFile = (): [
-  (fileId: string) => Promise<boolean>,
-  boolean,
-  string | null
-] => {
-  const { removeFile } = useStorageStore();
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-
-  const deleteFile = async (fileId: string): Promise<boolean> => {
-    setLoading(true);
-    setError(null);
-
-    const [success, error] = await StorageService.deleteFile(fileId);
-    if (success) {
-      removeFile(fileId);
-      setLoading(false);
-      return true;
-    } else {
-      setError(error || "Failed to delete file");
-      setLoading(false);
-      return false;
-    }
-  };
-
-  return [deleteFile, loading, error];
-};
-
-/**
- * Hook to update file locally
- */
-export const useUpdateFile = (): [
-  (fileId: string, updates: Partial<FileUpload>) => void
-] => {
-  const { updateFile } = useStorageStore();
-
-  const updateFileLocal = (fileId: string, updates: Partial<FileUpload>) => {
-    updateFile(fileId, updates);
-  };
-
-  return [updateFileLocal];
-};
-
-/**
- * Hook to check if storage stats are stale
- */
-export const useStorageStatsStale = (maxAgeMinutes = 15): boolean => {
-  const { isStatsStale } = useStorageStore();
-  return isStatsStale(maxAgeMinutes);
 };

@@ -9,18 +9,12 @@ import { useStatsStore } from "@/stores/stats-store";
 export const useUserStats = (
   forceRefresh = false
 ): [boolean, UserStats | null, string | null] => {
-  const {
-    getUserStats,
-    setUserStats,
-    isStale,
-    getLastUpdated,
-  } = useStatsStore();
+  const { getUserStats, setUserStats, isStale } = useStatsStore();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [initialized, setInitialized] = useState(false);
 
   const stats = getUserStats();
-  const lastUpdated = getLastUpdated();
   const shouldFetch = forceRefresh || !stats || isStale();
 
   useEffect(() => {
@@ -54,60 +48,4 @@ export const useUserStats = (
   }
 
   return [loading, stats, error];
-};
-
-/**
- * Hook to update user stats locally
- */
-export const useUpdateUserStats = (): [
-  (updates: Partial<UserStats>) => void
-] => {
-  const { updateUserStats } = useStatsStore();
-
-  const updateStats = (updates: Partial<UserStats>) => {
-    updateUserStats(updates);
-  };
-
-  return [updateStats];
-};
-
-/**
- * Hook to check if stats are stale
- */
-export const useStatsStale = (maxAgeMinutes = 30): boolean => {
-  const { isStale } = useStatsStore();
-  return isStale(maxAgeMinutes);
-};
-
-/**
- * Hook to get last stats update time
- */
-export const useStatsLastUpdated = (): string | null => {
-  const { getLastUpdated } = useStatsStore();
-  return getLastUpdated();
-};
-
-/**
- * Hook to refresh stats manually
- */
-export const useRefreshStats = (): [() => Promise<void>, boolean, string | null] => {
-  const { setUserStats } = useStatsStore();
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-
-  const refreshStats = async () => {
-    setLoading(true);
-    setError(null);
-
-    const [stats, error] = await StatsService.getMyStats();
-    if (stats) {
-      setUserStats(stats);
-    } else {
-      setError(error || "Failed to refresh user statistics");
-    }
-
-    setLoading(false);
-  };
-
-  return [refreshStats, loading, error];
 };

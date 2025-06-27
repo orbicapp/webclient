@@ -1,9 +1,6 @@
 import { useEffect, useState } from "react";
 
-import {
-  CourseProgress,
-  ProgressService,
-} from "@/services/progress-service";
+import { CourseProgress, ProgressService } from "@/services/progress-service";
 import { useProgressStore } from "@/stores/progress-store";
 
 /**
@@ -80,7 +77,7 @@ export const usePlayingCourses = (): [
       setLoading(true);
       setError(null);
 
-      const [courses, error] = await ProgressService.myPlayingCourses();
+      const [courses, error] = await ProgressService.getMyPlayingCourses();
       if (courses) {
         setPlayingCourses(courses);
       } else {
@@ -128,7 +125,7 @@ export const useCompletedCourses = (): [
       setLoading(true);
       setError(null);
 
-      const [courses, error] = await ProgressService.myCompletedCourses();
+      const [courses, error] = await ProgressService.getMyCompletedCourses();
       if (courses) {
         setCompletedCourses(courses);
       } else {
@@ -148,22 +145,4 @@ export const useCompletedCourses = (): [
   }
 
   return [loading, completedCourses, error];
-};
-
-/**
- * Hook to update course progress locally
- */
-export const useUpdateCourseProgress = (): [
-  (courseId: string, updates: Partial<CourseProgress>) => void
-] => {
-  const { updateCourseProgress } = useProgressStore();
-
-  const updateProgress = (
-    courseId: string,
-    updates: Partial<CourseProgress>
-  ) => {
-    updateCourseProgress(courseId, updates);
-  };
-
-  return [updateProgress];
 };

@@ -375,6 +375,45 @@ export const GET_MY_COMPLETED_COURSES_QUERY = gql`
   }
 `;
 
+export const GET_MY_COURSES_WITH_PROGRESS_QUERY = gql`
+  query MyCoursesWithProgress {
+    myCoursesWithProgress {
+      course {
+        _id
+        author
+        title
+        description
+        lang
+        category
+        chaptersCount
+        thumbnailId
+        bannerId
+        visibility
+        isApproved
+        createdAt
+        updatedAt
+      }
+
+      progress {
+        _id
+        courseId
+        userId
+        isCompleted
+        completedAt
+        totalChapters
+        completedChapters
+        totalLevels
+        completedLevels
+        totalScore
+        totalStars
+        totalTimeSpent
+        createdAt
+        updatedAt
+      }
+    }
+  }
+`;
+
 // ==================== Stats Module ====================
 
 export const GET_MY_STATS_QUERY = gql`
