@@ -163,6 +163,8 @@ export function CourseDetailPage() {
       </div>
 
       <div className="max-w-4xl mx-auto px-4 py-8 relative z-10">
+
+        {levels.length}
         {/* Course Header */}
         <motion.div
           initial={{ opacity: 0, y: -50 }}
@@ -178,7 +180,7 @@ export function CourseDetailPage() {
                 alt={course.title}
                 className="w-full h-full object-cover mix-blend-overlay opacity-80"
               />
-              dasdassdasdas
+              
               {/* Overlay Content */}
               <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent flex items-end">
                 <div className="p-8 text-white w-full">
