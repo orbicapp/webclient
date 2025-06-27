@@ -12,6 +12,8 @@ export interface AvatarProps extends React.HTMLAttributes<HTMLDivElement> {
   borderColor?: string;
   status?: "online" | "offline" | "away";
   statusPosition?: "top-right" | "bottom-right";
+  glow?: boolean;
+  variant?: "default" | "neon" | "gradient";
 }
 
 const sizeMap = {
@@ -23,9 +25,9 @@ const sizeMap = {
 };
 
 const statusColorMap = {
-  online: "bg-success-500",
+  online: "bg-success-500 shadow-lg shadow-success-500/50",
   offline: "bg-gray-400",
-  away: "bg-warning-500",
+  away: "bg-warning-500 shadow-lg shadow-warning-500/50",
 };
 
 const statusSizeMap = {
@@ -48,19 +50,29 @@ const Avatar = React.forwardRef<HTMLDivElement, AvatarProps>(
       borderColor = "white",
       status,
       statusPosition = "bottom-right",
+      glow = false,
+      variant = "default",
       ...props
     },
     ref
   ) => {
     const [hasImageError, setHasImageError] = React.useState(false);
 
+    const variantStyles = {
+      default: "bg-gray-200 dark:bg-gray-700",
+      neon: "bg-gray-900 ring-2 ring-primary-500 shadow-lg shadow-primary-500/30",
+      gradient: "bg-gradient-to-br from-primary-500 to-accent-500"
+    };
+
     return (
       <div
         ref={ref}
         className={cn(
-          "relative inline-block rounded-full bg-gray-200 overflow-hidden",
+          "relative inline-block rounded-full overflow-hidden transition-all duration-300",
           sizeMap[size],
+          variantStyles[variant],
           border && `ring-2 ring-${borderColor}`,
+          glow && "shadow-lg shadow-primary-500/25",
           className
         )}
         {...props}
@@ -73,7 +85,12 @@ const Avatar = React.forwardRef<HTMLDivElement, AvatarProps>(
             onError={() => setHasImageError(true)}
           />
         ) : (
-          <div className="flex h-full w-full items-center justify-center bg-primary-100 text-primary-800">
+          <div className={cn(
+            "flex h-full w-full items-center justify-center",
+            variant === "gradient" 
+              ? "text-white" 
+              : "bg-primary-100 dark:bg-primary-900 text-primary-800 dark:text-primary-200"
+          )}>
             {fallback || <User className="w-3/5 h-3/5" />}
           </div>
         )}
@@ -81,7 +98,7 @@ const Avatar = React.forwardRef<HTMLDivElement, AvatarProps>(
         {status && (
           <span
             className={cn(
-              "absolute block rounded-full ring-2 ring-white",
+              "absolute block rounded-full ring-2 ring-white dark:ring-gray-800 transition-all duration-200",
               statusColorMap[status],
               statusSizeMap[size],
               statusPosition === "top-right"

@@ -17,6 +17,7 @@ export interface InputProps extends InputTypeUnion {
   as?: "input" | "textarea";
   rows?: number;
   showPasswordToggle?: boolean;
+  variant?: "default" | "glass" | "neon";
 }
 
 const Input = React.forwardRef<HTMLInputElement, InputProps>(
@@ -35,6 +36,7 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
       showPasswordToggle,
       disabled,
       required,
+      variant = "default",
       ...props
     },
     ref
@@ -50,25 +52,33 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
         : "password"
       : type;
 
+    const variantStyles = {
+      default: "bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600",
+      glass: "bg-white/80 dark:bg-gray-800/80 backdrop-blur-lg border-white/20 dark:border-gray-700/20",
+      neon: "bg-gray-900 border-primary-500/50 text-primary-100 placeholder:text-primary-300/50"
+    };
+
     const inputStyles = cn(
-      "block w-full transition-all duration-200 p-2",
-      "rounded-xl border bg-white dark:bg-gray-800",
+      "block w-full transition-all duration-300 p-3",
+      "rounded-xl border shadow-sm",
       "placeholder:text-gray-500 dark:placeholder:text-gray-400",
       "disabled:cursor-not-allowed disabled:opacity-50",
       "focus:outline-none focus:ring-2 focus:ring-offset-0",
+      variantStyles[variant],
       leftIcon && "pl-11",
       rightIcon || showPasswordToggle ? "pr-11" : "pr-4",
       error
-        ? "border-error-300 dark:border-error-500 focus:border-error-500 focus:ring-error-200 dark:focus:ring-error-500/20"
+        ? "border-error-300 dark:border-error-500 focus:border-error-500 focus:ring-error-200 dark:focus:ring-error-500/20 shadow-error-500/10"
         : success
-        ? "border-success-300 dark:border-success-500 focus:border-success-500 focus:ring-success-200 dark:focus:ring-success-500/20"
-        : "border-gray-300 dark:border-gray-600 focus:border-primary-500 focus:ring-primary-200 dark:focus:ring-primary-500/20",
+        ? "border-success-300 dark:border-success-500 focus:border-success-500 focus:ring-success-200 dark:focus:ring-success-500/20 shadow-success-500/10"
+        : "focus:border-primary-500 focus:ring-primary-200 dark:focus:ring-primary-500/20 hover:border-primary-400 dark:hover:border-primary-500",
       disabled && "bg-gray-50 dark:bg-gray-900",
+      isFocused && variant === "neon" && "shadow-lg shadow-primary-500/25",
       className
     );
 
     const labelStyles = cn(
-      "block text-sm font-medium transition-colors duration-200",
+      "block text-sm font-semibold transition-colors duration-200 mb-2",
       error
         ? "text-error-600 dark:text-error-400"
         : success
@@ -80,7 +90,7 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
     return (
       <div className="w-full">
         {label && (
-          <label className="flex items-center space-x-1 mb-1.5">
+          <label className="flex items-center space-x-1">
             <span className={labelStyles}>{label}</span>
             {required && (
               <span className="text-error-500 dark:text-error-400">*</span>
@@ -140,7 +150,7 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
-                    className="text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 focus:outline-none"
+                    className="text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 focus:outline-none transition-colors"
                   >
                     {showPassword ? (
                       <EyeOff className="w-5 h-5" />
@@ -163,7 +173,7 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -10 }}
               className={cn(
-                "mt-1.5 text-sm",
+                "mt-2 text-sm",
                 error
                   ? "text-error-600 dark:text-error-400"
                   : "text-gray-500 dark:text-gray-400"
