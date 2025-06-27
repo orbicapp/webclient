@@ -48,7 +48,7 @@ export function CourseDetailPage() {
   const { scrollY } = useScroll();
   const pathOffset = useTransform(scrollY, [0, 2000], [0, 100]);
 
-  if (loading || levelsLoading || chaptersLoading ) {
+  if (loading || levelsLoading || chaptersLoading || progressLoading) {
     return (
       <div className="min-h-screen bg-gradient-to-b from-primary-50 via-background to-accent-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900">
         <div className="max-w-4xl mx-auto px-4 py-8">
@@ -57,7 +57,7 @@ export function CourseDetailPage() {
             <div className="h-64 bg-gradient-to-r from-gray-200 to-gray-300 dark:from-gray-700 dark:to-gray-600 rounded-3xl mb-6"></div>
             <div className="h-8 bg-gray-200 dark:bg-gray-700 rounded-xl mb-4 w-3/4"></div>
             <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded-lg w-1/2"></div>
-          </div>
+          </div>dasd
 
           {/* Path Skeleton */}
           <div className="space-y-8">
