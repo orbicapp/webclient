@@ -57,7 +57,7 @@ export function CourseDetailPage() {
             <div className="h-64 bg-gradient-to-r from-gray-200 to-gray-300 dark:from-gray-700 dark:to-gray-600 rounded-3xl mb-6"></div>
             <div className="h-8 bg-gray-200 dark:bg-gray-700 rounded-xl mb-4 w-3/4"></div>
             <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded-lg w-1/2"></div>
-          </div>dasd
+          </div>
 
           {/* Path Skeleton */}
           <div className="space-y-8">
@@ -178,7 +178,7 @@ export function CourseDetailPage() {
                 alt={course.title}
                 className="w-full h-full object-cover mix-blend-overlay opacity-80"
               />
-              
+              dasdassdasdas
               {/* Overlay Content */}
               <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent flex items-end">
                 <div className="p-8 text-white w-full">
