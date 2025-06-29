@@ -79,7 +79,7 @@ export function HeroCards() {
         </Link>
       </motion.div>
 
-      {/* Stats Card */}
+      {/* Current Streak Card */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -91,63 +91,56 @@ export function HeroCards() {
         >
           <div className="flex items-center justify-between mb-4">
             <h3 className="text-lg font-bold text-white">
-              Your Progress
+              Current Streak
             </h3>
             <div className="p-2 bg-white/20 backdrop-blur-sm rounded-lg">
-              <Trophy className="w-5 h-5 text-white" />
+              <Flame className="w-5 h-5 text-white" />
             </div>
           </div>
 
           {statsLoading ? (
             <div className="space-y-3">
-              <div className="h-4 bg-white/20 rounded animate-pulse"></div>
+              <div className="h-8 bg-white/20 rounded animate-pulse"></div>
               <div className="h-4 bg-white/20 rounded animate-pulse w-3/4"></div>
-              <div className="h-4 bg-white/20 rounded animate-pulse w-1/2"></div>
             </div>
           ) : stats ? (
-            <div className="space-y-3">
-              <div className="flex items-center justify-between p-2 bg-white/10 backdrop-blur-sm rounded-lg">
-                <div className="flex items-center space-x-2">
-                  <Flame className="w-4 h-4 text-orange-300" />
-                  <span className="text-sm text-white/90">
-                    Current Streak
-                  </span>
-                </div>
-                <span className="font-bold text-white flex items-center">
-                  {stats.currentStreak} 
-                  <Zap className="w-3 h-3 ml-1 text-yellow-300" />
-                </span>
+            <div className="text-center">
+              {/* Current Streak Number */}
+              <motion.div
+                className="text-4xl font-bold text-white mb-2 flex items-center justify-center"
+                initial={{ scale: 0 }}
+                animate={{ scale: 1 }}
+                transition={{ delay: 0.5, type: "spring" }}
+              >
+                {stats.currentStreak}
+                <Zap className="w-6 h-6 ml-2 text-yellow-300" />
+              </motion.div>
+              
+              {/* Days text */}
+              <div className="text-sm text-white/90 mb-4">
+                {stats.currentStreak === 1 ? 'day' : 'days'}
               </div>
 
-              <div className="flex items-center justify-between p-2 bg-white/10 backdrop-blur-sm rounded-lg">
-                <div className="flex items-center space-x-2">
-                  <Trophy className="w-4 h-4 text-yellow-300" />
-                  <span className="text-sm text-white/90">
-                    Best Streak
+              {/* Best Streak */}
+              <div className="p-3 bg-white/10 backdrop-blur-sm rounded-lg">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center space-x-2">
+                    <Trophy className="w-4 h-4 text-yellow-300" />
+                    <span className="text-sm text-white/90">
+                      Best Streak
+                    </span>
+                  </div>
+                  <span className="font-bold text-white">
+                    {stats.longestStreak} days
                   </span>
                 </div>
-                <span className="font-bold text-white">
-                  {stats.longestStreak} days
-                </span>
-              </div>
-
-              <div className="flex items-center justify-between p-2 bg-white/10 backdrop-blur-sm rounded-lg">
-                <div className="flex items-center space-x-2">
-                  <BookOpen className="w-4 h-4 text-blue-300" />
-                  <span className="text-sm text-white/90">
-                    Total XP
-                  </span>
-                </div>
-                <span className="font-bold text-white">
-                  {formatCompact(stats.totalScore)}
-                </span>
               </div>
             </div>
           ) : (
             <div className="text-center py-4">
-              <Zap className="w-8 h-8 text-white/60 mx-auto mb-2" />
+              <Flame className="w-8 h-8 text-white/60 mx-auto mb-2" />
               <p className="text-sm text-white/80">
-                Start learning to see your stats!
+                Start learning to build your streak!
               </p>
             </div>
           )}
