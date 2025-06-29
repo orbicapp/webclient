@@ -14,6 +14,7 @@ import {
   Loader2,
   AlertTriangle
 } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 import { LevelWithChapter } from "@/hooks/use-course-path";
 import { Card, CardContent } from "@/components/ui/Card";
@@ -38,6 +39,7 @@ export const LevelModal: React.FC<LevelModalProps> = ({
   previewMode = false,
   onJoinCourse
 }) => {
+  const navigate = useNavigate();
   const [isStarting, setIsStarting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const { setCurrentSession } = useGameStore();
@@ -71,11 +73,9 @@ export const LevelModal: React.FC<LevelModalProps> = ({
       // Set the session in the store
       setCurrentSession(session);
       
-      // Close modal and navigate to game (you can add navigation logic here)
+      // Close modal and navigate to game
       onClose();
-      
-      // TODO: Navigate to game page with session
-      console.log("Game session started:", session);
+      navigate("/game");
       
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to start level");

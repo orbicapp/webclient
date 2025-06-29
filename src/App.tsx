@@ -1,8 +1,10 @@
 import { AnimatePresence, motion } from "framer-motion";
 import { Loader2, Rocket, AlertTriangle, RefreshCw, Wifi, WifiOff } from "lucide-react";
-import { Route, Routes, useLocation } from "react-router-dom";
+import { Route, Routes, useLocation, useNavigate } from "react-router-dom";
+import { useEffect } from "react";
 
 import { useAuth } from "./hooks/use-auth";
+import { useCurrentGameSession } from "./hooks/use-game";
 import { AuthLayout } from "./layouts/AuthLayout";
 import { MainLayout } from "./layouts/MainLayout";
 import { DashboardPage } from "./pages/(app)/DashboardPage";
@@ -14,11 +16,29 @@ import { NotFoundPage } from "./pages/(misc)/NotFoundPage";
 import CourseDetailPage from "./pages/(app)/(courses)/CourseDetailPage";
 import { CourseListPage } from "./pages/(app)/(courses)/CourseListPage.tsx";
 import { CreateCoursePage } from "./pages/(app)/(courses)/CreateCoursePage";
+import { GameSessionPage } from "./pages/(app)/(game)/GameSessionPage";
 import Button from "./components/ui/Button";
 
 function App() {
   const location = useLocation();
-  const { initialized, isLoading, error, isConnectionError, retryConnection } = useAuth();
+  const navigate = useNavigate();
+  const { initialized, isLoading, error, isConnectionError, retryConnection, isAuthenticated } = useAuth();
+  
+  // ✅ Fetch game session on app initialization
+  const [sessionLoading, currentSession] = useCurrentGameSession();
+
+  // ✅ Navigate to game session if one exists and user is authenticated
+  useEffect(() => {
+    if (
+      isAuthenticated && 
+      !sessionLoading && 
+      currentSession && 
+      location.pathname !== "/game"
+    ) {
+      console.log("Active game session found, navigating to game:", currentSession);
+      navigate("/game");
+    }
+  }, [isAuthenticated, sessionLoading, currentSession, location.pathname, navigate]);
 
   // Connection error screen
   if (isConnectionError && error) {
@@ -82,6 +102,13 @@ function App() {
             <Loader2 className="w-4 h-4 animate-spin" />
             <span>Loading...</span>
           </div>
+          
+          {/* Show additional loading info if checking for game session */}
+          {isAuthenticated && sessionLoading && (
+            <div className="mt-4 text-sm text-gray-500">
+              Checking for active game session...
+            </div>
+          )}
         </div>
       </motion.div>
     );
@@ -105,6 +132,9 @@ function App() {
           <Route path="/course/:courseId" element={<CourseDetailPage />} />
           <Route path="/settings" element={<SettingsPage />} />
         </Route>
+
+        {/* Game Session Route (Full Screen) */}
+        <Route path="/game" element={<GameSessionPage />} />
 
         {/* Catch-all Not Found Route */}
         <Route path="*" element={<NotFoundPage />} />
