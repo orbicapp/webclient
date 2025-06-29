@@ -35,7 +35,7 @@ interface QuestionComponentProps {
   isSubmitting: boolean;
   isAnswered: boolean;
   answeredQuestion?: AnsweredQuestion;
-  questionResult?: QuestionResult | null; // ✅ Add question result for feedback
+  questionResult?: QuestionResult | null;
 }
 
 const QuestionComponent: React.FC<QuestionComponentProps> = ({
@@ -49,7 +49,7 @@ const QuestionComponent: React.FC<QuestionComponentProps> = ({
 }) => {
   const [selectedAnswer, setSelectedAnswer] = useState<any>(null);
 
-  // ✅ Set the previous answer if question was already answered
+  // Set the previous answer if question was already answered
   useEffect(() => {
     if (isAnswered && answeredQuestion) {
       setSelectedAnswer(answeredQuestion.userAnswer);
@@ -62,7 +62,7 @@ const QuestionComponent: React.FC<QuestionComponentProps> = ({
     }
   };
 
-  // ✅ Show correct answer information when available
+  // Show correct answer information when available
   const showCorrectAnswer = questionResult && !questionResult.isCorrect;
 
   const renderQuestionContent = () => {
@@ -119,7 +119,7 @@ const QuestionComponent: React.FC<QuestionComponentProps> = ({
                     <span className="text-gray-900 dark:text-gray-100 font-medium">
                       {option.text}
                     </span>
-                    {/* ✅ Show indicators */}
+                    {/* Show indicators */}
                     {showAsCorrect && (
                       <div className="ml-auto">
                         <Badge variant="success" size="sm">Correct Answer</Badge>
@@ -237,7 +237,7 @@ const QuestionComponent: React.FC<QuestionComponentProps> = ({
                 (isSubmitting || isAnswered) && "cursor-not-allowed"
               )}
             />
-            {/* ✅ Show correct answers for free choice */}
+            {/* Show correct answers for free choice */}
             {showCorrectAnswer && question.acceptedAnswers && (
               <div className="mt-3 p-3 bg-green-50 dark:bg-green-900/20 rounded-lg border border-green-200 dark:border-green-800">
                 <p className="text-sm font-medium text-green-800 dark:text-green-200 mb-2">
@@ -288,7 +288,7 @@ const QuestionComponent: React.FC<QuestionComponentProps> = ({
         <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-4">
           {question.question}
         </h2>
-        {/* ✅ Show answered status with more details */}
+        {/* Show answered status with more details */}
         {isAnswered && answeredQuestion && (
           <div className="flex justify-center space-x-2 mb-4">
             <Badge 
@@ -308,7 +308,7 @@ const QuestionComponent: React.FC<QuestionComponentProps> = ({
             </Badge>
           </div>
         )}
-        {/* ✅ Show result feedback after submission */}
+        {/* Show result feedback after submission */}
         {questionResult && !isAnswered && (
           <div className="flex justify-center space-x-2 mb-4">
             <Badge 
@@ -363,16 +363,16 @@ export function GameSessionPage() {
   const [levelLoading, level] = useLevel(currentSession?.levelId || "");
   const [courseLoading, course] = useCourse(currentSession?.courseId || "");
   
-  // ✅ Initialize currentQuestionIndex based on answered questions
+  // Initialize currentQuestionIndex based on answered questions
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [gameError, setGameError] = useState<string | null>(null);
   const [startTime] = useState(Date.now());
-  const [questionResult, setQuestionResult] = useState<QuestionResult | null>(null); // ✅ Store question result
+  const [questionResult, setQuestionResult] = useState<QuestionResult | null>(null);
   
   const { clearCurrentSession, updateSession } = useGameStore();
 
-  // ✅ Set initial question index based on answered questions
+  // Set initial question index based on answered questions
   useEffect(() => {
     if (currentSession && currentSession.answeredQuestions) {
       // Find the first unanswered question
@@ -388,7 +388,7 @@ export function GameSessionPage() {
     }
   }, [currentSession, level]);
 
-  // ✅ Clear question result when changing questions
+  // Clear question result when changing questions
   useEffect(() => {
     setQuestionResult(null);
   }, [currentQuestionIndex]);
@@ -438,10 +438,10 @@ export function GameSessionPage() {
         return;
       }
 
-      // ✅ Store the question result for immediate feedback
+      // Store the question result for immediate feedback
       setQuestionResult(result);
 
-      // ✅ Create new answered question object
+      // Create new answered question object
       const newAnsweredQuestion: AnsweredQuestion = {
         questionIndex: currentQuestionIndex,
         isCorrect: result.isCorrect,
@@ -449,14 +449,14 @@ export function GameSessionPage() {
         timeSpent
       };
 
-      // ✅ Update the session with the new answered question
+      // Update the session with the new answered question
       const updatedAnsweredQuestions = [...(currentSession.answeredQuestions || []), newAnsweredQuestion];
       updateSession(currentSession._id, {
         answeredQuestions: updatedAnsweredQuestions,
         lives: result.livesRemaining
       });
 
-      // ✅ Don't auto-navigate - let user manually go to next question
+      // ✅ DON'T auto-navigate - let user manually go to next question
 
       // Check if lives are depleted
       if (result.livesRemaining <= 0) {
@@ -473,7 +473,7 @@ export function GameSessionPage() {
     }
   };
 
-  // ✅ Manual navigation to next question
+  // ✅ Manual navigation to next UNANSWERED question
   const handleNextQuestion = () => {
     if (!level?.questions || !currentSession) return;
 
@@ -594,17 +594,22 @@ export function GameSessionPage() {
 
   const currentQuestion = level.questions[currentQuestionIndex];
   
-  // ✅ Calculate progress based on answered questions, not current index
+  // Calculate progress based on answered questions, not current index
   const answeredCount = currentSession.answeredQuestions?.length || 0;
   const progress = (answeredCount / level.questions.length) * 100;
   
-  // ✅ Check if current question is already answered and get the answer data
+  // Check if current question is already answered and get the answer data
   const answeredQuestion = currentSession.answeredQuestions?.find(aq => aq.questionIndex === currentQuestionIndex);
   const isCurrentQuestionAnswered = !!answeredQuestion;
 
-  // ✅ Check if there are more unanswered questions
+  // ✅ Check if there are more unanswered questions AFTER current one
   const answeredIndices = new Set(currentSession.answeredQuestions?.map(aq => aq.questionIndex) || []);
-  const hasMoreQuestions = level.questions.some((_, index) => !answeredIndices.has(index) && index !== currentQuestionIndex);
+  const hasMoreUnansweredQuestions = level.questions.some((_, index) => 
+    !answeredIndices.has(index) && index > currentQuestionIndex
+  );
+
+  // ✅ Check if ALL questions are answered
+  const allQuestionsAnswered = answeredIndices.size === level.questions.length;
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-indigo-900 via-purple-900 to-pink-900">
@@ -700,10 +705,10 @@ export function GameSessionPage() {
                   isSubmitting={isSubmitting}
                   isAnswered={isCurrentQuestionAnswered}
                   answeredQuestion={answeredQuestion}
-                  questionResult={questionResult} // ✅ Pass question result
+                  questionResult={questionResult}
                 />
 
-                {/* ✅ Manual Navigation Controls */}
+                {/* Manual Navigation Controls */}
                 <div className="mt-8 border-t border-gray-200 dark:border-gray-700 pt-6">
                   <div className="flex flex-col sm:flex-row items-center justify-between space-y-4 sm:space-y-0">
                     {/* Previous/Next Question Navigation */}
@@ -735,8 +740,8 @@ export function GameSessionPage() {
 
                     {/* Continue/Finish Actions */}
                     <div className="flex space-x-3">
-                      {/* ✅ Next Unanswered Question Button */}
-                      {questionResult && hasMoreQuestions && (
+                      {/* ✅ Next Unanswered Question Button - Only show if there's a result and more unanswered questions */}
+                      {questionResult && hasMoreUnansweredQuestions && (
                         <Button
                           onClick={handleNextQuestion}
                           variant="primary"
@@ -747,8 +752,8 @@ export function GameSessionPage() {
                         </Button>
                       )}
 
-                      {/* ✅ Finish Level Button */}
-                      {questionResult && !hasMoreQuestions && (
+                      {/* ✅ Finish Level Button - Only show if there's a result and all questions are answered */}
+                      {questionResult && allQuestionsAnswered && (
                         <Button
                           onClick={() => navigate(`/course/${currentSession.courseId}/completion/${currentSession._id}`)}
                           variant="success"
@@ -759,7 +764,7 @@ export function GameSessionPage() {
                         </Button>
                       )}
 
-                      {/* ✅ Review Mode Button */}
+                      {/* Review Mode Button */}
                       {(isCurrentQuestionAnswered || questionResult) && (
                         <Button
                           onClick={() => {
@@ -777,12 +782,12 @@ export function GameSessionPage() {
                     </div>
                   </div>
 
-                  {/* ✅ Progress Summary */}
+                  {/* Progress Summary */}
                   <div className="mt-4 text-center">
                     <p className="text-sm text-gray-500 dark:text-gray-400">
                       {answeredCount} of {level.questions.length} questions answered
-                      {hasMoreQuestions && " • Continue to complete the level"}
-                      {!hasMoreQuestions && answeredCount === level.questions.length && " • All questions completed!"}
+                      {hasMoreUnansweredQuestions && " • Continue to complete the level"}
+                      {allQuestionsAnswered && " • All questions completed!"}
                     </p>
                   </div>
                 </div>
