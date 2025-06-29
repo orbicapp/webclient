@@ -12,14 +12,16 @@ import {
   Zap,
   AlertTriangle,
   Loader2,
-  RotateCcw
+  RotateCcw,
+  ArrowRight,
+  Eye
 } from "lucide-react";
 import { useParams, useNavigate } from "react-router-dom";
 
 import { useCurrentGameSession } from "@/hooks/use-game";
 import { useLevel } from "@/hooks/use-level";
 import { useCourse } from "@/hooks/use-course";
-import { GameService, AnsweredQuestion } from "@/services/game-service";
+import { GameService, AnsweredQuestion, QuestionResult } from "@/services/game-service";
 import { useGameStore } from "@/stores/game-store";
 import { Card, CardContent } from "@/components/ui/Card";
 import Button from "@/components/ui/Button";
@@ -32,7 +34,8 @@ interface QuestionComponentProps {
   onAnswer: (answer: any) => void;
   isSubmitting: boolean;
   isAnswered: boolean;
-  answeredQuestion?: AnsweredQuestion; // ✅ Add answered question data
+  answeredQuestion?: AnsweredQuestion;
+  questionResult?: QuestionResult | null; // ✅ Add question result for feedback
 }
 
 const QuestionComponent: React.FC<QuestionComponentProps> = ({
@@ -41,7 +44,8 @@ const QuestionComponent: React.FC<QuestionComponentProps> = ({
   onAnswer,
   isSubmitting,
   isAnswered,
-  answeredQuestion
+  answeredQuestion,
+  questionResult
 }) => {
   const [selectedAnswer, setSelectedAnswer] = useState<any>(null);
 
@@ -58,63 +62,90 @@ const QuestionComponent: React.FC<QuestionComponentProps> = ({
     }
   };
 
+  // ✅ Show correct answer information when available
+  const showCorrectAnswer = questionResult && !questionResult.isCorrect;
+
   const renderQuestionContent = () => {
     switch (question.type) {
       case "MULTIPLE_CHOICE":
         return (
           <div className="space-y-3">
-            {question.options.map((option: any, index: number) => (
-              <button
-                key={index}
-                onClick={() => !isAnswered && setSelectedAnswer(index)}
-                disabled={isSubmitting || isAnswered}
-                className={cn(
-                  "w-full p-4 text-left rounded-xl border-2 transition-all duration-200",
-                  selectedAnswer === index
-                    ? isAnswered && answeredQuestion
-                      ? answeredQuestion.isCorrect
-                        ? "border-green-500 bg-green-50 dark:bg-green-900/20"
-                        : "border-red-500 bg-red-50 dark:bg-red-900/20"
-                      : "border-primary-500 bg-primary-50 dark:bg-primary-900/20"
-                    : "border-gray-200 dark:border-gray-700 hover:border-primary-300 dark:hover:border-primary-600",
-                  (isSubmitting || isAnswered) && "cursor-not-allowed"
-                )}
-              >
-                <div className="flex items-center space-x-3">
-                  <div className={cn(
-                    "w-6 h-6 rounded-full border-2 flex items-center justify-center",
-                    selectedAnswer === index
-                      ? isAnswered && answeredQuestion
-                        ? answeredQuestion.isCorrect
-                          ? "border-green-500 bg-green-500"
-                          : "border-red-500 bg-red-500"
-                        : "border-primary-500 bg-primary-500"
-                      : "border-gray-300 dark:border-gray-600"
-                  )}>
-                    {selectedAnswer === index && (
-                      <div className="w-3 h-3 bg-white rounded-full" />
-                    )}
-                  </div>
-                  <span className="text-gray-900 dark:text-gray-100 font-medium">
-                    {option.text}
-                  </span>
-                  {/* ✅ Show correct/incorrect indicator */}
-                  {isAnswered && selectedAnswer === index && answeredQuestion && (
-                    <div className="ml-auto">
-                      {answeredQuestion.isCorrect ? (
-                        <CheckCircle className="w-5 h-5 text-green-600" />
-                      ) : (
-                        <X className="w-5 h-5 text-red-600" />
+            {question.options.map((option: any, index: number) => {
+              const isSelected = selectedAnswer === index;
+              const isCorrect = option.isCorrect;
+              const showAsCorrect = showCorrectAnswer && isCorrect;
+              const showAsIncorrect = questionResult && isSelected && !questionResult.isCorrect;
+
+              return (
+                <button
+                  key={index}
+                  onClick={() => !isAnswered && setSelectedAnswer(index)}
+                  disabled={isSubmitting || isAnswered}
+                  className={cn(
+                    "w-full p-4 text-left rounded-xl border-2 transition-all duration-200",
+                    showAsCorrect
+                      ? "border-green-500 bg-green-50 dark:bg-green-900/20"
+                      : showAsIncorrect
+                        ? "border-red-500 bg-red-50 dark:bg-red-900/20"
+                        : isSelected
+                          ? isAnswered && answeredQuestion
+                            ? answeredQuestion.isCorrect
+                              ? "border-green-500 bg-green-50 dark:bg-green-900/20"
+                              : "border-red-500 bg-red-50 dark:bg-red-900/20"
+                            : "border-primary-500 bg-primary-50 dark:bg-primary-900/20"
+                          : "border-gray-200 dark:border-gray-700 hover:border-primary-300 dark:hover:border-primary-600",
+                    (isSubmitting || isAnswered) && "cursor-not-allowed"
+                  )}
+                >
+                  <div className="flex items-center space-x-3">
+                    <div className={cn(
+                      "w-6 h-6 rounded-full border-2 flex items-center justify-center",
+                      showAsCorrect
+                        ? "border-green-500 bg-green-500"
+                        : showAsIncorrect
+                          ? "border-red-500 bg-red-500"
+                          : isSelected
+                            ? isAnswered && answeredQuestion
+                              ? answeredQuestion.isCorrect
+                                ? "border-green-500 bg-green-500"
+                                : "border-red-500 bg-red-500"
+                              : "border-primary-500 bg-primary-500"
+                            : "border-gray-300 dark:border-gray-600"
+                    )}>
+                      {(isSelected || showAsCorrect) && (
+                        <div className="w-3 h-3 bg-white rounded-full" />
                       )}
                     </div>
-                  )}
-                </div>
-              </button>
-            ))}
+                    <span className="text-gray-900 dark:text-gray-100 font-medium">
+                      {option.text}
+                    </span>
+                    {/* ✅ Show indicators */}
+                    {showAsCorrect && (
+                      <div className="ml-auto">
+                        <Badge variant="success" size="sm">Correct Answer</Badge>
+                      </div>
+                    )}
+                    {isAnswered && isSelected && answeredQuestion && (
+                      <div className="ml-auto">
+                        {answeredQuestion.isCorrect ? (
+                          <CheckCircle className="w-5 h-5 text-green-600" />
+                        ) : (
+                          <X className="w-5 h-5 text-red-600" />
+                        )}
+                      </div>
+                    )}
+                  </div>
+                </button>
+              );
+            })}
           </div>
         );
 
       case "TRUE_FALSE":
+        const correctAnswer = question.correctAnswer;
+        const showTrueAsCorrect = showCorrectAnswer && correctAnswer === true;
+        const showFalseAsCorrect = showCorrectAnswer && correctAnswer === false;
+
         return (
           <div className="grid grid-cols-2 gap-4">
             <button
@@ -122,19 +153,25 @@ const QuestionComponent: React.FC<QuestionComponentProps> = ({
               disabled={isSubmitting || isAnswered}
               className={cn(
                 "p-6 rounded-xl border-2 transition-all duration-200 text-center",
-                selectedAnswer === true
-                  ? isAnswered && answeredQuestion
-                    ? answeredQuestion.isCorrect
-                      ? "border-green-500 bg-green-50 dark:bg-green-900/20"
-                      : "border-red-500 bg-red-50 dark:bg-red-900/20"
-                    : "border-green-500 bg-green-50 dark:bg-green-900/20"
-                  : "border-gray-200 dark:border-gray-700 hover:border-green-300",
+                showTrueAsCorrect
+                  ? "border-green-500 bg-green-50 dark:bg-green-900/20"
+                  : selectedAnswer === true
+                    ? isAnswered && answeredQuestion
+                      ? answeredQuestion.isCorrect
+                        ? "border-green-500 bg-green-50 dark:bg-green-900/20"
+                        : "border-red-500 bg-red-50 dark:bg-red-900/20"
+                      : "border-green-500 bg-green-50 dark:bg-green-900/20"
+                    : "border-gray-200 dark:border-gray-700 hover:border-green-300",
                 (isSubmitting || isAnswered) && "cursor-not-allowed"
               )}
             >
               <CheckCircle className="w-8 h-8 mx-auto mb-2 text-green-600" />
               <span className="font-bold text-green-900 dark:text-green-100">True</span>
-              {/* ✅ Show result indicator */}
+              {showTrueAsCorrect && (
+                <div className="mt-2">
+                  <Badge variant="success" size="sm">Correct Answer</Badge>
+                </div>
+              )}
               {isAnswered && selectedAnswer === true && answeredQuestion && (
                 <div className="mt-2">
                   {answeredQuestion.isCorrect ? (
@@ -150,19 +187,25 @@ const QuestionComponent: React.FC<QuestionComponentProps> = ({
               disabled={isSubmitting || isAnswered}
               className={cn(
                 "p-6 rounded-xl border-2 transition-all duration-200 text-center",
-                selectedAnswer === false
-                  ? isAnswered && answeredQuestion
-                    ? answeredQuestion.isCorrect
-                      ? "border-green-500 bg-green-50 dark:bg-green-900/20"
+                showFalseAsCorrect
+                  ? "border-green-500 bg-green-50 dark:bg-green-900/20"
+                  : selectedAnswer === false
+                    ? isAnswered && answeredQuestion
+                      ? answeredQuestion.isCorrect
+                        ? "border-green-500 bg-green-50 dark:bg-green-900/20"
+                        : "border-red-500 bg-red-50 dark:bg-red-900/20"
                       : "border-red-500 bg-red-50 dark:bg-red-900/20"
-                    : "border-red-500 bg-red-50 dark:bg-red-900/20"
-                  : "border-gray-200 dark:border-gray-700 hover:border-red-300",
+                    : "border-gray-200 dark:border-gray-700 hover:border-red-300",
                 (isSubmitting || isAnswered) && "cursor-not-allowed"
               )}
             >
               <X className="w-8 h-8 mx-auto mb-2 text-red-600" />
               <span className="font-bold text-red-900 dark:text-red-100">False</span>
-              {/* ✅ Show result indicator */}
+              {showFalseAsCorrect && (
+                <div className="mt-2">
+                  <Badge variant="success" size="sm">Correct Answer</Badge>
+                </div>
+              )}
               {isAnswered && selectedAnswer === false && answeredQuestion && (
                 <div className="mt-2">
                   {answeredQuestion.isCorrect ? (
@@ -194,7 +237,21 @@ const QuestionComponent: React.FC<QuestionComponentProps> = ({
                 (isSubmitting || isAnswered) && "cursor-not-allowed"
               )}
             />
-            {/* ✅ Show result for free choice */}
+            {/* ✅ Show correct answers for free choice */}
+            {showCorrectAnswer && question.acceptedAnswers && (
+              <div className="mt-3 p-3 bg-green-50 dark:bg-green-900/20 rounded-lg border border-green-200 dark:border-green-800">
+                <p className="text-sm font-medium text-green-800 dark:text-green-200 mb-2">
+                  Accepted answers:
+                </p>
+                <div className="flex flex-wrap gap-2">
+                  {question.acceptedAnswers.map((answer: string, index: number) => (
+                    <Badge key={index} variant="success" size="sm">
+                      {answer}
+                    </Badge>
+                  ))}
+                </div>
+              </div>
+            )}
             {isAnswered && answeredQuestion && (
               <div className="mt-3 text-center">
                 {answeredQuestion.isCorrect ? (
@@ -251,6 +308,26 @@ const QuestionComponent: React.FC<QuestionComponentProps> = ({
             </Badge>
           </div>
         )}
+        {/* ✅ Show result feedback after submission */}
+        {questionResult && !isAnswered && (
+          <div className="flex justify-center space-x-2 mb-4">
+            <Badge 
+              variant={questionResult.isCorrect ? "success" : "error"} 
+              size="lg"
+            >
+              {questionResult.isCorrect ? (
+                <CheckCircle className="w-4 h-4 mr-2" />
+              ) : (
+                <X className="w-4 h-4 mr-2" />
+              )}
+              {questionResult.isCorrect ? "Correct!" : "Incorrect"}
+            </Badge>
+            <Badge variant="secondary" size="lg">
+              <Heart className="w-4 h-4 mr-2" />
+              {questionResult.livesRemaining} lives left
+            </Badge>
+          </div>
+        )}
       </div>
 
       {renderQuestionContent()}
@@ -259,6 +336,10 @@ const QuestionComponent: React.FC<QuestionComponentProps> = ({
         {isAnswered ? (
           <p className="text-gray-500 dark:text-gray-400">
             This question has already been answered in this session.
+          </p>
+        ) : questionResult ? (
+          <p className="text-gray-500 dark:text-gray-400">
+            Answer submitted! Review the feedback above.
           </p>
         ) : (
           <Button
@@ -287,6 +368,7 @@ export function GameSessionPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [gameError, setGameError] = useState<string | null>(null);
   const [startTime] = useState(Date.now());
+  const [questionResult, setQuestionResult] = useState<QuestionResult | null>(null); // ✅ Store question result
   
   const { clearCurrentSession, updateSession } = useGameStore();
 
@@ -305,6 +387,11 @@ export function GameSessionPage() {
       setCurrentQuestionIndex(nextQuestionIndex);
     }
   }, [currentSession, level]);
+
+  // ✅ Clear question result when changing questions
+  useEffect(() => {
+    setQuestionResult(null);
+  }, [currentQuestionIndex]);
 
   // Redirect if no session
   useEffect(() => {
@@ -351,6 +438,9 @@ export function GameSessionPage() {
         return;
       }
 
+      // ✅ Store the question result for immediate feedback
+      setQuestionResult(result);
+
       // ✅ Create new answered question object
       const newAnsweredQuestion: AnsweredQuestion = {
         questionIndex: currentQuestionIndex,
@@ -366,38 +456,42 @@ export function GameSessionPage() {
         lives: result.livesRemaining
       });
 
-      // Handle result
-      if (result.isLastQuestion) {
-        // Game completed - navigate to completion page
-        navigate(`/course/${currentSession.courseId}/completion/${currentSession._id}`);
-      } else {
-        // Find next unanswered question
-        const answeredIndices = new Set(updatedAnsweredQuestions.map(aq => aq.questionIndex));
-        let nextQuestionIndex = currentQuestionIndex + 1;
-        
-        // Find next question that hasn't been answered
-        while (nextQuestionIndex < level.questions.length && answeredIndices.has(nextQuestionIndex)) {
-          nextQuestionIndex++;
-        }
-        
-        if (nextQuestionIndex < level.questions.length) {
-          setCurrentQuestionIndex(nextQuestionIndex);
-        } else {
-          // All questions answered - this shouldn't happen if backend is correct
-          navigate(`/course/${currentSession.courseId}/completion/${currentSession._id}`);
-        }
-      }
+      // ✅ Don't auto-navigate - let user manually go to next question
 
       // Check if lives are depleted
       if (result.livesRemaining <= 0) {
-        // Game over - navigate back to course
-        navigate(`/course/${currentSession.courseId}`);
+        // Game over - navigate back to course after a delay
+        setTimeout(() => {
+          navigate(`/course/${currentSession.courseId}`);
+        }, 3000);
       }
 
     } catch (err) {
       setGameError(err instanceof Error ? err.message : "Failed to submit answer");
     } finally {
       setIsSubmitting(false);
+    }
+  };
+
+  // ✅ Manual navigation to next question
+  const handleNextQuestion = () => {
+    if (!level?.questions || !currentSession) return;
+
+    // Find next unanswered question
+    const answeredIndices = new Set(currentSession.answeredQuestions?.map(aq => aq.questionIndex) || []);
+    let nextQuestionIndex = currentQuestionIndex + 1;
+    
+    // Find next question that hasn't been answered
+    while (nextQuestionIndex < level.questions.length && answeredIndices.has(nextQuestionIndex)) {
+      nextQuestionIndex++;
+    }
+    
+    if (nextQuestionIndex < level.questions.length) {
+      setCurrentQuestionIndex(nextQuestionIndex);
+      setQuestionResult(null); // Clear previous result
+    } else {
+      // All questions answered - navigate to completion
+      navigate(`/course/${currentSession.courseId}/completion/${currentSession._id}`);
     }
   };
 
@@ -508,6 +602,10 @@ export function GameSessionPage() {
   const answeredQuestion = currentSession.answeredQuestions?.find(aq => aq.questionIndex === currentQuestionIndex);
   const isCurrentQuestionAnswered = !!answeredQuestion;
 
+  // ✅ Check if there are more unanswered questions
+  const answeredIndices = new Set(currentSession.answeredQuestions?.map(aq => aq.questionIndex) || []);
+  const hasMoreQuestions = level.questions.some((_, index) => !answeredIndices.has(index) && index !== currentQuestionIndex);
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-indigo-900 via-purple-900 to-pink-900">
       {/* Header */}
@@ -602,21 +700,21 @@ export function GameSessionPage() {
                   isSubmitting={isSubmitting}
                   isAnswered={isCurrentQuestionAnswered}
                   answeredQuestion={answeredQuestion}
+                  questionResult={questionResult} // ✅ Pass question result
                 />
 
-                {/* ✅ Navigation for answered questions */}
-                {isCurrentQuestionAnswered && (
-                  <div className="mt-6 text-center">
-                    <p className="text-gray-500 dark:text-gray-400 mb-4">
-                      Navigate to other questions or continue the level.
-                    </p>
-                    <div className="flex justify-center space-x-2">
+                {/* ✅ Manual Navigation Controls */}
+                <div className="mt-8 border-t border-gray-200 dark:border-gray-700 pt-6">
+                  <div className="flex flex-col sm:flex-row items-center justify-between space-y-4 sm:space-y-0">
+                    {/* Previous/Next Question Navigation */}
+                    <div className="flex space-x-2">
                       {/* Previous Question */}
                       {currentQuestionIndex > 0 && (
                         <Button
                           onClick={() => setCurrentQuestionIndex(currentQuestionIndex - 1)}
                           variant="outline"
                           size="sm"
+                          leftIcon={<ArrowLeft className="w-4 h-4" />}
                         >
                           Previous
                         </Button>
@@ -628,13 +726,66 @@ export function GameSessionPage() {
                           onClick={() => setCurrentQuestionIndex(currentQuestionIndex + 1)}
                           variant="outline"
                           size="sm"
+                          rightIcon={<ArrowRight className="w-4 h-4" />}
                         >
                           Next
                         </Button>
                       )}
                     </div>
+
+                    {/* Continue/Finish Actions */}
+                    <div className="flex space-x-3">
+                      {/* ✅ Next Unanswered Question Button */}
+                      {questionResult && hasMoreQuestions && (
+                        <Button
+                          onClick={handleNextQuestion}
+                          variant="primary"
+                          size="lg"
+                          rightIcon={<ArrowRight className="w-5 h-5" />}
+                        >
+                          Next Question
+                        </Button>
+                      )}
+
+                      {/* ✅ Finish Level Button */}
+                      {questionResult && !hasMoreQuestions && (
+                        <Button
+                          onClick={() => navigate(`/course/${currentSession.courseId}/completion/${currentSession._id}`)}
+                          variant="success"
+                          size="lg"
+                          rightIcon={<Trophy className="w-5 h-5" />}
+                        >
+                          Finish Level
+                        </Button>
+                      )}
+
+                      {/* ✅ Review Mode Button */}
+                      {(isCurrentQuestionAnswered || questionResult) && (
+                        <Button
+                          onClick={() => {
+                            // Navigate to first question for review
+                            setCurrentQuestionIndex(0);
+                            setQuestionResult(null);
+                          }}
+                          variant="outline"
+                          size="sm"
+                          leftIcon={<Eye className="w-4 h-4" />}
+                        >
+                          Review
+                        </Button>
+                      )}
+                    </div>
                   </div>
-                )}
+
+                  {/* ✅ Progress Summary */}
+                  <div className="mt-4 text-center">
+                    <p className="text-sm text-gray-500 dark:text-gray-400">
+                      {answeredCount} of {level.questions.length} questions answered
+                      {hasMoreQuestions && " • Continue to complete the level"}
+                      {!hasMoreQuestions && answeredCount === level.questions.length && " • All questions completed!"}
+                    </p>
+                  </div>
+                </div>
               </CardContent>
             </Card>
           </motion.div>
