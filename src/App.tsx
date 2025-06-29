@@ -6,6 +6,7 @@ import { useAuth } from "./hooks/use-auth";
 import { AuthLayout } from "./layouts/AuthLayout";
 import { MainLayout } from "./layouts/MainLayout";
 import { DashboardPage } from "./pages/(app)/DashboardPage";
+import { MyCoursesPage } from "./pages/(app)/MyCoursesPage";
 import { LoginPage } from "./pages/(auth)/LoginPage";
 import { NotFoundPage } from "./pages/(misc)/NotFoundPage";
 import CourseDetailPage from "./pages/(app)/(courses)/CourseDetailPage";
@@ -50,6 +51,7 @@ function App() {
         {/* Main App Routes */}
         <Route element={<MainLayout />}>
           <Route path="/" element={<DashboardPage />} />
+          <Route path="/my-courses" element={<MyCoursesPage />} />
           <Route path="/courses" element={<CourseListPage />} />
           <Route path="/course/:courseId" element={<CourseDetailPage />} />
         </Route>
