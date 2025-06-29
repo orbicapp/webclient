@@ -7,6 +7,8 @@ import {
   Star, 
   Trophy,
   Target,
+  Eye,
+  UserPlus,
 } from "lucide-react";
 
 import { LevelWithChapter } from "@/hooks/use-course-path";
@@ -16,6 +18,7 @@ import { cn } from "@/lib/utils/class.utils";
 interface GamePathProps {
   levelPath: LevelWithChapter[];
   onLevelClick?: (level: LevelWithChapter) => void;
+  previewMode?: boolean;
 }
 
 interface ChapterGroup {
@@ -43,16 +46,27 @@ const LevelNode: React.FC<{
   levelNumber: number;
   size: number;
   onClick?: () => void;
-}> = ({ level, x, y, chapterNumber, levelNumber, size, onClick }) => {
+  previewMode?: boolean;
+}> = ({ level, x, y, chapterNumber, levelNumber, size, onClick, previewMode = false }) => {
   const [isHovered, setIsHovered] = useState(false);
   
   const getNodeIcon = () => {
+    if (previewMode) return Eye;
     if (level.isCompleted) return CheckCircle;
     if (level.isUnlocked) return Play;
     return Lock;
   };
   
   const getNodeStyles = () => {
+    if (previewMode) {
+      return {
+        bg: "bg-gradient-to-br from-orange-400 via-orange-500 to-amber-600",
+        shadow: "shadow-xl shadow-orange-500/50",
+        ring: "ring-orange-400/40",
+        glow: "drop-shadow-[0_0_16px_rgba(251,146,60,0.7)]"
+      };
+    }
+    
     if (level.isCompleted) {
       return {
         bg: "bg-gradient-to-br from-emerald-400 via-emerald-500 to-green-600",
@@ -79,6 +93,7 @@ const LevelNode: React.FC<{
 
   const Icon = getNodeIcon();
   const styles = getNodeStyles();
+  const isClickable = previewMode || level.isUnlocked;
 
   return (
     <motion.div
@@ -87,14 +102,14 @@ const LevelNode: React.FC<{
       initial={{ scale: 0, opacity: 0 }}
       animate={{ scale: 1, opacity: 1 }}
       transition={{ delay: levelNumber * 0.03, duration: 0.5, type: "spring" }}
-      whileHover={{ scale: level.isUnlocked ? 1.15 : 1.05 }}
-      whileTap={{ scale: level.isUnlocked ? 0.9 : 1 }}
+      whileHover={{ scale: isClickable ? 1.15 : 1.05 }}
+      whileTap={{ scale: isClickable ? 0.9 : 1 }}
       onHoverStart={() => setIsHovered(true)}
       onHoverEnd={() => setIsHovered(false)}
-      onClick={level.isUnlocked ? onClick : undefined}
+      onClick={isClickable ? onClick : undefined}
     >
-      {/* Outer pulse ring for unlocked levels */}
-      {level.isUnlocked && (
+      {/* Outer pulse ring for clickable levels */}
+      {isClickable && (
         <motion.div
           className={cn(
             "absolute inset-0 rounded-full ring-4",
@@ -116,7 +131,7 @@ const LevelNode: React.FC<{
           styles.bg,
           styles.shadow,
           styles.glow,
-          level.isUnlocked && "hover:border-white/50"
+          isClickable && "hover:border-white/50"
         )}
         style={{ width: size, height: size }}
       >
@@ -139,8 +154,8 @@ const LevelNode: React.FC<{
           {chapterNumber}-{levelNumber}
         </div>
         
-        {/* Stars for completed levels */}
-        {level.isCompleted && level.stars > 0 && (
+        {/* Stars for completed levels (only in non-preview mode) */}
+        {!previewMode && level.isCompleted && level.stars > 0 && (
           <div 
             className="absolute left-1/2 transform -translate-x-1/2 flex space-x-1"
             style={{ bottom: -size * 0.3 }}
@@ -165,6 +180,16 @@ const LevelNode: React.FC<{
             ))}
           </div>
         )}
+
+        {/* Preview mode indicator */}
+        {previewMode && (
+          <div 
+            className="absolute left-1/2 transform -translate-x-1/2 bg-orange-500/90 backdrop-blur-sm rounded-lg px-2 py-1 border border-orange-400/50"
+            style={{ bottom: -size * 0.3 }}
+          >
+            <span className="text-xs font-bold text-white">Preview</span>
+          </div>
+        )}
         
         {/* Hover tooltip */}
         <AnimatePresence>
@@ -178,17 +203,27 @@ const LevelNode: React.FC<{
             >
               <div className="font-semibold text-white">{level.title}</div>
               <div className="text-xs text-gray-300 mt-1">{level.chapter.title}</div>
-              {level.isCompleted && (
-                <div className="text-xs text-emerald-400 flex items-center mt-2">
-                  <CheckCircle className="w-3 h-3 mr-1" />
-                  Completed
+              
+              {previewMode ? (
+                <div className="text-xs text-orange-400 flex items-center mt-2">
+                  <Eye className="w-3 h-3 mr-1" />
+                  Preview Mode - Join to play
                 </div>
-              )}
-              {!level.isUnlocked && (
-                <div className="text-xs text-red-400 flex items-center mt-2">
-                  <Lock className="w-3 h-3 mr-1" />
-                  Locked
-                </div>
+              ) : (
+                <>
+                  {level.isCompleted && (
+                    <div className="text-xs text-emerald-400 flex items-center mt-2">
+                      <CheckCircle className="w-3 h-3 mr-1" />
+                      Completed
+                    </div>
+                  )}
+                  {!level.isUnlocked && (
+                    <div className="text-xs text-red-400 flex items-center mt-2">
+                      <Lock className="w-3 h-3 mr-1" />
+                      Locked
+                    </div>
+                  )}
+                </>
               )}
               
               {/* Tooltip arrow */}
@@ -208,7 +243,8 @@ const ChapterHeader: React.FC<{
   x: number;
   y: number;
   width: number;
-}> = ({ chapter, chapterNumber, isCompleted, x, y, width }) => {
+  previewMode?: boolean;
+}> = ({ chapter, chapterNumber, isCompleted, x, y, width, previewMode = false }) => {
   return (
     <motion.div
       className="absolute z-10"
@@ -226,9 +262,11 @@ const ChapterHeader: React.FC<{
           <motion.div
             className={cn(
               "relative px-6 py-4 rounded-2xl shadow-xl border-2 backdrop-blur-sm",
-              isCompleted 
-                ? "bg-emerald-500/90 border-emerald-400/50 shadow-emerald-500/40" 
-                : "bg-blue-500/90 border-blue-400/50 shadow-blue-500/40"
+              previewMode
+                ? "bg-orange-500/90 border-orange-400/50 shadow-orange-500/40"
+                : isCompleted 
+                  ? "bg-emerald-500/90 border-emerald-400/50 shadow-emerald-500/40" 
+                  : "bg-blue-500/90 border-blue-400/50 shadow-blue-500/40"
             )}
             whileHover={{ scale: 1.02 }}
           >
@@ -241,11 +279,15 @@ const ChapterHeader: React.FC<{
                 <div className="text-white font-bold text-lg leading-tight">{chapter.title}</div>
                 <div className="text-white/90 text-sm mt-1">{chapter.description}</div>
               </div>
-              {isCompleted && (
+              {previewMode ? (
+                <div className="w-10 h-10 bg-orange-400/90 rounded-full flex items-center justify-center border-2 border-orange-300">
+                  <Eye className="w-6 h-6 text-orange-800" />
+                </div>
+              ) : isCompleted ? (
                 <div className="w-10 h-10 bg-yellow-400/90 rounded-full flex items-center justify-center border-2 border-yellow-300">
                   <Trophy className="w-6 h-6 text-yellow-800" />
                 </div>
-              )}
+              ) : null}
             </div>
           </motion.div>
         </div>
@@ -254,7 +296,7 @@ const ChapterHeader: React.FC<{
   );
 };
 
-export const GamePath: React.FC<GamePathProps> = ({ levelPath, onLevelClick }) => {
+export const GamePath: React.FC<GamePathProps> = ({ levelPath, onLevelClick, previewMode = false }) => {
   const { isMobile, isTablet, screenWidth } = useResponsive();
   
   // Calculate responsive sizes - Made even larger as requested
@@ -280,9 +322,9 @@ export const GamePath: React.FC<GamePathProps> = ({ levelPath, onLevelClick }) =
       chapter: levels[0].chapter,
       levels: levels.sort((a, b) => a.order - b.order),
       chapterNumber: index + 1,
-      isCompleted: levels.every(l => l.isCompleted)
+      isCompleted: !previewMode && levels.every(l => l.isCompleted)
     }));
-  }, [levelPath]);
+  }, [levelPath, previewMode]);
 
   // Calculate positions with perfect centering
   const { levelPositions, totalHeight } = useMemo(() => {
@@ -379,6 +421,7 @@ export const GamePath: React.FC<GamePathProps> = ({ levelPath, onLevelClick }) =
             x={containerPadding}
             y={firstLevelOfChapter.y - chapterSpacing + 40}
             width={screenWidth - containerPadding * 2}
+            previewMode={previewMode}
           />
         );
       })}
@@ -394,31 +437,44 @@ export const GamePath: React.FC<GamePathProps> = ({ levelPath, onLevelClick }) =
           levelNumber={position.levelNumber}
           size={nodeSize}
           onClick={() => onLevelClick?.(position.level)}
+          previewMode={previewMode}
         />
       ))}
 
       {/* Floating action button */}
       <motion.button
         className={cn(
-          "fixed bottom-8 right-8 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center shadow-2xl shadow-blue-500/50 z-50 border-4 border-white/20",
-          isMobile ? "w-16 h-16" : "w-18 h-18"
+          "fixed bottom-8 right-8 rounded-full flex items-center justify-center shadow-2xl z-50 border-4 border-white/20",
+          isMobile ? "w-16 h-16" : "w-18 h-18",
+          previewMode 
+            ? "bg-gradient-to-r from-orange-500 to-amber-600 shadow-orange-500/50" 
+            : "bg-gradient-to-r from-blue-500 to-purple-600 shadow-blue-500/50"
         )}
         whileHover={{ scale: 1.05 }}
         whileTap={{ scale: 0.95 }}
         onClick={() => {
-          const nextLevel = levelPath.find(l => l.isUnlocked && !l.isCompleted);
-          if (nextLevel) {
-            const position = levelPositions.find(pos => pos.level._id === nextLevel._id);
-            if (position) {
-              window.scrollTo({
-                top: position.y - window.innerHeight / 2,
-                behavior: 'smooth'
-              });
+          if (previewMode) {
+            // Scroll to top to show join button
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+          } else {
+            const nextLevel = levelPath.find(l => l.isUnlocked && !l.isCompleted);
+            if (nextLevel) {
+              const position = levelPositions.find(pos => pos.level._id === nextLevel._id);
+              if (position) {
+                window.scrollTo({
+                  top: position.y - window.innerHeight / 2,
+                  behavior: 'smooth'
+                });
+              }
             }
           }
         }}
       >
-        <Target className={cn("text-white", isMobile ? "w-7 h-7" : "w-8 h-8")} />
+        {previewMode ? (
+          <UserPlus className={cn("text-white", isMobile ? "w-7 h-7" : "w-8 h-8")} />
+        ) : (
+          <Target className={cn("text-white", isMobile ? "w-7 h-7" : "w-8 h-8")} />
+        )}
       </motion.button>
     </div>
   );

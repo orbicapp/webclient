@@ -14,7 +14,9 @@ import {
   Rocket,
   Gem,
   Play,
-  UserPlus
+  UserPlus,
+  Eye,
+  Lock
 } from "lucide-react";
 
 import { useCourse } from "@/hooks/use-course";
@@ -90,6 +92,12 @@ export function CourseDetailPage() {
   };
 
   const handleLevelClick = (level: any) => {
+    if (!isEnrolled) {
+      // Show join course prompt when clicking on levels without being enrolled
+      console.log("Must join course to play level:", level);
+      return;
+    }
+    
     console.log("Level clicked:", level);
     // TODO: Navigate to level or start game session
   };
@@ -288,6 +296,13 @@ export function CourseDetailPage() {
                       <Target className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" />
                       {courseStats.totalLevels} Levels
                     </Badge>
+                    {/* Preview Mode Badge */}
+                    {!isEnrolled && (
+                      <Badge variant="warning" size="md" glow>
+                        <Eye className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" />
+                        Preview Mode
+                      </Badge>
+                    )}
                   </motion.div>
                   
                   {/* Title */}
@@ -521,61 +536,42 @@ export function CourseDetailPage() {
         </motion.div>
       )}
 
-      {/* Game Path or Join Course Message */}
-      <div className="relative z-10 mt-8 sm:mt-12">
-        {!isEnrolled ? (
-          // Show join course message
-          <motion.div
-            className="max-w-4xl mx-auto px-4 sm:px-6"
-            initial={{ opacity: 0, y: 50 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.8 }}
-          >
-            <Card variant="glass" className="text-center py-16 sm:py-20 bg-black/40 backdrop-blur-xl border-white/20">
-              <motion.div
-                className="w-20 h-20 sm:w-28 sm:h-28 bg-gradient-to-br from-emerald-500 via-teal-500 to-cyan-500 rounded-full flex items-center justify-center mx-auto mb-6 sm:mb-8 shadow-2xl shadow-emerald-500/50"
-                animate={{ 
-                  scale: [1, 1.1, 1],
-                  rotate: [0, 5, -5, 0]
-                }}
-                transition={{ duration: 3, repeat: Infinity }}
-              >
-                <UserPlus className="w-10 h-10 sm:w-14 sm:h-14 text-white" />
-              </motion.div>
-              <h3 className="text-2xl sm:text-3xl font-bold text-white mb-4">
-                Ready to Start Your Adventure?
-              </h3>
-              <p className="text-gray-300 mb-8 max-w-md mx-auto text-sm sm:text-base leading-relaxed">
-                Join this course to unlock all levels, track your progress, and start your learning journey!
-              </p>
+      {/* Preview Mode Banner - Show when not enrolled */}
+      {!isEnrolled && levelPath.length > 0 && (
+        <motion.div
+          className="sticky top-4 z-40 flex justify-center px-4"
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.7 }}
+        >
+          <Card variant="glass" className="bg-orange-500/20 backdrop-blur-xl border-orange-400/30 shadow-2xl rounded-2xl overflow-hidden">
+            <div className="flex items-center justify-center space-x-3 px-6 py-3">
+              <Eye className="w-5 h-5 text-orange-300" />
+              <span className="text-orange-100 font-medium">
+                Preview Mode - Join course to unlock levels and track progress
+              </span>
               <Button
                 onClick={handleJoinCourse}
                 disabled={isJoining}
-                size="lg"
-                className="px-8 py-4 bg-gradient-to-r from-emerald-500 via-teal-500 to-cyan-500 hover:from-emerald-600 hover:via-teal-600 hover:to-cyan-600 text-white font-bold text-lg rounded-2xl shadow-2xl shadow-emerald-500/25 hover:shadow-emerald-500/40 transition-all duration-300"
+                size="sm"
+                className="bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 text-white font-medium rounded-lg shadow-lg"
                 leftIcon={isJoining ? <motion.div
-                  className="w-5 h-5 border-2 border-white border-t-transparent rounded-full"
+                  className="w-4 h-4 border-2 border-white border-t-transparent rounded-full"
                   animate={{ rotate: 360 }}
                   transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
-                /> : <UserPlus className="w-5 h-5" />}
-                glow
+                /> : <UserPlus className="w-4 h-4" />}
               >
-                {isJoining ? "Joining Course..." : "Join Course Now"}
+                {isJoining ? "Joining..." : "Join Now"}
               </Button>
+            </div>
+          </Card>
+        </motion.div>
+      )}
 
-              {joinError && (
-                <motion.div
-                  className="mt-6 p-4 bg-red-500/20 backdrop-blur-sm rounded-xl border border-red-500/30 max-w-md mx-auto"
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                >
-                  <p className="text-red-200 text-sm">{joinError}</p>
-                </motion.div>
-              )}
-            </Card>
-          </motion.div>
-        ) : levelPath.length === 0 ? (
-          // Show no content message for enrolled users
+      {/* Game Path - Always show if there's content */}
+      <div className="relative z-10 mt-8 sm:mt-12">
+        {levelPath.length === 0 ? (
+          // Show no content message
           <motion.div
             className="max-w-4xl mx-auto px-4 sm:px-6"
             initial={{ opacity: 0, y: 50 }}
@@ -606,13 +602,17 @@ export function CourseDetailPage() {
             </Card>
           </motion.div>
         ) : (
-          // Show game path for enrolled users with content
-          <GamePath levelPath={levelPath} onLevelClick={handleLevelClick} />
+          // Show game path - with preview mode for non-enrolled users
+          <GamePath 
+            levelPath={levelPath} 
+            onLevelClick={handleLevelClick}
+            previewMode={!isEnrolled}
+          />
         )}
       </div>
 
       {/* Course Completion Celebration */}
-      {courseStats.isCompleted && (
+      {courseStats.isCompleted && isEnrolled && (
         <motion.div
           className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4"
           initial={{ opacity: 0 }}
