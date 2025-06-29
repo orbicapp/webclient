@@ -270,10 +270,40 @@ export const INITIALIZE_COURSE_PROGRESS_MUTATION = gql`
   mutation InitializeCourseProgress($courseId: ID!) {
     initializeCourseProgress(courseId: $courseId) {
       _id
-      courseId
       userId
-      currentChapter
-      currentLevel
+      courseId
+      levelProgress {
+        levelId
+        completed
+        bestScore
+        bestStars
+        attempts
+        totalTimeSpent
+        firstCompletedAt
+        lastCompletedAt
+      }
+      chapterProgress {
+        chapterId
+        completedLevels
+        totalLevels
+        totalStars
+        maxPossibleStars
+        isCompleted
+        isUnlocked
+        completedAt
+      }
+      totalScore
+      totalStars
+      totalTimeSpent
+      completedLevels
+      totalLevels
+      completedChapters
+      totalChapters
+      isCompleted
+      completedAt
+      createdAt
+      createdAt
+      updatedAt
     }
   }
 `;

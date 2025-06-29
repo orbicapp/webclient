@@ -300,39 +300,40 @@ export const GET_COURSE_PROGRESS_QUERY = gql`
   query CourseProgress($courseId: ID!) {
     courseProgress(courseId: $courseId) {
       _id
-      courseId
       userId
-      isCompleted
-      completedAt
-      totalChapters
-      completedChapters
-      totalLevels
-      completedLevels
-      totalScore
-      totalStars
-      totalTimeSpent
-      createdAt
-      updatedAt
-      chapterProgress {
-        chapterId
-        isCompleted
-        isUnlocked
-        completedLevels
-        totalLevels
-        totalStars
-        maxPossibleStars
-        completedAt
-      }
+      courseId
       levelProgress {
         levelId
         completed
         bestScore
         bestStars
-        totalTimeSpent
         attempts
+        totalTimeSpent
         firstCompletedAt
         lastCompletedAt
       }
+      chapterProgress {
+        chapterId
+        completedLevels
+        totalLevels
+        totalStars
+        maxPossibleStars
+        isCompleted
+        isUnlocked
+        completedAt
+      }
+      totalScore
+      totalStars
+      totalTimeSpent
+      completedLevels
+      totalLevels
+      completedChapters
+      totalChapters
+      isCompleted
+      completedAt
+      createdAt
+      createdAt
+      updatedAt
     }
   }
 `;
@@ -400,17 +401,38 @@ export const GET_MY_COURSES_WITH_PROGRESS_QUERY = gql`
 
       progress {
         _id
-        courseId
         userId
-        isCompleted
-        completedAt
-        totalChapters
-        completedChapters
-        totalLevels
-        completedLevels
+        courseId
+        levelProgress {
+          levelId
+          completed
+          bestScore
+          bestStars
+          attempts
+          totalTimeSpent
+          firstCompletedAt
+          lastCompletedAt
+        }
+        chapterProgress {
+          chapterId
+          completedLevels
+          totalLevels
+          totalStars
+          maxPossibleStars
+          isCompleted
+          isUnlocked
+          completedAt
+        }
         totalScore
         totalStars
         totalTimeSpent
+        completedLevels
+        totalLevels
+        completedChapters
+        totalChapters
+        isCompleted
+        completedAt
+        createdAt
         createdAt
         updatedAt
       }
