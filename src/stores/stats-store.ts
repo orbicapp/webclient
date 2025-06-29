@@ -6,6 +6,7 @@ interface StatsState {
   // Cache storage only
   userStats: UserStats | null;
   lastUpdated: string | null;
+  initialized: boolean; // ✅ Add initialized flag
 
   // Actions
   setUserStats: (stats: UserStats) => void;
@@ -14,16 +15,20 @@ interface StatsState {
   getLastUpdated: () => string | null;
   clearUserStats: () => void;
   isStale: (maxAgeMinutes?: number) => boolean;
+  setInitialized: (initialized: boolean) => void; // ✅ Add setter
+  isInitialized: () => boolean; // ✅ Add getter
 }
 
 export const useStatsStore = create<StatsState>((set, get) => ({
   userStats: null,
   lastUpdated: null,
+  initialized: false, // ✅ Start as false
 
   setUserStats: (stats) =>
     set({
       userStats: stats,
       lastUpdated: new Date().toISOString(),
+      initialized: true, // ✅ Mark as initialized when data is set
     }),
 
   updateUserStats: (updates) =>
@@ -33,6 +38,7 @@ export const useStatsStore = create<StatsState>((set, get) => ({
       return {
         userStats: { ...state.userStats, ...updates },
         lastUpdated: new Date().toISOString(),
+        initialized: true, // ✅ Keep initialized
       };
     }),
 
@@ -40,11 +46,19 @@ export const useStatsStore = create<StatsState>((set, get) => ({
 
   getLastUpdated: () => get().lastUpdated,
 
-  clearUserStats: () => set({ userStats: null, lastUpdated: null }),
+  setInitialized: (initialized) => set({ initialized }),
+
+  isInitialized: () => get().initialized,
+
+  clearUserStats: () => set({ 
+    userStats: null, 
+    lastUpdated: null, 
+    initialized: false // ✅ Reset initialized when clearing
+  }),
 
   isStale: (maxAgeMinutes = 30) => {
     const state = get();
-    if (!state.lastUpdated) return true;
+    if (!state.lastUpdated || !state.initialized) return true;
 
     const lastUpdate = new Date(state.lastUpdated);
     const now = new Date();

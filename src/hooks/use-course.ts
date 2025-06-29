@@ -33,20 +33,33 @@ export const useCourseSearch = (
 ): [boolean, CoursesConnection | null, string | null] => {
   const { filter, limit = 10, offset = 0, enabled = true } = options;
 
-  const { getSearchResults, setSearchResult } = useCourseStore();
+  const { 
+    getSearchResults, 
+    setSearchResult, 
+    isSearchInitialized 
+  } = useCourseStore();
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [initialized, setInitialized] = useState(false);
   const [result, setResult] = useState<CoursesConnection | null>(null);
 
   const searchKey = generateSearchKey(type, filter, limit, offset);
   const courses = getSearchResults(searchKey);
+  const initialized = isSearchInitialized(searchKey);
 
   useEffect(() => {
-    // If results are already cached or search is disabled, don't fetch
-    if (courses.length > 0 || !enabled) {
-      setInitialized(true);
+    // ✅ If already initialized, search is disabled, or loading, don't fetch
+    if (initialized || !enabled || loading) {
+      // ✅ If we have cached results, create the connection object
+      if (initialized && courses.length > 0) {
+        setResult({
+          courses,
+          total: courses.length, // This is approximate, real total would come from API
+          limit,
+          offset,
+          hasMore: false, // This is approximate
+        });
+      }
       return;
     }
 
@@ -54,59 +67,65 @@ export const useCourseSearch = (
       setLoading(true);
       setError(null);
 
-      const serviceMethod =
-        type === "myCourses"
-          ? CourseService.getMyCourses
-          : CourseService.getCourses;
+      try {
+        const serviceMethod =
+          type === "myCourses"
+            ? CourseService.getMyCourses
+            : CourseService.getCourses;
 
-      const [result, error] = await serviceMethod(filter, limit, offset);
+        const [result, error] = await serviceMethod(filter, limit, offset);
 
-      if (result) {
-        setSearchResult(searchKey, result.courses);
-        setResult(result);
-      } else {
-        setError(error || "Failed to fetch courses");
+        if (result) {
+          setSearchResult(searchKey, result.courses); // ✅ This sets initialized flag
+          setResult(result);
+        } else {
+          setError(error || "Failed to fetch courses");
+          setSearchResult(searchKey, []); // ✅ Still mark as initialized
+        }
+      } catch (err) {
+        setError(err instanceof Error ? err.message : "Failed to fetch courses");
+        setSearchResult(searchKey, []); // ✅ Still mark as initialized
+      } finally {
+        setLoading(false);
       }
-
-      setLoading(false);
-      setInitialized(true);
     };
 
     fetchCourses();
   }, [
     searchKey,
-    courses.length,
+    initialized,
     enabled,
+    loading,
     type,
     filter,
     limit,
     offset,
     setSearchResult,
+    courses.length,
   ]);
 
-  // Don't return data until first fetch attempt is complete
-  if (!initialized && enabled) {
-    return [true, null, null];
-  }
-
-  return [loading, result, error];
+  // ✅ Return data immediately if available
+  return [loading && !initialized, result, error];
 };
 
 export const useCourse = (
   courseId: string
 ): [boolean, Course | null, string | null] => {
-  const { getCourse, setCourse } = useCourseStore();
+  const { 
+    getCourse, 
+    setCourse, 
+    isCourseInitialized 
+  } = useCourseStore();
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [initialized, setInitialized] = useState(false);
 
   const course = getCourse(courseId);
+  const initialized = isCourseInitialized(courseId);
 
   useEffect(() => {
-    // If course is already in cache or no courseId, don't fetch
-    if (course || !courseId) {
-      setInitialized(true);
+    // ✅ If already initialized, no courseId, or loading, don't fetch
+    if (initialized || !courseId || loading) {
       return;
     }
 
@@ -114,24 +133,36 @@ export const useCourse = (
       setLoading(true);
       setError(null);
 
-      const [course, error] = await CourseService.getCourse(courseId);
-      if (course) {
-        setCourse(course);
-      } else {
-        setError(error || "Failed to fetch course");
+      try {
+        const [course, error] = await CourseService.getCourse(courseId);
+        if (course) {
+          setCourse(course); // ✅ This sets initialized flag
+        } else {
+          setError(error || "Failed to fetch course");
+          // ✅ Mark as initialized even on error to prevent retries
+          setCourse({
+            _id: courseId,
+            author: '',
+            title: 'Course not found',
+            description: '',
+            lang: 'en',
+            category: 'other',
+            chaptersCount: 0,
+            visibility: 'private',
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString(),
+          });
+        }
+      } catch (err) {
+        setError(err instanceof Error ? err.message : "Failed to fetch course");
+      } finally {
+        setLoading(false);
       }
-
-      setLoading(false);
-      setInitialized(true);
     };
 
     fetchCourse();
-  }, [courseId, course, setCourse]);
+  }, [courseId, initialized, loading, setCourse]);
 
-  // Don't return data until first fetch attempt is complete
-  if (!initialized) {
-    return [true, null, null];
-  }
-
-  return [loading, course || null, error];
+  // ✅ Return data immediately if available
+  return [loading && !initialized, course || null, error];
 };

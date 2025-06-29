@@ -9,18 +9,31 @@ import { useStatsStore } from "@/stores/stats-store";
 export const useUserStats = (
   forceRefresh = false
 ): [boolean, UserStats | null, string | null] => {
-  const { getUserStats, setUserStats, isStale } = useStatsStore();
+  const { 
+    getUserStats, 
+    setUserStats, 
+    isStale, 
+    isInitialized,
+    setInitialized 
+  } = useStatsStore();
+  
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [initialized, setInitialized] = useState(false);
 
   const stats = getUserStats();
-  const shouldFetch = forceRefresh || !stats || isStale();
+  const initialized = isInitialized();
+  
+  // ✅ Only fetch if not initialized, stale, or force refresh
+  const shouldFetch = forceRefresh || !initialized || (initialized && isStale());
 
   useEffect(() => {
-    // If stats are fresh and not forcing refresh, don't fetch
-    if (!shouldFetch) {
-      setInitialized(true);
+    // ✅ If already initialized and not stale, don't fetch
+    if (initialized && !isStale() && !forceRefresh) {
+      return;
+    }
+
+    // ✅ If already loading, don't start another fetch
+    if (loading) {
       return;
     }
 
@@ -28,24 +41,28 @@ export const useUserStats = (
       setLoading(true);
       setError(null);
 
-      const [stats, error] = await StatsService.getMyStats();
-      if (stats) {
-        setUserStats(stats);
-      } else {
-        setError(error || "Failed to fetch user statistics");
+      try {
+        const [stats, error] = await StatsService.getMyStats();
+        if (stats) {
+          setUserStats(stats); // ✅ This will set initialized: true
+        } else {
+          setError(error || "Failed to fetch user statistics");
+          // ✅ Mark as initialized even on error to prevent infinite retries
+          setInitialized(true);
+        }
+      } catch (err) {
+        setError(err instanceof Error ? err.message : "Failed to fetch user statistics");
+        setInitialized(true);
+      } finally {
+        setLoading(false);
       }
-
-      setLoading(false);
-      setInitialized(true);
     };
 
-    fetchStats();
-  }, [shouldFetch, setUserStats]);
+    if (shouldFetch) {
+      fetchStats();
+    }
+  }, [shouldFetch, loading, setUserStats, setInitialized, forceRefresh]);
 
-  // Don't return data until first fetch attempt is complete
-  if (!initialized) {
-    return [true, null, null];
-  }
-
-  return [loading, stats, error];
+  // ✅ Return data immediately if available, even while loading fresh data
+  return [loading && !initialized, stats, error];
 };

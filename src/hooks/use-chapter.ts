@@ -10,18 +10,21 @@ import { useChapterStore } from "@/stores/chapter-store";
 export const useChapter = (
   chapterId: string
 ): [boolean, Chapter | null, string | null] => {
-  const { getChapter, setChapter } = useChapterStore();
+  const { 
+    getChapter, 
+    setChapter, 
+    isChapterInitialized 
+  } = useChapterStore();
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [initialized, setInitialized] = useState(false);
 
   const chapter = getChapter(chapterId);
+  const initialized = isChapterInitialized(chapterId);
 
   useEffect(() => {
-    // If chapter is already in cache or no chapterId provided, don't fetch
-    if (chapter || !chapterId) {
-      setInitialized(true);
+    // ✅ If already initialized, no chapterId, or loading, don't fetch
+    if (initialized || !chapterId || loading) {
       return;
     }
 
@@ -29,26 +32,36 @@ export const useChapter = (
       setLoading(true);
       setError(null);
 
-      const [chapter, error] = await ChapterService.getChapter(chapterId);
-      if (chapter) {
-        setChapter(chapter);
-      } else {
-        setError(error || "Failed to fetch chapter");
+      try {
+        const [chapter, error] = await ChapterService.getChapter(chapterId);
+        if (chapter) {
+          setChapter(chapter); // ✅ This sets initialized flag
+        } else {
+          setError(error || "Failed to fetch chapter");
+          // ✅ Mark as initialized even on error
+          setChapter({
+            _id: chapterId,
+            title: 'Chapter not found',
+            description: '',
+            courseId: '',
+            order: 0,
+            levelsCount: 0,
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString(),
+          });
+        }
+      } catch (err) {
+        setError(err instanceof Error ? err.message : "Failed to fetch chapter");
+      } finally {
+        setLoading(false);
       }
-
-      setLoading(false);
-      setInitialized(true);
     };
 
     fetchChapter();
-  }, [chapterId, chapter, setChapter]);
+  }, [chapterId, initialized, loading, setChapter]);
 
-  // Don't return data until first fetch attempt is complete
-  if (!initialized) {
-    return [true, null, null];
-  }
-
-  return [loading, chapter || null, error];
+  // ✅ Return data immediately if available
+  return [loading && !initialized, chapter || null, error];
 };
 
 /**
@@ -58,18 +71,21 @@ export const useChapter = (
 export const useCourseChapters = (
   courseId: string
 ): [boolean, Chapter[], string | null] => {
-  const { getCourseChapters, setCourseChapters } = useChapterStore();
+  const { 
+    getCourseChapters, 
+    setCourseChapters, 
+    isCourseChaptersInitialized 
+  } = useChapterStore();
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [initialized, setInitialized] = useState(false);
 
   const chapters = getCourseChapters(courseId);
+  const initialized = isCourseChaptersInitialized(courseId);
 
   useEffect(() => {
-    // If chapters are already in cache or no courseId provided, don't fetch
-    if (chapters.length > 0 || !courseId) {
-      setInitialized(true);
+    // ✅ If already initialized, no courseId, or loading, don't fetch
+    if (initialized || !courseId || loading) {
       return;
     }
 
@@ -77,26 +93,25 @@ export const useCourseChapters = (
       setLoading(true);
       setError(null);
 
-      const [chapters, error] = await ChapterService.getCourseChapters(
-        courseId
-      );
-      if (chapters) {
-        setCourseChapters(courseId, chapters);
-      } else {
-        setError(error || "Failed to fetch course chapters");
+      try {
+        const [chapters, error] = await ChapterService.getCourseChapters(courseId);
+        if (chapters) {
+          setCourseChapters(courseId, chapters); // ✅ This sets initialized flag
+        } else {
+          setError(error || "Failed to fetch course chapters");
+          setCourseChapters(courseId, []); // ✅ Still mark as initialized
+        }
+      } catch (err) {
+        setError(err instanceof Error ? err.message : "Failed to fetch course chapters");
+        setCourseChapters(courseId, []); // ✅ Still mark as initialized
+      } finally {
+        setLoading(false);
       }
-
-      setLoading(false);
-      setInitialized(true);
     };
 
     fetchCourseChapters();
-  }, [courseId, chapters.length, setCourseChapters]);
+  }, [courseId, initialized, loading, setCourseChapters]);
 
-  // Don't return data until first fetch attempt is complete
-  if (!initialized) {
-    return [true, [], null];
-  }
-
-  return [loading, chapters, error];
+  // ✅ Return data immediately if available
+  return [loading && !initialized, chapters, error];
 };

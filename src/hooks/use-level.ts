@@ -6,18 +6,21 @@ import { useLevelStore } from "@/stores/level-store";
 export const useLevel = (
   levelId: string
 ): [boolean, Level | null, string | null] => {
-  const { getLevel, setLevel } = useLevelStore();
+  const { 
+    getLevel, 
+    setLevel, 
+    isLevelInitialized 
+  } = useLevelStore();
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [initialized, setInitialized] = useState(false);
 
   const level = getLevel(levelId);
+  const initialized = isLevelInitialized(levelId);
 
   useEffect(() => {
-    // If level is already in cache or no levelId, don't fetch
-    if (level || !levelId) {
-      setInitialized(true);
+    // ✅ If already initialized, no levelId, or loading, don't fetch
+    if (initialized || !levelId || loading) {
       return;
     }
 
@@ -25,43 +28,58 @@ export const useLevel = (
       setLoading(true);
       setError(null);
 
-      const [level, error] = await LevelService.getLevel(levelId);
-      if (level) {
-        setLevel(level);
-      } else {
-        setError(error || "Failed to fetch level");
+      try {
+        const [level, error] = await LevelService.getLevel(levelId);
+        if (level) {
+          setLevel(level); // ✅ This sets initialized flag
+        } else {
+          setError(error || "Failed to fetch level");
+          // ✅ Mark as initialized even on error
+          setLevel({
+            _id: levelId,
+            title: 'Level not found',
+            description: '',
+            chapterId: '',
+            courseId: '',
+            order: 0,
+            questions: [],
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString(),
+          });
+        }
+      } catch (err) {
+        setError(err instanceof Error ? err.message : "Failed to fetch level");
+      } finally {
+        setLoading(false);
       }
-
-      setLoading(false);
-      setInitialized(true);
     };
 
     fetchLevel();
-  }, [levelId, level, setLevel]);
+  }, [levelId, initialized, loading, setLevel]);
 
-  // Don't return data until first fetch attempt is complete
-  if (!initialized) {
-    return [true, null, null];
-  }
-
-  return [loading, level || null, error];
+  // ✅ Return data immediately if available
+  return [loading && !initialized, level || null, error];
 };
 
 // Hook to get chapter levels
 export const useChapterLevels = (
   chapterId: string | undefined
 ): [boolean, Level[], string | null] => {
-  const { getChapterLevels, setChapterLevels } = useLevelStore();
+  const { 
+    getChapterLevels, 
+    setChapterLevels, 
+    isChapterLevelsInitialized 
+  } = useLevelStore();
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [initialized, setInitialized] = useState(false);
+  
   const levels = getChapterLevels(chapterId);
+  const initialized = chapterId ? isChapterLevelsInitialized(chapterId) : true;
 
   useEffect(() => {
-    // If levels are already in cache or no chapterId, don't fetch
-    if (levels.length > 0 || !chapterId) {
-      setInitialized(true);
+    // ✅ If already initialized, no chapterId, or loading, don't fetch
+    if (initialized || !chapterId || loading) {
       return;
     }
 
@@ -69,44 +87,48 @@ export const useChapterLevels = (
       setLoading(true);
       setError(null);
 
-      const [levels, error] = await LevelService.getChapterLevels(chapterId);
-      if (levels) {
-        setChapterLevels(chapterId, levels);
-      } else {
-        setError(error || "Failed to fetch chapter levels");
+      try {
+        const [levels, error] = await LevelService.getChapterLevels(chapterId);
+        if (levels) {
+          setChapterLevels(chapterId, levels); // ✅ This sets initialized flag
+        } else {
+          setError(error || "Failed to fetch chapter levels");
+          setChapterLevels(chapterId, []); // ✅ Still mark as initialized
+        }
+      } catch (err) {
+        setError(err instanceof Error ? err.message : "Failed to fetch chapter levels");
+        setChapterLevels(chapterId, []); // ✅ Still mark as initialized
+      } finally {
+        setLoading(false);
       }
-
-      setLoading(false);
-      setInitialized(true);
     };
 
     fetchChapterLevels();
-  }, [chapterId, levels.length, setChapterLevels]);
+  }, [chapterId, initialized, loading, setChapterLevels]);
 
-  // Don't return data until first fetch attempt is complete
-  if (!initialized) {
-    return [true, [], null];
-  }
-
-  return [loading, levels, error];
+  // ✅ Return data immediately if available
+  return [loading && !initialized, levels, error];
 };
 
 // Hook to get course levels
 export const useCourseLevels = (
   courseId: string
 ): [boolean, Level[], string | null] => {
-  const { getCourseLevels, setCourseLevels } = useLevelStore();
+  const { 
+    getCourseLevels, 
+    setCourseLevels, 
+    isCourseLevelsInitialized 
+  } = useLevelStore();
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [initialized, setInitialized] = useState(false);
 
   const levels = getCourseLevels(courseId);
+  const initialized = isCourseLevelsInitialized(courseId);
 
   useEffect(() => {
-    // If levels are already in cache or no courseId, don't fetch
-    if (levels.length > 0 || !courseId) {
-      setInitialized(true);
+    // ✅ If already initialized, no courseId, or loading, don't fetch
+    if (initialized || !courseId || loading) {
       return;
     }
 
@@ -114,25 +136,26 @@ export const useCourseLevels = (
       setLoading(true);
       setError(null);
 
-      const [levels, error] = await LevelService.getCourseLevels(courseId);
-      if (levels) {
-        console.log(`Fetched ${levels.length} levels for course ${courseId}:`, levels);
-        setCourseLevels(courseId, levels);
-      } else {
-        setError(error || "Failed to fetch course levels");
+      try {
+        const [levels, error] = await LevelService.getCourseLevels(courseId);
+        if (levels) {
+          console.log(`Fetched ${levels.length} levels for course ${courseId}:`, levels);
+          setCourseLevels(courseId, levels); // ✅ This sets initialized flag
+        } else {
+          setError(error || "Failed to fetch course levels");
+          setCourseLevels(courseId, []); // ✅ Still mark as initialized
+        }
+      } catch (err) {
+        setError(err instanceof Error ? err.message : "Failed to fetch course levels");
+        setCourseLevels(courseId, []); // ✅ Still mark as initialized
+      } finally {
+        setLoading(false);
       }
-
-      setLoading(false);
-      setInitialized(true);
     };
 
     fetchCourseLevels();
-  }, [courseId, levels.length, setCourseLevels]);
+  }, [courseId, initialized, loading, setCourseLevels]);
 
-  // Don't return data until first fetch attempt is complete
-  if (!initialized) {
-    return [true, [], null];
-  }
-
-  return [loading, levels, error];
+  // ✅ Return data immediately if available
+  return [loading && !initialized, levels, error];
 };

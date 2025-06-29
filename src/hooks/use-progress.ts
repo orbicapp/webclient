@@ -14,17 +14,21 @@ import { useCourseStore } from "@/stores/course-store";
 export const useCourseProgress = (
   courseId: string
 ): [boolean, CourseProgress | null, string | null] => {
-  const { getCourseProgress, setCourseProgress } = useProgressStore();
+  const { 
+    getCourseProgress, 
+    setCourseProgress, 
+    isCourseProgressInitialized 
+  } = useProgressStore();
+  
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [initialized, setInitialized] = useState(false);
 
   const progress = getCourseProgress(courseId);
+  const initialized = isCourseProgressInitialized(courseId);
 
   useEffect(() => {
-    // If progress is already in cache or no courseId, don't fetch
-    if (progress || !courseId) {
-      setInitialized(true);
+    // ✅ If already initialized or no courseId, don't fetch
+    if (initialized || !courseId || loading) {
       return;
     }
 
@@ -32,28 +36,39 @@ export const useCourseProgress = (
       setLoading(true);
       setError(null);
 
-      const [progress, error] = await ProgressService.getCourseProgress(
-        courseId
-      );
-      if (progress) {
-        setCourseProgress(progress);
-      } else {
-        setError(error || "Failed to fetch course progress");
+      try {
+        const [progress, error] = await ProgressService.getCourseProgress(courseId);
+        if (progress) {
+          setCourseProgress(progress); // ✅ This sets initialized flag
+        } else {
+          setError(error || "Failed to fetch course progress");
+          // ✅ Still mark as initialized to prevent retries
+          setCourseProgress({
+            _id: `temp-${courseId}`,
+            courseId,
+            userId: '',
+            currentChapter: 0,
+            currentLevel: 0,
+            levelProgress: [],
+            totalScore: 0,
+            totalMaxScore: 0,
+            completed: false,
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString(),
+          });
+        }
+      } catch (err) {
+        setError(err instanceof Error ? err.message : "Failed to fetch course progress");
+      } finally {
+        setLoading(false);
       }
-
-      setLoading(false);
-      setInitialized(true);
     };
 
     fetchProgress();
-  }, [courseId, progress, setCourseProgress]);
+  }, [courseId, initialized, loading, setCourseProgress]);
 
-  // Don't return data until first fetch attempt is complete
-  if (!initialized) {
-    return [true, null, null];
-  }
-
-  return [loading, progress || null, error];
+  // ✅ Return data immediately if available
+  return [loading && !initialized, progress || null, error];
 };
 
 /**
@@ -64,18 +79,22 @@ export const useCoursesWithProgress = (): [
   CourseWithProgress[],
   string | null
 ] => {
-  const { getPlayingCourses, setPlayingCourses } = useProgressStore();
+  const { 
+    getPlayingCourses, 
+    setPlayingCourses, 
+    isPlayingCoursesInitialized 
+  } = useProgressStore();
   const { setCourses } = useCourseStore();
+  
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [initialized, setInitialized] = useState(false);
 
   const playingCourses = getPlayingCourses();
+  const initialized = isPlayingCoursesInitialized();
 
   useEffect(() => {
-    // If courses are already in cache, don't fetch
-    if (playingCourses.length > 0) {
-      setInitialized(true);
+    // ✅ If already initialized, don't fetch
+    if (initialized || loading) {
       return;
     }
 
@@ -83,32 +102,32 @@ export const useCoursesWithProgress = (): [
       setLoading(true);
       setError(null);
 
-      const [coursesWithProgress, error] = await ProgressService.getMyCoursesWithProgress();
-      if (coursesWithProgress) {
-        // Cache courses in course store
-        const courses = coursesWithProgress.map(item => item.course);
-        setCourses(courses);
+      try {
+        const [coursesWithProgress, error] = await ProgressService.getMyCoursesWithProgress();
+        if (coursesWithProgress) {
+          // Cache courses in course store
+          const courses = coursesWithProgress.map(item => item.course);
+          setCourses(courses);
 
-        // Cache progress in progress store
-        const progressList = coursesWithProgress.map(item => item.progress);
-        setPlayingCourses(progressList);
-      } else {
-        setError(error || "Failed to fetch courses with progress");
+          // Cache progress in progress store
+          const progressList = coursesWithProgress.map(item => item.progress);
+          setPlayingCourses(progressList); // ✅ This sets initialized flag
+        } else {
+          setError(error || "Failed to fetch courses with progress");
+          setPlayingCourses([]); // ✅ Still mark as initialized
+        }
+      } catch (err) {
+        setError(err instanceof Error ? err.message : "Failed to fetch courses with progress");
+        setPlayingCourses([]); // ✅ Still mark as initialized
+      } finally {
+        setLoading(false);
       }
-
-      setLoading(false);
-      setInitialized(true);
     };
 
     fetchCoursesWithProgress();
-  }, [playingCourses.length, setPlayingCourses, setCourses]);
+  }, [initialized, loading, setPlayingCourses, setCourses]);
 
-  // Don't return data until first fetch attempt is complete
-  if (!initialized) {
-    return [true, [], null];
-  }
-
-  // Combine cached data to return CourseWithProgress[]
+  // ✅ Combine cached data to return CourseWithProgress[]
   const coursesWithProgress: CourseWithProgress[] = playingCourses.map(progress => {
     const { getCourse } = useCourseStore.getState();
     const course = getCourse(progress.courseId);
@@ -118,7 +137,8 @@ export const useCoursesWithProgress = (): [
     };
   }).filter(item => item.course); // Filter out any missing courses
 
-  return [loading, coursesWithProgress, error];
+  // ✅ Return data immediately if available
+  return [loading && !initialized, coursesWithProgress, error];
 };
 
 /**
@@ -129,17 +149,21 @@ export const useCompletedCourses = (): [
   CourseProgress[],
   string | null
 ] => {
-  const { getCompletedCourses, setCompletedCourses } = useProgressStore();
+  const { 
+    getCompletedCourses, 
+    setCompletedCourses, 
+    isCompletedCoursesInitialized 
+  } = useProgressStore();
+  
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [initialized, setInitialized] = useState(false);
 
   const completedCourses = getCompletedCourses();
+  const initialized = isCompletedCoursesInitialized();
 
   useEffect(() => {
-    // If courses are already in cache, don't fetch
-    if (completedCourses.length > 0) {
-      setInitialized(true);
+    // ✅ If already initialized, don't fetch
+    if (initialized || loading) {
       return;
     }
 
@@ -147,24 +171,25 @@ export const useCompletedCourses = (): [
       setLoading(true);
       setError(null);
 
-      const [courses, error] = await ProgressService.getMyCompletedCourses();
-      if (courses) {
-        setCompletedCourses(courses);
-      } else {
-        setError(error || "Failed to fetch completed courses");
+      try {
+        const [courses, error] = await ProgressService.getMyCompletedCourses();
+        if (courses) {
+          setCompletedCourses(courses); // ✅ This sets initialized flag
+        } else {
+          setError(error || "Failed to fetch completed courses");
+          setCompletedCourses([]); // ✅ Still mark as initialized
+        }
+      } catch (err) {
+        setError(err instanceof Error ? err.message : "Failed to fetch completed courses");
+        setCompletedCourses([]); // ✅ Still mark as initialized
+      } finally {
+        setLoading(false);
       }
-
-      setLoading(false);
-      setInitialized(true);
     };
 
     fetchCompletedCourses();
-  }, [completedCourses.length, setCompletedCourses]);
+  }, [initialized, loading, setCompletedCourses]);
 
-  // Don't return data until first fetch attempt is complete
-  if (!initialized) {
-    return [true, [], null];
-  }
-
-  return [loading, completedCourses, error];
+  // ✅ Return data immediately if available
+  return [loading && !initialized, completedCourses, error];
 };
