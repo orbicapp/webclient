@@ -1,26 +1,50 @@
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { motion } from "framer-motion";
-import { Search, Filter, Grid, List } from "lucide-react";
+import { Filter, Grid, List } from "lucide-react";
 
 import { ViewContainer } from "@/components/layout/ViewContainer";
+import { SearchInput } from "@/components/layout/SearchInput";
 import { useCourseSearch } from "@/hooks/use-course";
+import { useSearchParamsState } from "@/hooks/use-search-params";
+import { useDebounce } from "@/hooks/use-debounce";
 import { Course } from "@/services/course-service";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/Card";
-import Input from "@/components/ui/Input";
 import Button from "@/components/ui/Button";
 import CourseCard from "@/components/ui/CourseCard";
 
 export function CourseListPage() {
-  const [searchInput, setSearchInput] = useState("");
+  const { getParam } = useSearchParamsState();
+  
+  // Get search from URL params
+  const urlSearch = getParam('search');
+  const [searchInput, setSearchInput] = useState(urlSearch);
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
+  
+  // Debounce search to avoid excessive API calls
+  const debouncedSearch = useDebounce(searchInput, 500);
+  
+  // Sync local search with URL params
+  useEffect(() => {
+    setSearchInput(urlSearch);
+  }, [urlSearch]);
+
+  // Use the search hook with debounced search
   const [loading, results, error] = useCourseSearch("courses", {
     enabled: true,
     limit: 12,
     offset: 0,
-    filter: { search: searchInput.trim() },
+    filter: { search: debouncedSearch.trim() || undefined },
   });
 
-  if (loading) {
+  // Handle search input change
+  const handleSearchChange = useCallback((query: string) => {
+    setSearchInput(query);
+  }, []);
+
+  // Show loading state only on initial load, not during search
+  const isInitialLoading = loading && !results;
+
+  if (isInitialLoading) {
     return (
       <ViewContainer className="py-6">
         <div className="mb-8">
@@ -48,7 +72,7 @@ export function CourseListPage() {
     );
   }
 
-  if (error || !results) {
+  if (error && !results) {
     return (
       <ViewContainer className="py-6">
         <Card>
@@ -58,7 +82,7 @@ export function CourseListPage() {
                 Error Loading Courses
               </h1>
               <p className="text-gray-600 dark:text-gray-400">
-                {error || "Failed to load courses"}
+                {error}
               </p>
             </div>
           </CardContent>
@@ -66,6 +90,8 @@ export function CourseListPage() {
       </ViewContainer>
     );
   }
+
+  const courses = results?.courses || [];
 
   return (
     <ViewContainer className="py-6">
@@ -89,12 +115,11 @@ export function CourseListPage() {
         <CardContent>
           <div className="flex flex-col md:flex-row gap-4 items-center">
             <div className="flex-1">
-              <Input
+              <SearchInput
+                variant="page"
                 placeholder="Search courses, topics, or categories..."
-                value={searchInput}
-                onChange={(e) => setSearchInput(e.target.value)}
-                leftIcon={<Search className="w-5 h-5" />}
-                variant="glass"
+                onSearch={handleSearchChange}
+                className="w-full"
               />
             </div>
             
@@ -131,28 +156,46 @@ export function CourseListPage() {
         </CardContent>
       </Card>
 
+      {/* Loading indicator during search */}
+      {loading && results && (
+        <div className="flex items-center justify-center py-4 mb-4">
+          <div className="flex items-center space-x-2 text-primary-600 dark:text-primary-400">
+            <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin"></div>
+            <span className="text-sm font-medium">Searching...</span>
+          </div>
+        </div>
+      )}
+
       {/* Results Info */}
       <div className="flex items-center justify-between mb-6">
         <div className="text-sm text-gray-600 dark:text-gray-400">
-          Showing {results.courses.length} of {results.total} courses
-          {searchInput && (
-            <span> for "{searchInput}"</span>
+          {results ? (
+            <>
+              Showing {courses.length} of {results.total} courses
+              {searchInput && (
+                <span> for "{searchInput}"</span>
+              )}
+            </>
+          ) : (
+            "Loading courses..."
           )}
         </div>
         
-        {results.hasMore && (
+        {results?.hasMore && (
           <div className="text-sm text-gray-500 dark:text-gray-400">
-            {results.limit} per page • {results.offset + results.courses.length} of {results.total}
+            {results.limit} per page • {results.offset + courses.length} of {results.total}
           </div>
         )}
       </div>
 
       {/* Course Grid */}
-      {results.courses.length === 0 ? (
+      {courses.length === 0 ? (
         <Card>
           <CardContent>
             <div className="text-center py-12">
-              <Search className="w-16 h-16 text-gray-300 dark:text-gray-600 mx-auto mb-4" />
+              <div className="w-16 h-16 bg-gray-100 dark:bg-gray-700 rounded-full flex items-center justify-center mx-auto mb-4">
+                <Filter className="w-8 h-8 text-gray-400 dark:text-gray-500" />
+              </div>
               <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100 mb-2">
                 No courses found
               </h3>
@@ -171,7 +214,7 @@ export function CourseListPage() {
             ? "grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4" 
             : "grid-cols-1"
         }`}>
-          {results.courses.map((course: Course, index) => (
+          {courses.map((course: Course, index) => (
             <motion.div
               key={course._id}
               initial={{ opacity: 0, y: 20 }}
@@ -188,7 +231,7 @@ export function CourseListPage() {
       )}
 
       {/* Load More */}
-      {results.hasMore && (
+      {results?.hasMore && (
         <div className="text-center mt-12">
           <Button variant="outline" size="lg">
             Load More Courses

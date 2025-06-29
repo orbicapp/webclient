@@ -4,7 +4,6 @@ import { useUserStats } from "@/hooks/use-stats";
 import { useResponsive } from "@/hooks/use-responsive";
 import {
   MoonIcon,
-  SearchIcon,
   SunIcon,
   BellIcon,
   MenuIcon,
@@ -15,6 +14,7 @@ import {
 import { motion, AnimatePresence } from "framer-motion";
 import { useState, memo, useMemo } from "react";
 import ProgressRing from "../ui/ProgressRing";
+import { SearchInput } from "./SearchInput";
 
 // Memoized User Stats Component
 const UserStatsDisplay = memo(() => {
@@ -254,16 +254,10 @@ export const Header = memo(() => {
         {/* Center Section - Search (Desktop only) */}
         {!isMobile && (
           <div className="flex-1 max-w-md mx-8">
-            <div className="relative">
-              <div className="absolute inset-y-0 left-0 flex items-center pl-4 pointer-events-none">
-                <SearchIcon className="w-5 h-5 text-gray-400" />
-              </div>
-              <input
-                type="search"
-                placeholder="Search courses, topics..."
-                className="block w-full rounded-2xl pl-12 pr-4 py-3 border-2 border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:border-primary-500 dark:focus:border-primary-400 focus:outline-none focus:ring-0 transition-colors placeholder:text-gray-500"
-              />
-            </div>
+            <SearchInput 
+              variant="header"
+              placeholder="Search courses, topics..."
+            />
           </div>
         )}
 
@@ -312,14 +306,11 @@ export const Header = memo(() => {
             >
               <div className="p-6">
                 {/* Mobile search */}
-                <div className="relative mb-6">
-                  <div className="absolute inset-y-0 left-0 flex items-center pl-4 pointer-events-none">
-                    <SearchIcon className="w-5 h-5 text-gray-400" />
-                  </div>
-                  <input
-                    type="search"
+                <div className="mb-6">
+                  <SearchInput 
+                    variant="page"
                     placeholder="Search..."
-                    className="block w-full rounded-2xl pl-12 pr-4 py-3 border-2 border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:border-primary-500 dark:focus:border-primary-400 focus:outline-none focus:ring-0 transition-colors"
+                    autoFocus
                   />
                 </div>
 
