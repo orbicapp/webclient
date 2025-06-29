@@ -1,5 +1,5 @@
 import { AnimatePresence, motion } from "framer-motion";
-import { Loader2, Rocket } from "lucide-react";
+import { Loader2, Rocket, AlertTriangle, RefreshCw, Wifi, WifiOff } from "lucide-react";
 import { Route, Routes, useLocation } from "react-router-dom";
 
 import { useAuth } from "./hooks/use-auth";
@@ -13,10 +13,54 @@ import { NotFoundPage } from "./pages/(misc)/NotFoundPage";
 import CourseDetailPage from "./pages/(app)/(courses)/CourseDetailPage";
 import { CourseListPage } from "./pages/(app)/(courses)/CourseListPage.tsx";
 import { CreateCoursePage } from "./pages/(app)/(courses)/CreateCoursePage";
+import Button from "./components/ui/Button";
 
 function App() {
   const location = useLocation();
-  const { initialized, isLoading } = useAuth();
+  const { initialized, isLoading, error, isConnectionError, retryConnection } = useAuth();
+
+  // Connection error screen
+  if (isConnectionError && error) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-red-50 to-orange-50 dark:from-red-950 dark:to-orange-950 flex items-center justify-center p-4">
+        <div className="max-w-md w-full">
+          <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl p-8 text-center border border-red-200 dark:border-red-800">
+            {/* Connection Error Icon */}
+            <div className="w-20 h-20 bg-red-100 dark:bg-red-900/30 rounded-full flex items-center justify-center mx-auto mb-6">
+              <WifiOff className="w-10 h-10 text-red-600 dark:text-red-400" />
+            </div>
+
+            {/* Error Title */}
+            <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-4">
+              Connection Failed
+            </h1>
+
+            {/* Error Message */}
+            <p className="text-gray-600 dark:text-gray-400 mb-8 leading-relaxed">
+              {error}
+            </p>
+
+            {/* Retry Button */}
+            <Button
+              onClick={retryConnection}
+              variant="primary"
+              size="lg"
+              fullWidth
+              leftIcon={<RefreshCw className="w-5 h-5" />}
+              className="mb-4"
+            >
+              Retry Connection
+            </Button>
+
+            {/* Help Text */}
+            <p className="text-sm text-gray-500 dark:text-gray-400">
+              If the problem persists, please check your internet connection or contact support.
+            </p>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   // Load screen.
   if (!initialized || isLoading) {

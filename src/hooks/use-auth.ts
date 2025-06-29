@@ -13,6 +13,7 @@ interface UseAuthReturn {
   initialized: boolean;
   isAuthenticated: boolean;
   user: User | null;
+  isConnectionError: boolean;
   login: (data: {
     user: User;
     accessToken: string;
@@ -22,11 +23,13 @@ interface UseAuthReturn {
   logout: () => Promise<void>;
   refreshAuth: () => Promise<boolean>;
   clearError: () => void;
+  retryConnection: () => void;
 }
 
 export const useAuth = (): UseAuthReturn => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [isConnectionError, setIsConnectionError] = useState(false);
 
   const {
     setAuth,
@@ -40,6 +43,15 @@ export const useAuth = (): UseAuthReturn => {
     user,
   } = useAuthStore();
 
+  // Helper function to check if error is a connection error
+  const isNetworkError = (error: string): boolean => {
+    return error.includes("Failed to fetch") || 
+           error.includes("Network Error") || 
+           error.includes("ERR_NETWORK") ||
+           error.includes("ERR_INTERNET_DISCONNECTED") ||
+           error.includes("ERR_CONNECTION_REFUSED");
+  };
+
   // Check saved tokens on mount
   useEffect(() => {
     const initializeAuth = async () => {
@@ -47,6 +59,7 @@ export const useAuth = (): UseAuthReturn => {
 
       setIsLoading(true);
       setError(null);
+      setIsConnectionError(false);
 
       const tokens = LocalStorage.getAuthTokens();
 
@@ -61,23 +74,45 @@ export const useAuth = (): UseAuthReturn => {
       setTokens(tokens.accessToken, tokens.refreshToken, tokens.sessionId);
 
       // Try to get current user
-      const [userData, userError] = await UserService.getMe();
+      try {
+        const [userData, userError] = await UserService.getMe();
 
-      if (userError || !userData) {
-        // If there is an error, log it and clear the session
-        setError("Session expired. Please log in again.");
-        logger.error(
-          "Session expired. Please log in again.",
-          `User error: ${userError}`,
-          `User data: ${userData}`
-        );
-        LocalStorage.clearAuthData();
-        clearAuth();
-      }
+        if (userError) {
+          // Check if it's a connection error
+          if (isNetworkError(userError)) {
+            setIsConnectionError(true);
+            setError("Unable to connect to the server. Please check your internet connection and try again.");
+            logger.error("Connection error during initialization:", userError);
+            setIsLoading(false);
+            return; // Don't set initialized to true, so user can retry
+          } else {
+            // Authentication error, clear session
+            setError("Session expired. Please log in again.");
+            logger.error("Session expired. Please log in again.", `User error: ${userError}`);
+            LocalStorage.clearAuthData();
+            clearAuth();
+          }
+        }
 
-      if (userData) {
-        // If there is a user, set it
-        setUser(userData);
+        if (userData) {
+          // If there is a user, set it
+          setUser(userData);
+        }
+      } catch (err) {
+        const errorMessage = err instanceof Error ? err.message : "Unknown error occurred";
+        
+        if (isNetworkError(errorMessage)) {
+          setIsConnectionError(true);
+          setError("Unable to connect to the server. Please check your internet connection and try again.");
+          logger.error("Connection error during initialization:", err);
+          setIsLoading(false);
+          return; // Don't set initialized to true, so user can retry
+        } else {
+          setError("An unexpected error occurred during initialization.");
+          logger.error("Unexpected error during initialization:", err);
+          LocalStorage.clearAuthData();
+          clearAuth();
+        }
       }
 
       setInitialized(true);
@@ -133,42 +168,76 @@ export const useAuth = (): UseAuthReturn => {
     setIsLoading(true);
     setError(null);
 
-    const [tokenData, tokenError] = await AuthService.refreshToken(
-      refreshToken
-    );
+    try {
+      const [tokenData, tokenError] = await AuthService.refreshToken(refreshToken);
 
-    if (tokenError || !tokenData) {
-      setError("Session expired. Please log in again.");
-      logger.error(
-        "Session expired. Please log in again.",
-        `Token error: ${tokenError}`,
-        `Token data: ${tokenData}`
+      if (tokenError) {
+        // Check if it's a connection error
+        if (isNetworkError(tokenError)) {
+          setIsConnectionError(true);
+          setError("Unable to connect to the server. Please check your internet connection and try again.");
+          setIsLoading(false);
+          return false;
+        } else {
+          setError("Session expired. Please log in again.");
+          logger.error("Session expired. Please log in again.", `Token error: ${tokenError}`);
+          LocalStorage.clearAuthData();
+          clearAuth();
+          setIsLoading(false);
+          return false;
+        }
+      }
+
+      if (!tokenData) {
+        setError("Session expired. Please log in again.");
+        LocalStorage.clearAuthData();
+        clearAuth();
+        setIsLoading(false);
+        return false;
+      }
+
+      // Update store
+      LocalStorage.setAuthTokens(
+        tokenData.accessToken,
+        tokenData.refreshToken,
+        tokenData.sessionId
       );
-      LocalStorage.clearAuthData();
-      clearAuth();
+
+      setTokens(
+        tokenData.accessToken,
+        tokenData.refreshToken,
+        tokenData.sessionId
+      );
+
+      setUser(tokenData.user);
+      setIsLoading(false);
+      return true;
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : "Unknown error";
+      
+      if (isNetworkError(errorMessage)) {
+        setIsConnectionError(true);
+        setError("Unable to connect to the server. Please check your internet connection and try again.");
+      } else {
+        setError("Session expired. Please log in again.");
+        LocalStorage.clearAuthData();
+        clearAuth();
+      }
+      
       setIsLoading(false);
       return false;
     }
-
-    // Update store
-    LocalStorage.setAuthTokens(
-      tokenData.accessToken,
-      tokenData.refreshToken,
-      tokenData.sessionId
-    );
-
-    setTokens(
-      tokenData.accessToken,
-      tokenData.refreshToken,
-      tokenData.sessionId
-    );
-
-    setUser(tokenData.user);
-    setIsLoading(false);
-    return true;
   };
 
-  const clearError = () => setError(null);
+  const clearError = () => {
+    setError(null);
+    setIsConnectionError(false);
+  };
+
+  const retryConnection = () => {
+    // Force a complete page reload for safety
+    window.location.reload();
+  };
 
   return {
     isLoading,
@@ -176,9 +245,11 @@ export const useAuth = (): UseAuthReturn => {
     error,
     initialized,
     user,
+    isConnectionError,
     login,
     logout,
     refreshAuth,
     clearError,
+    retryConnection,
   };
 };
