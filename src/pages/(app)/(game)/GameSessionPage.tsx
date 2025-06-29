@@ -31,18 +31,20 @@ interface QuestionComponentProps {
   questionIndex: number;
   onAnswer: (answer: any) => void;
   isSubmitting: boolean;
+  isAnswered: boolean; // ✅ Add this prop to show if question was already answered
 }
 
 const QuestionComponent: React.FC<QuestionComponentProps> = ({
   question,
   questionIndex,
   onAnswer,
-  isSubmitting
+  isSubmitting,
+  isAnswered
 }) => {
   const [selectedAnswer, setSelectedAnswer] = useState<any>(null);
 
   const handleSubmit = () => {
-    if (selectedAnswer !== null && !isSubmitting) {
+    if (selectedAnswer !== null && !isSubmitting && !isAnswered) {
       onAnswer(selectedAnswer);
     }
   };
@@ -55,14 +57,14 @@ const QuestionComponent: React.FC<QuestionComponentProps> = ({
             {question.options.map((option: any, index: number) => (
               <button
                 key={index}
-                onClick={() => setSelectedAnswer(index)}
-                disabled={isSubmitting}
+                onClick={() => !isAnswered && setSelectedAnswer(index)}
+                disabled={isSubmitting || isAnswered}
                 className={cn(
                   "w-full p-4 text-left rounded-xl border-2 transition-all duration-200",
                   selectedAnswer === index
                     ? "border-primary-500 bg-primary-50 dark:bg-primary-900/20"
                     : "border-gray-200 dark:border-gray-700 hover:border-primary-300 dark:hover:border-primary-600",
-                  isSubmitting && "opacity-50 cursor-not-allowed"
+                  (isSubmitting || isAnswered) && "opacity-50 cursor-not-allowed"
                 )}
               >
                 <div className="flex items-center space-x-3">
@@ -89,28 +91,28 @@ const QuestionComponent: React.FC<QuestionComponentProps> = ({
         return (
           <div className="grid grid-cols-2 gap-4">
             <button
-              onClick={() => setSelectedAnswer(true)}
-              disabled={isSubmitting}
+              onClick={() => !isAnswered && setSelectedAnswer(true)}
+              disabled={isSubmitting || isAnswered}
               className={cn(
                 "p-6 rounded-xl border-2 transition-all duration-200 text-center",
                 selectedAnswer === true
                   ? "border-green-500 bg-green-50 dark:bg-green-900/20"
                   : "border-gray-200 dark:border-gray-700 hover:border-green-300",
-                isSubmitting && "opacity-50 cursor-not-allowed"
+                (isSubmitting || isAnswered) && "opacity-50 cursor-not-allowed"
               )}
             >
               <CheckCircle className="w-8 h-8 mx-auto mb-2 text-green-600" />
               <span className="font-bold text-green-900 dark:text-green-100">True</span>
             </button>
             <button
-              onClick={() => setSelectedAnswer(false)}
-              disabled={isSubmitting}
+              onClick={() => !isAnswered && setSelectedAnswer(false)}
+              disabled={isSubmitting || isAnswered}
               className={cn(
                 "p-6 rounded-xl border-2 transition-all duration-200 text-center",
                 selectedAnswer === false
                   ? "border-red-500 bg-red-50 dark:bg-red-900/20"
                   : "border-gray-200 dark:border-gray-700 hover:border-red-300",
-                isSubmitting && "opacity-50 cursor-not-allowed"
+                (isSubmitting || isAnswered) && "opacity-50 cursor-not-allowed"
               )}
             >
               <X className="w-8 h-8 mx-auto mb-2 text-red-600" />
@@ -124,10 +126,10 @@ const QuestionComponent: React.FC<QuestionComponentProps> = ({
           <div>
             <textarea
               value={selectedAnswer || ""}
-              onChange={(e) => setSelectedAnswer(e.target.value)}
-              disabled={isSubmitting}
-              placeholder="Type your answer here..."
-              className="w-full p-4 border-2 border-gray-200 dark:border-gray-700 rounded-xl focus:border-primary-500 focus:outline-none resize-none h-32 text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-800"
+              onChange={(e) => !isAnswered && setSelectedAnswer(e.target.value)}
+              disabled={isSubmitting || isAnswered}
+              placeholder={isAnswered ? "Question already answered" : "Type your answer here..."}
+              className="w-full p-4 border-2 border-gray-200 dark:border-gray-700 rounded-xl focus:border-primary-500 focus:outline-none resize-none h-32 text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-800 disabled:opacity-50"
             />
           </div>
         );
@@ -150,20 +152,33 @@ const QuestionComponent: React.FC<QuestionComponentProps> = ({
         <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-4">
           {question.question}
         </h2>
+        {/* ✅ Show answered status */}
+        {isAnswered && (
+          <Badge variant="success" size="lg" className="mb-4">
+            <CheckCircle className="w-4 h-4 mr-2" />
+            Already Answered
+          </Badge>
+        )}
       </div>
 
       {renderQuestionContent()}
 
       <div className="text-center">
-        <Button
-          onClick={handleSubmit}
-          disabled={selectedAnswer === null || isSubmitting}
-          variant="primary"
-          size="lg"
-          leftIcon={isSubmitting ? <Loader2 className="w-5 h-5 animate-spin" /> : <CheckCircle className="w-5 h-5" />}
-        >
-          {isSubmitting ? "Submitting..." : "Submit Answer"}
-        </Button>
+        {isAnswered ? (
+          <p className="text-gray-500 dark:text-gray-400">
+            This question has already been answered in this session.
+          </p>
+        ) : (
+          <Button
+            onClick={handleSubmit}
+            disabled={selectedAnswer === null || isSubmitting}
+            variant="primary"
+            size="lg"
+            leftIcon={isSubmitting ? <Loader2 className="w-5 h-5 animate-spin" /> : <CheckCircle className="w-5 h-5" />}
+          >
+            {isSubmitting ? "Submitting..." : "Submit Answer"}
+          </Button>
+        )}
       </div>
     </div>
   );
@@ -175,12 +190,29 @@ export function GameSessionPage() {
   const [levelLoading, level] = useLevel(currentSession?.levelId || "");
   const [courseLoading, course] = useCourse(currentSession?.courseId || "");
   
+  // ✅ Initialize currentQuestionIndex based on answered questions
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [gameError, setGameError] = useState<string | null>(null);
   const [startTime] = useState(Date.now());
   
-  const { clearCurrentSession } = useGameStore();
+  const { clearCurrentSession, updateSession } = useGameStore();
+
+  // ✅ Set initial question index based on answered questions
+  useEffect(() => {
+    if (currentSession && currentSession.answeredQuestions) {
+      // Find the first unanswered question
+      const answeredSet = new Set(currentSession.answeredQuestions);
+      let nextQuestionIndex = 0;
+      
+      // Find first question that hasn't been answered
+      while (nextQuestionIndex < (level?.questions?.length || 0) && answeredSet.has(nextQuestionIndex)) {
+        nextQuestionIndex++;
+      }
+      
+      setCurrentQuestionIndex(nextQuestionIndex);
+    }
+  }, [currentSession, level]);
 
   // Redirect if no session
   useEffect(() => {
@@ -227,13 +259,33 @@ export function GameSessionPage() {
         return;
       }
 
+      // ✅ Update the session with the new answered question
+      const updatedAnsweredQuestions = [...(currentSession.answeredQuestions || []), currentQuestionIndex];
+      updateSession(currentSession._id, {
+        answeredQuestions: updatedAnsweredQuestions,
+        lives: result.livesRemaining
+      });
+
       // Handle result
       if (result.isLastQuestion) {
         // Game completed - navigate to completion page
         navigate(`/course/${currentSession.courseId}/completion/${currentSession._id}`);
       } else {
-        // Move to next question
-        setCurrentQuestionIndex(prev => prev + 1);
+        // Find next unanswered question
+        const answeredSet = new Set(updatedAnsweredQuestions);
+        let nextQuestionIndex = currentQuestionIndex + 1;
+        
+        // Find next question that hasn't been answered
+        while (nextQuestionIndex < level.questions.length && answeredSet.has(nextQuestionIndex)) {
+          nextQuestionIndex++;
+        }
+        
+        if (nextQuestionIndex < level.questions.length) {
+          setCurrentQuestionIndex(nextQuestionIndex);
+        } else {
+          // All questions answered - this shouldn't happen if backend is correct
+          navigate(`/course/${currentSession.courseId}/completion/${currentSession._id}`);
+        }
       }
 
       // Check if lives are depleted
@@ -326,13 +378,13 @@ export function GameSessionPage() {
   // Add bounds check for currentQuestionIndex
   if (currentQuestionIndex >= level.questions.length) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-red-900 via-pink-900 to-purple-900 flex items-center justify-center p-4">
+      <div className="min-h-screen bg-gradient-to-br from-green-900 via-emerald-900 to-teal-900 flex items-center justify-center p-4">
         <Card className="max-w-md mx-auto text-center">
           <CardContent>
-            <AlertTriangle className="w-16 h-16 text-yellow-500 mx-auto mb-4" />
-            <h1 className="text-2xl font-bold text-yellow-600 mb-2">Question Not Found</h1>
+            <Trophy className="w-16 h-16 text-yellow-500 mx-auto mb-4" />
+            <h1 className="text-2xl font-bold text-yellow-600 mb-2">Level Complete!</h1>
             <p className="text-gray-600 mb-6">
-              The requested question is not available. Please return to the course.
+              You have answered all questions in this level. Redirecting to results...
             </p>
             <Button 
               onClick={() => navigate(`/course/${currentSession.courseId}`)} 
@@ -347,7 +399,13 @@ export function GameSessionPage() {
   }
 
   const currentQuestion = level.questions[currentQuestionIndex];
-  const progress = ((currentQuestionIndex + 1) / level.questions.length) * 100;
+  
+  // ✅ Calculate progress based on answered questions, not current index
+  const answeredCount = currentSession.answeredQuestions?.length || 0;
+  const progress = (answeredCount / level.questions.length) * 100;
+  
+  // ✅ Check if current question is already answered
+  const isCurrentQuestionAnswered = currentSession.answeredQuestions?.includes(currentQuestionIndex) || false;
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-indigo-900 via-purple-900 to-pink-900">
@@ -378,7 +436,7 @@ export function GameSessionPage() {
               <div className="flex items-center space-x-2">
                 <Target className="w-5 h-5 text-blue-400" />
                 <span className="text-white font-bold">
-                  {currentQuestionIndex + 1}/{level.questions.length}
+                  {answeredCount}/{level.questions.length}
                 </span>
               </div>
               <div className="flex items-center space-x-2">
@@ -441,7 +499,40 @@ export function GameSessionPage() {
                   questionIndex={currentQuestionIndex}
                   onAnswer={handleAnswer}
                   isSubmitting={isSubmitting}
+                  isAnswered={isCurrentQuestionAnswered}
                 />
+
+                {/* ✅ Navigation for answered questions */}
+                {isCurrentQuestionAnswered && (
+                  <div className="mt-6 text-center">
+                    <p className="text-gray-500 dark:text-gray-400 mb-4">
+                      Navigate to other questions or continue the level.
+                    </p>
+                    <div className="flex justify-center space-x-2">
+                      {/* Previous Question */}
+                      {currentQuestionIndex > 0 && (
+                        <Button
+                          onClick={() => setCurrentQuestionIndex(currentQuestionIndex - 1)}
+                          variant="outline"
+                          size="sm"
+                        >
+                          Previous
+                        </Button>
+                      )}
+                      
+                      {/* Next Question */}
+                      {currentQuestionIndex < level.questions.length - 1 && (
+                        <Button
+                          onClick={() => setCurrentQuestionIndex(currentQuestionIndex + 1)}
+                          variant="outline"
+                          size="sm"
+                        >
+                          Next
+                        </Button>
+                      )}
+                    </div>
+                  </div>
+                )}
               </CardContent>
             </Card>
           </motion.div>

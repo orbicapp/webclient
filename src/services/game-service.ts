@@ -67,6 +67,7 @@ export interface GameSession {
   stars: number;
   score: number;
   maxScore: number;
+  answeredQuestions: number[]; // ✅ Add this field to track answered questions
   createdAt: string; // Date
   updatedAt: string; // Date
 }
