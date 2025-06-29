@@ -7,6 +7,7 @@ import { AuthLayout } from "./layouts/AuthLayout";
 import { MainLayout } from "./layouts/MainLayout";
 import { DashboardPage } from "./pages/(app)/DashboardPage";
 import { MyCoursesPage } from "./pages/(app)/MyCoursesPage";
+import { SettingsPage } from "./pages/(app)/SettingsPage";
 import { LoginPage } from "./pages/(auth)/LoginPage";
 import { NotFoundPage } from "./pages/(misc)/NotFoundPage";
 import CourseDetailPage from "./pages/(app)/(courses)/CourseDetailPage";
@@ -56,6 +57,7 @@ function App() {
           <Route path="/courses" element={<CourseListPage />} />
           <Route path="/courses/create" element={<CreateCoursePage />} />
           <Route path="/course/:courseId" element={<CourseDetailPage />} />
+          <Route path="/settings" element={<SettingsPage />} />
         </Route>
 
         {/* Catch-all Not Found Route */}
