@@ -53,8 +53,11 @@ const QuestionComponent: React.FC<QuestionComponentProps> = ({
   useEffect(() => {
     if (isAnswered && answeredQuestion) {
       setSelectedAnswer(answeredQuestion.userAnswer);
+    } else {
+      // Reset selected answer when switching to a new unanswered question
+      setSelectedAnswer(null);
     }
-  }, [isAnswered, answeredQuestion]);
+  }, [isAnswered, answeredQuestion, questionIndex]);
 
   const handleSubmit = () => {
     if (selectedAnswer !== null && !isSubmitting && !isAnswered) {
@@ -438,7 +441,7 @@ export function GameSessionPage() {
         return;
       }
 
-      // Store the question result for immediate feedback
+      // ✅ Store the question result for immediate feedback - NO AUTO NAVIGATION
       setQuestionResult(result);
 
       // Create new answered question object
@@ -456,7 +459,7 @@ export function GameSessionPage() {
         lives: result.livesRemaining
       });
 
-      // ✅ DON'T auto-navigate - let user manually go to next question
+      // ✅ COMPLETELY MANUAL - User must click "Next Question" to continue
 
       // Check if lives are depleted
       if (result.livesRemaining <= 0) {
