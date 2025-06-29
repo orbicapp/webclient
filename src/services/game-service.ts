@@ -34,7 +34,7 @@ export interface SubmitAnswerInput {
 export interface AnsweredQuestion {
   questionIndex: number;
   isCorrect: boolean;
-  userAnswer: any;
+  userAnswer?: any;
   timeSpent: number; // in seconds
 }
 
