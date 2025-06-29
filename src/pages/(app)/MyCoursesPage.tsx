@@ -106,7 +106,7 @@ export function MyCoursesPage() {
                     Start your learning journey by exploring our amazing courses and begin building your skills today!
                   </p>
                   <Link to="/courses">
-                    <Button variant="primary" size="lg" glow>
+                    <Button variant="primary" size="lg">
                       <Compass className="w-5 h-5 mr-2" />
                       Explore Courses
                     </Button>
@@ -307,7 +307,7 @@ export function MyCoursesPage() {
                     Share your knowledge with the world! Create your first course and help others learn something amazing.
                   </p>
                   <Link to="/courses/create">
-                    <Button variant="accent" size="lg" glow>
+                    <Button variant="accent" size="lg">
                       <Plus className="w-5 h-5 mr-2" />
                       Create Your First Course
                     </Button>
