@@ -271,7 +271,7 @@ export function TabsListGrid({ children, className, columns }: TabsListGridProps
 
   const spacingStyles = {
     default: "gap-1",
-    fancy: "gap-4 space-x-4"
+    fancy: "gap-4"
   };
 
   return (
