@@ -1,11 +1,11 @@
-import { useState, useEffect, useRef } from "react";
+import { useState } from "react";
 import { motion } from "framer-motion";
 import { Filter, Grid, List } from "lucide-react";
 
 import { ViewContainer } from "@/components/layout/ViewContainer";
 import { SearchInput } from "@/components/layout/SearchInput";
 import { useCourseSearch } from "@/hooks/use-course";
-import { useSearchState } from "@/hooks/use-search-state";
+import { useSearchParamsState } from "@/hooks/use-search-params";
 import { Course } from "@/services/course-service";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/Card";
 import Button from "@/components/ui/Button";
@@ -13,16 +13,17 @@ import CourseCard from "@/components/ui/CourseCard";
 
 export function CourseListPage() {
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
+  const { getParam } = useSearchParamsState();
   
-  // Use centralized search state
-  const { debouncedSearch } = useSearchState();
+  // ✅ Get search from URL params directly
+  const searchQuery = getParam('search');
   
-  // Use the search hook with debounced search
+  // ✅ Use the search hook with URL search
   const [loading, results, error] = useCourseSearch("courses", {
     enabled: true,
     limit: 12,
     offset: 0,
-    filter: { search: debouncedSearch.trim() || undefined },
+    filter: { search: searchQuery.trim() || undefined },
   });
 
   // Show loading state only on initial load, not during search
@@ -155,8 +156,8 @@ export function CourseListPage() {
           {results ? (
             <>
               Showing {courses.length} of {results.total} courses
-              {debouncedSearch && (
-                <span> for "{debouncedSearch}"</span>
+              {searchQuery && (
+                <span> for "{searchQuery}"</span>
               )}
             </>
           ) : (
@@ -183,8 +184,8 @@ export function CourseListPage() {
                 No courses found
               </h3>
               <p className="text-gray-500 dark:text-gray-400">
-                {debouncedSearch 
-                  ? `No courses match "${debouncedSearch}". Try adjusting your search.`
+                {searchQuery 
+                  ? `No courses match "${searchQuery}". Try adjusting your search.`
                   : "No courses available at the moment."
                 }
               </p>

@@ -13,6 +13,7 @@ import {
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useState, memo, useMemo } from "react";
+import { useLocation } from "react-router-dom";
 import ProgressRing from "../ui/ProgressRing";
 import { SearchInput } from "./SearchInput";
 
@@ -232,6 +233,10 @@ export const Header = memo(() => {
   const { user } = useAuth();
   const { isMobile } = useResponsive();
   const [showMobileMenu, setShowMobileMenu] = useState(false);
+  const location = useLocation();
+
+  // ✅ Hide search input when on explore page to avoid conflicts
+  const showSearchInput = !location.pathname.startsWith('/courses');
 
   // Memoize the header content to prevent unnecessary re-renders
   const headerContent = useMemo(() => (
@@ -251,8 +256,8 @@ export const Header = memo(() => {
           {!isMobile && <DesktopSidebarToggle />}
         </div>
 
-        {/* Center Section - Search (Desktop only) */}
-        {!isMobile && (
+        {/* Center Section - Search (Desktop only, hidden on explore page) */}
+        {!isMobile && showSearchInput && (
           <div className="flex-1 max-w-md mx-8">
             <SearchInput 
               variant="header"
@@ -277,7 +282,7 @@ export const Header = memo(() => {
         </div>
       </div>
     </div>
-  ), [isMobile, showMobileMenu]);
+  ), [isMobile, showMobileMenu, showSearchInput]);
 
   return (
     <>
@@ -305,14 +310,16 @@ export const Header = memo(() => {
               onClick={(e) => e.stopPropagation()}
             >
               <div className="p-6">
-                {/* Mobile search */}
-                <div className="mb-6">
-                  <SearchInput 
-                    variant="page"
-                    placeholder="Search..."
-                    autoFocus
-                  />
-                </div>
+                {/* Mobile search - Only show if not on explore page */}
+                {showSearchInput && (
+                  <div className="mb-6">
+                    <SearchInput 
+                      variant="header"
+                      placeholder="Search..."
+                      autoFocus
+                    />
+                  </div>
+                )}
 
                 {/* Mobile user stats */}
                 <MobileStatsDisplay />
