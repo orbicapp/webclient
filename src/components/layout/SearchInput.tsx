@@ -1,10 +1,8 @@
-import React, { useState, useEffect, useCallback, useRef } from 'react';
+import React, { useState, useCallback } from 'react';
 import { SearchIcon, X } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { useNavigate, useLocation } from 'react-router-dom';
 
-import { useDebounce } from '@/hooks/use-debounce';
-import { useSearchParamsState } from '@/hooks/use-search-params';
+import { useSearchState } from '@/hooks/use-search-state';
 import { cn } from '@/lib/utils/class.utils';
 
 interface SearchInputProps {
@@ -22,81 +20,35 @@ export const SearchInput: React.FC<SearchInputProps> = ({
   onSearch,
   autoFocus = false
 }) => {
-  const navigate = useNavigate();
-  const location = useLocation();
-  const { getParam, setParam } = useSearchParamsState();
-  const isInitializedRef = useRef(false);
-  
-  // Get initial search value from URL params
-  const urlSearch = getParam('search');
-  const [searchValue, setSearchValue] = useState(urlSearch);
   const [isFocused, setIsFocused] = useState(false);
   
-  // Debounce search value to avoid excessive API calls
-  const debouncedSearch = useDebounce(searchValue, 500);
-
-  // Initialize search value from URL on mount
-  useEffect(() => {
-    if (!isInitializedRef.current) {
-      setSearchValue(urlSearch);
-      isInitializedRef.current = true;
-    }
-  }, [urlSearch]);
-
-  // Update URL params when debounced search changes (but not on initial load)
-  useEffect(() => {
-    if (!isInitializedRef.current) return;
-
-    // Only update if the debounced value is different from URL
-    if (debouncedSearch !== urlSearch) {
-      setParam('search', debouncedSearch);
-      
-      // Call onSearch callback if provided
-      onSearch?.(debouncedSearch);
-      
-      // If we're not on courses page and have a search, navigate there
-      if (location.pathname !== '/courses' && debouncedSearch) {
-        navigate(`/courses?search=${encodeURIComponent(debouncedSearch)}`);
-      }
-    }
-  }, [debouncedSearch, urlSearch, location.pathname, setParam, onSearch, navigate]);
-
-  // Sync with URL params when they change externally (but don't override user input)
-  useEffect(() => {
-    if (!isFocused && urlSearch !== searchValue) {
-      setSearchValue(urlSearch);
-    }
-  }, [urlSearch, isFocused, searchValue]);
+  // Use centralized search state
+  const {
+    searchValue,
+    updateSearch,
+    clearSearch,
+    submitSearch,
+    isSearching
+  } = useSearchState({
+    navigateToSearch: variant === 'header', // Only header navigates
+    onSearch
+  });
 
   const handleInputChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-    const newValue = e.target.value;
-    setSearchValue(newValue);
-  }, []);
-
-  const handleClear = useCallback(() => {
-    setSearchValue('');
-    setParam('search', '');
-    onSearch?.('');
-  }, [setParam, onSearch]);
+    updateSearch(e.target.value);
+  }, [updateSearch]);
 
   const handleKeyDown = useCallback((e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'Enter') {
       e.preventDefault();
-      // Trigger immediate search on Enter
-      setParam('search', searchValue);
-      onSearch?.(searchValue);
-      
-      // Navigate to courses if not already there
-      if (location.pathname !== '/courses' && searchValue) {
-        navigate(`/courses?search=${encodeURIComponent(searchValue)}`);
-      }
+      submitSearch();
     }
     
     if (e.key === 'Escape') {
       e.currentTarget.blur();
       setIsFocused(false);
     }
-  }, [searchValue, setParam, onSearch, location.pathname, navigate]);
+  }, [submitSearch]);
 
   const variantStyles = {
     header: "rounded-2xl pl-12 pr-4 py-3 border-2 border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800",
@@ -134,6 +86,13 @@ export const SearchInput: React.FC<SearchInputProps> = ({
         )}
       />
 
+      {/* Loading indicator */}
+      {isSearching && (
+        <div className="absolute inset-y-0 right-12 flex items-center">
+          <div className="w-4 h-4 border-2 border-primary-500 border-t-transparent rounded-full animate-spin"></div>
+        </div>
+      )}
+
       {/* Clear Button */}
       <AnimatePresence>
         {searchValue && (
@@ -142,7 +101,7 @@ export const SearchInput: React.FC<SearchInputProps> = ({
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.8 }}
             transition={{ duration: 0.15 }}
-            onClick={handleClear}
+            onClick={clearSearch}
             className="absolute inset-y-0 right-0 flex items-center pr-4 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
             type="button"
           >

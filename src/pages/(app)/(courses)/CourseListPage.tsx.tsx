@@ -1,37 +1,22 @@
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useEffect, useRef } from "react";
 import { motion } from "framer-motion";
 import { Filter, Grid, List } from "lucide-react";
 
 import { ViewContainer } from "@/components/layout/ViewContainer";
 import { SearchInput } from "@/components/layout/SearchInput";
 import { useCourseSearch } from "@/hooks/use-course";
-import { useSearchParamsState } from "@/hooks/use-search-params";
-import { useDebounce } from "@/hooks/use-debounce";
+import { useSearchState } from "@/hooks/use-search-state";
 import { Course } from "@/services/course-service";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/Card";
 import Button from "@/components/ui/Button";
 import CourseCard from "@/components/ui/CourseCard";
 
 export function CourseListPage() {
-  const { getParam } = useSearchParamsState();
-  const isInitializedRef = useRef(false);
-  
-  // Get search from URL params
-  const urlSearch = getParam('search');
-  const [searchInput, setSearchInput] = useState(urlSearch);
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
   
-  // Debounce search to avoid excessive API calls
-  const debouncedSearch = useDebounce(searchInput, 500);
+  // Use centralized search state
+  const { debouncedSearch } = useSearchState();
   
-  // Initialize search input from URL on mount
-  useEffect(() => {
-    if (!isInitializedRef.current) {
-      setSearchInput(urlSearch);
-      isInitializedRef.current = true;
-    }
-  }, [urlSearch]);
-
   // Use the search hook with debounced search
   const [loading, results, error] = useCourseSearch("courses", {
     enabled: true,
@@ -39,11 +24,6 @@ export function CourseListPage() {
     offset: 0,
     filter: { search: debouncedSearch.trim() || undefined },
   });
-
-  // Handle search input change - this is called by SearchInput component
-  const handleSearchChange = useCallback((query: string) => {
-    setSearchInput(query);
-  }, []);
 
   // Show loading state only on initial load, not during search
   const isInitialLoading = loading && !results;
@@ -122,7 +102,6 @@ export function CourseListPage() {
               <SearchInput
                 variant="page"
                 placeholder="Search courses, topics, or categories..."
-                onSearch={handleSearchChange}
                 className="w-full"
               />
             </div>
@@ -176,8 +155,8 @@ export function CourseListPage() {
           {results ? (
             <>
               Showing {courses.length} of {results.total} courses
-              {searchInput && (
-                <span> for "{searchInput}"</span>
+              {debouncedSearch && (
+                <span> for "{debouncedSearch}"</span>
               )}
             </>
           ) : (
@@ -204,8 +183,8 @@ export function CourseListPage() {
                 No courses found
               </h3>
               <p className="text-gray-500 dark:text-gray-400">
-                {searchInput 
-                  ? `No courses match "${searchInput}". Try adjusting your search.`
+                {debouncedSearch 
+                  ? `No courses match "${debouncedSearch}". Try adjusting your search.`
                   : "No courses available at the moment."
                 }
               </p>
