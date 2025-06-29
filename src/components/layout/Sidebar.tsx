@@ -5,7 +5,6 @@ import { memo, useMemo } from "react";
 
 import { useAuth } from "@/hooks/use-auth";
 import { useSettingsStore } from "@/stores/settings-store";
-import { useResponsive } from "@/hooks/use-responsive";
 import { navCategories, NavItem } from "./sidebar-data";
 import Badge from "../ui/Badge";
 
@@ -183,11 +182,7 @@ NavigationCategory.displayName = "NavigationCategory";
 
 export function Sidebar() {
   const { sidebarOpen, toggleSidebar } = useSettingsStore();
-  const { isMobile } = useResponsive();
   const location = useLocation();
-
-  // Don't render sidebar on mobile (handled by header)
-  if (isMobile) return null;
 
   // Memoize current path to prevent unnecessary re-renders
   const currentPath = useMemo(() => location.pathname, [location.pathname]);
