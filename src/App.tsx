@@ -11,6 +11,7 @@ import { LoginPage } from "./pages/(auth)/LoginPage";
 import { NotFoundPage } from "./pages/(misc)/NotFoundPage";
 import CourseDetailPage from "./pages/(app)/(courses)/CourseDetailPage";
 import { CourseListPage } from "./pages/(app)/(courses)/CourseListPage.tsx";
+import { CreateCoursePage } from "./pages/(app)/(courses)/CreateCoursePage";
 
 function App() {
   const location = useLocation();
@@ -53,6 +54,7 @@ function App() {
           <Route path="/" element={<DashboardPage />} />
           <Route path="/my-courses" element={<MyCoursesPage />} />
           <Route path="/courses" element={<CourseListPage />} />
+          <Route path="/courses/create" element={<CreateCoursePage />} />
           <Route path="/course/:courseId" element={<CourseDetailPage />} />
         </Route>
 
