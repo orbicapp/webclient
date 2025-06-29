@@ -68,12 +68,17 @@ export function TabsList({ children, className }: TabsListProps) {
   
   const variantStyles = {
     default: "bg-gray-100 dark:bg-gray-800 p-1 rounded-xl",
-    fancy: "bg-gradient-to-r from-gray-100/80 to-gray-200/80 dark:from-gray-800/80 dark:to-gray-700/80 backdrop-blur-lg p-2 rounded-2xl border border-gray-200/50 dark:border-gray-700/50 shadow-lg"
+    fancy: "bg-gradient-to-r from-gray-100/80 to-gray-200/80 dark:from-gray-800/80 dark:to-gray-700/80 backdrop-blur-lg p-3 rounded-2xl border border-gray-200/50 dark:border-gray-700/50 shadow-lg"
+  };
+
+  const spacingStyles = {
+    default: "flex items-center relative",
+    fancy: "flex items-center relative space-x-2"
   };
 
   return (
     <div className={cn(
-      "flex items-center relative",
+      spacingStyles[variant],
       variantStyles[variant],
       className
     )}>
@@ -116,7 +121,6 @@ export function TabsTrigger({ value, children, className, disabled }: TabsTrigge
       className={cn(
         baseStyles,
         isActive ? currentStyles.active : currentStyles.inactive,
-        variant === "fancy" && "mx-1",
         className
       )}
     >
@@ -189,11 +193,13 @@ export function TabsContent({ value, children, className }: TabsContentProps) {
         transition: { duration: 0.2 }
       };
 
+  const contentSpacing = variant === "fancy" ? "mt-8" : "mt-6";
+
   return (
     <AnimatePresence mode="wait">
       <motion.div
         key={value}
-        className={cn("mt-6", className)}
+        className={cn(contentSpacing, className)}
         {...animationProps}
       >
         {children}
@@ -260,13 +266,19 @@ export function TabsListGrid({ children, className, columns }: TabsListGridProps
   
   const variantStyles = {
     default: "bg-gray-100 dark:bg-gray-800 p-1 rounded-xl",
-    fancy: "bg-gradient-to-r from-gray-100/80 to-gray-200/80 dark:from-gray-800/80 dark:to-gray-700/80 backdrop-blur-lg p-2 rounded-2xl border border-gray-200/50 dark:border-gray-700/50 shadow-lg"
+    fancy: "bg-gradient-to-r from-gray-100/80 to-gray-200/80 dark:from-gray-800/80 dark:to-gray-700/80 backdrop-blur-lg p-3 rounded-2xl border border-gray-200/50 dark:border-gray-700/50 shadow-lg"
+  };
+
+  const spacingStyles = {
+    default: "gap-1",
+    fancy: "gap-2"
   };
 
   return (
     <div className={cn(
-      "grid gap-1 relative",
+      "grid relative",
       `grid-cols-${columns}`,
+      spacingStyles[variant],
       variantStyles[variant],
       className
     )}>
