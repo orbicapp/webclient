@@ -1,5 +1,4 @@
 import { useState } from "react";
-import { motion } from "framer-motion";
 import { 
   User, 
   Shield, 
@@ -10,9 +9,6 @@ import {
   Moon,
   Sun,
   Globe,
-  Volume2,
-  VolumeX,
-  Zap,
   Monitor,
   Check,
   X,
@@ -59,10 +55,10 @@ const SettingItem: React.FC<SettingItemProps> = ({
   warning = false 
 }) => (
   <div className={cn(
-    "flex items-center justify-between p-4 rounded-xl border transition-all duration-200",
+    "flex items-center justify-between p-4 rounded-xl border",
     warning 
       ? "bg-orange-50 dark:bg-orange-900/20 border-orange-200 dark:border-orange-800" 
-      : "bg-gray-50 dark:bg-gray-800/50 border-gray-200 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-800"
+      : "bg-gray-50 dark:bg-gray-800/50 border-gray-200 dark:border-gray-700"
   )}>
     <div className="flex items-center space-x-4 flex-1 min-w-0">
       <div className={cn(
@@ -105,12 +101,11 @@ const ToggleSwitch: React.FC<ToggleSwitchProps> = ({ checked, onChange, disabled
       disabled && "opacity-50 cursor-not-allowed"
     )}
   >
-    <motion.span
+    <span
       className={cn(
         "inline-block h-4 w-4 transform rounded-full bg-white shadow-lg transition-transform duration-200",
         checked ? "translate-x-6" : "translate-x-1"
       )}
-      layout
     />
   </button>
 );
@@ -118,7 +113,6 @@ const ToggleSwitch: React.FC<ToggleSwitchProps> = ({ checked, onChange, disabled
 export function SettingsPage() {
   const { user } = useAuth();
   const { theme, toggleTheme } = useSettingsStore();
-  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   
   // Local state for settings
   const [profileData, setProfileData] = useState({
@@ -127,18 +121,14 @@ export function SettingsPage() {
   });
 
   const [appearanceSettings, setAppearanceSettings] = useState({
-    theme: theme,
     language: "en",
-    soundEffects: true,
-    animations: true,
-    compactMode: false,
   });
 
   return (
     <ViewContainer className="py-8">
       {/* Settings Tabs */}
       <div className="max-w-6xl mx-auto">
-        <Tabs defaultValue="profile" variant="fancy">
+        <Tabs defaultValue="profile" variant="default">
           <TabsList className="mb-8 justify-center">
             <TabsTrigger value="profile">
               <User className="w-4 h-4" />
@@ -156,7 +146,7 @@ export function SettingsPage() {
 
           {/* Profile Settings */}
           <TabsContent value="profile">
-            <Card variant="glass" className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-xl border-2 border-gray-200/50 dark:border-gray-700/50">
+            <Card>
               <CardHeader>
                 <CardTitle className="flex items-center space-x-2">
                   <User className="w-5 h-5" />
@@ -198,7 +188,6 @@ export function SettingsPage() {
                     value={profileData.displayName}
                     onChange={(e) => setProfileData(prev => ({ ...prev, displayName: e.target.value }))}
                     leftIcon={<User className="w-5 h-5" />}
-                    variant="glass"
                   />
                   <Input
                     label="Email Address"
@@ -206,7 +195,6 @@ export function SettingsPage() {
                     value={profileData.email}
                     onChange={(e) => setProfileData(prev => ({ ...prev, email: e.target.value }))}
                     leftIcon={<Mail className="w-5 h-5" />}
-                    variant="glass"
                   />
                 </div>
 
@@ -221,7 +209,7 @@ export function SettingsPage() {
           {/* Account Settings */}
           <TabsContent value="account">
             <div className="space-y-6">
-              <Card variant="glass" className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-xl border-2 border-gray-200/50 dark:border-gray-700/50">
+              <Card>
                 <CardHeader>
                   <CardTitle className="flex items-center space-x-2">
                     <Shield className="w-5 h-5" />
@@ -253,7 +241,7 @@ export function SettingsPage() {
 
           {/* Appearance Settings */}
           <TabsContent value="appearance">
-            <Card variant="glass" className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-xl border-2 border-gray-200/50 dark:border-gray-700/50">
+            <Card>
               <CardHeader>
                 <CardTitle className="flex items-center space-x-2">
                   <Palette className="w-5 h-5" />
@@ -286,95 +274,14 @@ export function SettingsPage() {
                       value={appearanceSettings.language}
                       options={languageOptions}
                       onChange={(value) => setAppearanceSettings(prev => ({ ...prev, language: value }))}
-                      variant="glass"
                     />
                   </div>
-                </SettingItem>
-
-                <SettingItem
-                  icon={appearanceSettings.soundEffects ? <Volume2 className="w-5 h-5" /> : <VolumeX className="w-5 h-5" />}
-                  title="Sound Effects"
-                  description="Play sounds for interactions and notifications"
-                >
-                  <ToggleSwitch
-                    checked={appearanceSettings.soundEffects}
-                    onChange={(checked) => setAppearanceSettings(prev => ({ ...prev, soundEffects: checked }))}
-                  />
-                </SettingItem>
-
-                <SettingItem
-                  icon={<Zap className="w-5 h-5" />}
-                  title="Animations"
-                  description="Enable smooth animations and transitions"
-                >
-                  <ToggleSwitch
-                    checked={appearanceSettings.animations}
-                    onChange={(checked) => setAppearanceSettings(prev => ({ ...prev, animations: checked }))}
-                  />
-                </SettingItem>
-
-                <SettingItem
-                  icon={<Monitor className="w-5 h-5" />}
-                  title="Compact Mode"
-                  description="Use a more condensed layout"
-                >
-                  <ToggleSwitch
-                    checked={appearanceSettings.compactMode}
-                    onChange={(checked) => setAppearanceSettings(prev => ({ ...prev, compactMode: checked }))}
-                  />
                 </SettingItem>
               </CardContent>
             </Card>
           </TabsContent>
         </Tabs>
       </div>
-
-      {/* Delete Account Confirmation Modal */}
-      {showDeleteConfirm && (
-        <motion.div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-        >
-          <motion.div
-            className="bg-white dark:bg-gray-800 rounded-2xl p-6 max-w-md w-full shadow-2xl"
-            initial={{ scale: 0.9, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            exit={{ scale: 0.9, opacity: 0 }}
-          >
-            <div className="flex items-center space-x-3 mb-4">
-              <div className="p-2 bg-red-100 dark:bg-red-900/30 rounded-lg">
-                <AlertTriangle className="w-6 h-6 text-red-600 dark:text-red-400" />
-              </div>
-              <h3 className="text-lg font-bold text-gray-900 dark:text-gray-100">
-                Delete Account
-              </h3>
-            </div>
-            
-            <p className="text-gray-600 dark:text-gray-400 mb-6">
-              This action cannot be undone. This will permanently delete your account and remove all your data from our servers.
-            </p>
-            
-            <div className="flex space-x-3">
-              <Button 
-                variant="outline" 
-                onClick={() => setShowDeleteConfirm(false)}
-                className="flex-1"
-              >
-                Cancel
-              </Button>
-              <Button 
-                variant="danger" 
-                className="flex-1"
-                leftIcon={<X className="w-4 h-4" />}
-              >
-                Delete Account
-              </Button>
-            </div>
-          </motion.div>
-        </motion.div>
-      )}
     </ViewContainer>
   );
 }
