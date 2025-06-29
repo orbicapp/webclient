@@ -1,5 +1,6 @@
-import React, { useState, useRef, useEffect } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import React from "react";
+import * as Select from "@radix-ui/react-select";
+import { motion } from "framer-motion";
 import { ChevronDown, Check } from "lucide-react";
 import { cn } from "@/lib/utils/class.utils";
 
@@ -44,45 +45,14 @@ export const Dropdown: React.FC<DropdownProps> = ({
   error,
   required = false,
 }) => {
-  const [isOpen, setIsOpen] = useState(false);
-  const dropdownRef = useRef<HTMLDivElement>(null);
-
-  // Close dropdown when clicking outside
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
-        setIsOpen(false);
-      }
-    };
-
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
-
-  // Close dropdown on escape key
-  useEffect(() => {
-    const handleEscape = (event: KeyboardEvent) => {
-      if (event.key === "Escape") {
-        setIsOpen(false);
-      }
-    };
-
-    if (isOpen) {
-      document.addEventListener("keydown", handleEscape);
-      return () => document.removeEventListener("keydown", handleEscape);
-    }
-  }, [isOpen]);
-
   const selectedOption = options.find(option => option.value === value);
 
-  const handleSelect = (optionValue: string) => {
-    onChange(optionValue);
-    setIsOpen(false);
-  };
-
-  const handleClear = () => {
-    onChange("");
-    setIsOpen(false);
+  const handleValueChange = (newValue: string) => {
+    if (newValue === "__clear__") {
+      onChange("");
+    } else {
+      onChange(newValue);
+    }
   };
 
   const variantStyles = {
@@ -90,25 +60,18 @@ export const Dropdown: React.FC<DropdownProps> = ({
     glass: "bg-white/80 dark:bg-gray-800/80 backdrop-blur-lg border-gray-200/50 dark:border-gray-700/50"
   };
 
-  const buttonStyles = cn(
-    "w-full flex items-center justify-between px-4 py-3 border-2 rounded-xl transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2",
+  const triggerStyles = cn(
+    "w-full flex items-center justify-between px-4 py-3 border-2 rounded-xl transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 data-[state=open]:ring-2 data-[state=open]:ring-primary-500",
     variantStyles[variant],
     error 
-      ? "border-error-300 dark:border-error-500 focus:border-error-500" 
-      : "hover:border-primary-400 dark:hover:border-primary-500 focus:border-primary-500",
-    disabled && "opacity-50 cursor-not-allowed",
+      ? "border-error-300 dark:border-error-500 focus:border-error-500 data-[state=open]:border-error-500" 
+      : "hover:border-primary-400 dark:hover:border-primary-500 focus:border-primary-500 data-[state=open]:border-primary-500",
+    disabled && "opacity-50 cursor-not-allowed data-[disabled]:opacity-50",
     className
   );
 
-  const dropdownStyles = cn(
-    "absolute top-full left-0 right-0 mt-2 rounded-2xl shadow-2xl border-2 z-50 max-h-80 overflow-y-auto",
-    variant === "glass" 
-      ? "bg-white/95 dark:bg-gray-800/95 backdrop-blur-xl border-gray-200/50 dark:border-gray-700/50"
-      : "bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700"
-  );
-
   return (
-    <div className="relative" ref={dropdownRef}>
+    <div className="relative">
       {/* Label */}
       {label && (
         <label className="flex items-center space-x-1 text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
@@ -117,35 +80,112 @@ export const Dropdown: React.FC<DropdownProps> = ({
         </label>
       )}
 
-      {/* Dropdown Button */}
-      <button
-        type="button"
-        onClick={() => !disabled && setIsOpen(!isOpen)}
+      {/* Radix Select */}
+      <Select.Root 
+        value={value || ""} 
+        onValueChange={handleValueChange}
         disabled={disabled}
-        className={buttonStyles}
-        aria-haspopup="listbox"
-        aria-expanded={isOpen}
       >
-        <div className="flex items-center space-x-3 min-w-0 flex-1">
-          {selectedOption?.icon && (
-            <span className="text-lg flex-shrink-0">{selectedOption.icon}</span>
-          )}
-          <span className={cn(
-            "truncate",
-            selectedOption 
-              ? "text-gray-900 dark:text-gray-100" 
-              : "text-gray-500 dark:text-gray-400"
-          )}>
-            {selectedOption?.label || placeholder}
-          </span>
-        </div>
-        <ChevronDown 
-          className={cn(
-            "w-5 h-5 text-gray-500 transition-transform flex-shrink-0",
-            isOpen && "rotate-180"
-          )} 
-        />
-      </button>
+        <Select.Trigger className={triggerStyles} aria-label={label || placeholder}>
+          <div className="flex items-center space-x-3 min-w-0 flex-1">
+            {selectedOption?.icon && (
+              <span className="text-lg flex-shrink-0">{selectedOption.icon}</span>
+            )}
+            <Select.Value 
+              placeholder={placeholder}
+              className={cn(
+                "truncate",
+                selectedOption 
+                  ? "text-gray-900 dark:text-gray-100" 
+                  : "text-gray-500 dark:text-gray-400"
+              )}
+            />
+          </div>
+          <Select.Icon asChild>
+            <ChevronDown className="w-5 h-5 text-gray-500 transition-transform data-[state=open]:rotate-180 flex-shrink-0" />
+          </Select.Icon>
+        </Select.Trigger>
+
+        {/* Portal Content */}
+        <Select.Portal>
+          <Select.Content
+            className={cn(
+              "relative z-50 min-w-[8rem] overflow-hidden rounded-2xl shadow-2xl border-2 animate-in fade-in-0 zoom-in-95",
+              variant === "glass" 
+                ? "bg-white/95 dark:bg-gray-800/95 backdrop-blur-xl border-gray-200/50 dark:border-gray-700/50"
+                : "bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700"
+            )}
+            position="popper"
+            sideOffset={8}
+          >
+            <motion.div
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -10 }}
+              transition={{ duration: 0.15 }}
+            >
+              <Select.Viewport className="p-2 max-h-80">
+                {/* Clear Option */}
+                {showClearOption && (
+                  <Select.Item
+                    value="__clear__"
+                    className="relative flex items-center space-x-3 px-4 py-3 rounded-xl cursor-pointer select-none outline-none hover:bg-gray-100 dark:hover:bg-gray-700 focus:bg-gray-100 dark:focus:bg-gray-700 transition-colors data-[highlighted]:bg-gray-100 dark:data-[highlighted]:bg-gray-700"
+                  >
+                    {clearOptionIcon && (
+                      <span className="text-lg flex-shrink-0">{clearOptionIcon}</span>
+                    )}
+                    <div className="min-w-0 flex-1">
+                      <Select.ItemText className="font-medium text-gray-900 dark:text-gray-100">
+                        {clearOptionLabel}
+                      </Select.ItemText>
+                      {clearOptionDescription && (
+                        <div className="text-sm text-gray-500 dark:text-gray-400 truncate">
+                          {clearOptionDescription}
+                        </div>
+                      )}
+                    </div>
+                    <Select.ItemIndicator className="flex-shrink-0">
+                      <Check className="w-4 h-4 text-primary-600" />
+                    </Select.ItemIndicator>
+                  </Select.Item>
+                )}
+
+                {/* Regular Options */}
+                {options.map((option) => (
+                  <Select.Item
+                    key={option.value}
+                    value={option.value}
+                    disabled={option.disabled}
+                    className={cn(
+                      "relative flex items-center space-x-3 px-4 py-3 rounded-xl cursor-pointer select-none outline-none transition-colors",
+                      option.disabled 
+                        ? "opacity-50 cursor-not-allowed" 
+                        : "hover:bg-gray-100 dark:hover:bg-gray-700 focus:bg-gray-100 dark:focus:bg-gray-700 data-[highlighted]:bg-gray-100 dark:data-[highlighted]:bg-gray-700"
+                    )}
+                  >
+                    {option.icon && (
+                      <span className="text-lg flex-shrink-0">{option.icon}</span>
+                    )}
+                    <div className="min-w-0 flex-1">
+                      <Select.ItemText className="font-medium text-gray-900 dark:text-gray-100">
+                        {option.label}
+                      </Select.ItemText>
+                      {option.description && (
+                        <div className="text-sm text-gray-500 dark:text-gray-400 truncate">
+                          {option.description}
+                        </div>
+                      )}
+                    </div>
+                    <Select.ItemIndicator className="flex-shrink-0">
+                      <Check className="w-4 h-4 text-primary-600" />
+                    </Select.ItemIndicator>
+                  </Select.Item>
+                ))}
+              </Select.Viewport>
+            </motion.div>
+          </Select.Content>
+        </Select.Portal>
+      </Select.Root>
 
       {/* Error Message */}
       {error && (
@@ -158,78 +198,6 @@ export const Dropdown: React.FC<DropdownProps> = ({
           {error}
         </motion.p>
       )}
-
-      {/* Dropdown Menu */}
-      <AnimatePresence>
-        {isOpen && (
-          <motion.div
-            className={dropdownStyles}
-            initial={{ opacity: 0, y: -10, scale: 0.95 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: -10, scale: 0.95 }}
-            transition={{ duration: 0.2 }}
-          >
-            <div className="p-2">
-              {/* Clear Option */}
-              {showClearOption && (
-                <button
-                  onClick={handleClear}
-                  className="w-full flex items-center space-x-3 px-4 py-3 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors text-left"
-                >
-                  {clearOptionIcon && (
-                    <span className="text-lg flex-shrink-0">{clearOptionIcon}</span>
-                  )}
-                  <div className="min-w-0 flex-1">
-                    <div className="font-medium text-gray-900 dark:text-gray-100">
-                      {clearOptionLabel}
-                    </div>
-                    {clearOptionDescription && (
-                      <div className="text-sm text-gray-500 dark:text-gray-400 truncate">
-                        {clearOptionDescription}
-                      </div>
-                    )}
-                  </div>
-                  {!value && (
-                    <Check className="w-4 h-4 text-primary-600 flex-shrink-0" />
-                  )}
-                </button>
-              )}
-
-              {/* Options */}
-              {options.map((option) => (
-                <button
-                  key={option.value}
-                  onClick={() => !option.disabled && handleSelect(option.value)}
-                  disabled={option.disabled}
-                  className={cn(
-                    "w-full flex items-center space-x-3 px-4 py-3 rounded-xl transition-colors text-left",
-                    option.disabled 
-                      ? "opacity-50 cursor-not-allowed" 
-                      : "hover:bg-gray-100 dark:hover:bg-gray-700"
-                  )}
-                >
-                  {option.icon && (
-                    <span className="text-lg flex-shrink-0">{option.icon}</span>
-                  )}
-                  <div className="min-w-0 flex-1">
-                    <div className="font-medium text-gray-900 dark:text-gray-100">
-                      {option.label}
-                    </div>
-                    {option.description && (
-                      <div className="text-sm text-gray-500 dark:text-gray-400 truncate">
-                        {option.description}
-                      </div>
-                    )}
-                  </div>
-                  {value === option.value && (
-                    <Check className="w-4 h-4 text-primary-600 flex-shrink-0" />
-                  )}
-                </button>
-              ))}
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
     </div>
   );
 };
