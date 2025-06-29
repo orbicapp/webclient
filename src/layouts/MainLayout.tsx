@@ -25,7 +25,7 @@ export function MainLayout() {
   }
 
   return (
-    <div className={`min-h-screen bg-gray-50 dark:bg-gray-950 flex ${theme}`}>
+    <div className={`min-h-screen bg-gray-50 dark:bg-gray-800 flex ${theme}`}>
       {/* Desktop Sidebar */}
       <Sidebar />
 
