@@ -409,7 +409,7 @@ export function MyCoursesPage() {
               {/* Create New Course Button */}
               <div className="text-center mt-12">
                 <Link to="/courses/create">
-                  <Button variant="accent" size="lg" glow>
+                  <Button variant="accent" size="lg">
                     <Plus className="w-5 h-5 mr-2" />
                     Create New Course
                   </Button>
