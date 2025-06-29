@@ -158,7 +158,7 @@ const NavigationCategory = memo(({
             transition={{ duration: 0.2 }}
           >
             {category.title}
-          </motion.span>
+          </motion.h3>
         )}
       </AnimatePresence>
 
