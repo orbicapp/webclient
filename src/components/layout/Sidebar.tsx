@@ -1,7 +1,7 @@
 import { motion, AnimatePresence } from "framer-motion";
 import { ChevronLeftIcon, ChevronRightIcon, RocketIcon, LogOutIcon } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
-import { memo, useMemo } from "react";
+import { memo, useMemo, useRef, useEffect } from "react";
 
 import { useAuth } from "@/hooks/use-auth";
 import { useSettingsStore } from "@/stores/settings-store";
@@ -65,7 +65,7 @@ const NavigationItem = memo(({
         } ${!sidebarOpen ? "justify-center" : ""}`}
         whileHover={{ scale: 1.02, x: isActive ? 0 : 4 }}
         whileTap={{ scale: 0.98 }}
-        // NO initial animations to prevent restart
+        // ✅ Remove initial animations to prevent restart
       >
         {/* Active indicator - This is the key: layoutId prevents restart */}
         {isActive && (
@@ -100,7 +100,7 @@ const NavigationItem = memo(({
         {item.name === "Explore" && sidebarOpen && (
           <motion.div
             className="ml-auto relative z-10"
-            // Static animation, no restart
+            // ✅ Static animation, no restart
             animate={{ opacity: 1, scale: 1 }}
           >
             <Badge variant="gradient" size="sm">
@@ -158,7 +158,7 @@ const NavigationCategory = memo(({
             transition={{ duration: 0.2 }}
           >
             {category.title}
-          </motion.h3>
+          </motion.span>
         )}
       </AnimatePresence>
 
@@ -183,9 +183,36 @@ NavigationCategory.displayName = "NavigationCategory";
 export function Sidebar() {
   const { sidebarOpen, toggleSidebar } = useSettingsStore();
   const location = useLocation();
+  
+  // ✅ Ref to maintain scroll position
+  const navRef = useRef<HTMLElement>(null);
+  const scrollPositionRef = useRef<number>(0);
 
   // Memoize current path to prevent unnecessary re-renders
   const currentPath = useMemo(() => location.pathname, [location.pathname]);
+
+  // ✅ Save scroll position before route changes
+  useEffect(() => {
+    const nav = navRef.current;
+    if (nav) {
+      const handleScroll = () => {
+        scrollPositionRef.current = nav.scrollTop;
+      };
+      nav.addEventListener('scroll', handleScroll);
+      return () => nav.removeEventListener('scroll', handleScroll);
+    }
+  }, []);
+
+  // ✅ Restore scroll position after route changes
+  useEffect(() => {
+    const nav = navRef.current;
+    if (nav && scrollPositionRef.current > 0) {
+      // Use requestAnimationFrame to ensure DOM is updated
+      requestAnimationFrame(() => {
+        nav.scrollTop = scrollPositionRef.current;
+      });
+    }
+  }, [currentPath]);
 
   return (
     <>
@@ -193,7 +220,8 @@ export function Sidebar() {
         className={`fixed inset-y-0 z-40 flex flex-col bg-white dark:bg-gray-950 border-r-2 border-primary-100 dark:border-gray-800 shadow-xl transition-all duration-300 ${
           sidebarOpen ? "w-72" : "w-20"
         }`}
-        // Only animate opacity on mount, no position animations
+        // ✅ Only animate opacity on mount, no position animations
+        initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ duration: 0.3 }}
       >
@@ -242,8 +270,12 @@ export function Sidebar() {
           </AnimatePresence>
         </div>
 
-        {/* Navigation - Memoized categories */}
-        <nav className="flex-1 py-6 overflow-y-auto">
+        {/* Navigation - ✅ Memoized categories with scroll preservation */}
+        <nav 
+          ref={navRef}
+          className="flex-1 py-6 overflow-y-auto"
+          style={{ scrollBehavior: 'auto' }} // ✅ Disable smooth scrolling for position restoration
+        >
           {navCategories.map((category, categoryIndex) => (
             <NavigationCategory
               key={category.title}
