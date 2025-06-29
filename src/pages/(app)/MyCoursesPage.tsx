@@ -43,8 +43,8 @@ export function MyCoursesPage() {
       </motion.div>
 
       {/* Tabs */}
-      <Tabs defaultValue="enrolled" className="w-full">
-        <TabsList variant="underline" className="mb-8">
+      <Tabs defaultValue="enrolled" className="w-full" variant="default">
+        <TabsList className="mb-8 border-b border-gray-200 dark:border-gray-700 bg-transparent p-0">
           <TabsTriggerUnderline 
             value="enrolled" 
             icon={<BookOpen className="w-4 h-4" />}

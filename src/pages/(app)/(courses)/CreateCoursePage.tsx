@@ -17,7 +17,7 @@ import {
 
 import { ViewContainer } from "@/components/layout/ViewContainer";
 import { Card, CardContent } from "@/components/ui/Card";
-import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/Tabs";
+import { Tabs, TabsListGrid, TabsTrigger, TabsContent } from "@/components/ui/Tabs";
 import Input from "@/components/ui/Input";
 import Button from "@/components/ui/Button";
 import Dropdown, { DropdownOption } from "@/components/ui/Dropdown";
@@ -279,21 +279,21 @@ export function CreateCoursePage() {
         >
           <Card variant="glass" className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-xl border-2 border-gray-200/50 dark:border-gray-700/50">
             <CardContent>
-              <Tabs value={activeTab} onValueChange={setActiveTab}>
-                <TabsList className="grid w-full grid-cols-3 mb-8 bg-gray-100/80 dark:bg-gray-700/80 backdrop-blur-sm">
-                  <TabsTrigger value="document" className="flex items-center space-x-2">
+              <Tabs value={activeTab} onValueChange={setActiveTab} variant="fancy">
+                <TabsListGrid columns={3} className="mb-8">
+                  <TabsTrigger value="document">
                     <Upload className="w-4 h-4" />
                     <span>Document</span>
                   </TabsTrigger>
-                  <TabsTrigger value="camera" className="flex items-center space-x-2">
+                  <TabsTrigger value="camera">
                     <Camera className="w-4 h-4" />
                     <span>Photo</span>
                   </TabsTrigger>
-                  <TabsTrigger value="text" className="flex items-center space-x-2">
+                  <TabsTrigger value="text">
                     <FileText className="w-4 h-4" />
                     <span>Text</span>
                   </TabsTrigger>
-                </TabsList>
+                </TabsListGrid>
 
                 {/* Document Upload Tab */}
                 <TabsContent value="document" className="space-y-6">

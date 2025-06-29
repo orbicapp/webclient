@@ -1,11 +1,12 @@
 import React, { useState, createContext, useContext } from "react";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils/class.utils";
 
 // Context for tabs
 interface TabsContextType {
   activeTab: string;
   setActiveTab: (tab: string) => void;
+  variant: "default" | "fancy";
 }
 
 const TabsContext = createContext<TabsContextType | undefined>(undefined);
@@ -25,6 +26,7 @@ interface TabsProps {
   onValueChange?: (value: string) => void;
   children: React.ReactNode;
   className?: string;
+  variant?: "default" | "fancy";
 }
 
 export function Tabs({ 
@@ -32,7 +34,8 @@ export function Tabs({
   value, 
   onValueChange, 
   children, 
-  className 
+  className,
+  variant = "default"
 }: TabsProps) {
   const [internalValue, setInternalValue] = useState(defaultValue);
   
@@ -46,7 +49,7 @@ export function Tabs({
   };
 
   return (
-    <TabsContext.Provider value={{ activeTab, setActiveTab }}>
+    <TabsContext.Provider value={{ activeTab, setActiveTab, variant }}>
       <div className={cn("w-full", className)}>
         {children}
       </div>
@@ -58,19 +61,19 @@ export function Tabs({
 interface TabsListProps {
   children: React.ReactNode;
   className?: string;
-  variant?: "default" | "pills" | "underline";
 }
 
-export function TabsList({ children, className, variant = "default" }: TabsListProps) {
+export function TabsList({ children, className }: TabsListProps) {
+  const { variant } = useTabsContext();
+  
   const variantStyles = {
     default: "bg-gray-100 dark:bg-gray-800 p-1 rounded-xl",
-    pills: "space-x-2",
-    underline: "border-b border-gray-200 dark:border-gray-700"
+    fancy: "bg-gradient-to-r from-gray-100/80 to-gray-200/80 dark:from-gray-800/80 dark:to-gray-700/80 backdrop-blur-lg p-2 rounded-2xl border border-gray-200/50 dark:border-gray-700/50 shadow-lg"
   };
 
   return (
     <div className={cn(
-      "flex items-center",
+      "flex items-center relative",
       variantStyles[variant],
       className
     )}>
@@ -88,29 +91,50 @@ interface TabsTriggerProps {
 }
 
 export function TabsTrigger({ value, children, className, disabled }: TabsTriggerProps) {
-  const { activeTab, setActiveTab } = useTabsContext();
+  const { activeTab, setActiveTab, variant } = useTabsContext();
   const isActive = activeTab === value;
+
+  const baseStyles = "relative px-4 py-2.5 text-sm font-medium transition-all duration-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed";
+  
+  const variantStyles = {
+    default: {
+      active: "text-white shadow-sm z-10",
+      inactive: "text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700"
+    },
+    fancy: {
+      active: "text-white shadow-xl z-10 transform scale-105",
+      inactive: "text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100 hover:bg-white/50 dark:hover:bg-gray-600/50 hover:shadow-md hover:scale-102"
+    }
+  };
+
+  const currentStyles = variantStyles[variant];
 
   return (
     <button
       onClick={() => !disabled && setActiveTab(value)}
       disabled={disabled}
       className={cn(
-        "relative px-4 py-2.5 text-sm font-medium transition-all duration-200 rounded-lg",
-        "focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2",
-        "disabled:opacity-50 disabled:cursor-not-allowed",
-        isActive
-          ? "text-white shadow-sm"
-          : "text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700",
+        baseStyles,
+        isActive ? currentStyles.active : currentStyles.inactive,
+        variant === "fancy" && "mx-1",
         className
       )}
     >
       {/* Active background with layoutId for smooth animation */}
       {isActive && (
         <motion.div
-          layoutId="activeTab"
-          className="absolute inset-0 bg-gradient-to-r from-primary-500 to-accent-500 rounded-lg shadow-lg"
-          transition={{ type: "spring", duration: 0.5 }}
+          layoutId={`activeTab-${variant}`}
+          className={cn(
+            "absolute inset-0 rounded-lg",
+            variant === "default" 
+              ? "bg-gradient-to-r from-primary-500 to-accent-500 shadow-lg"
+              : "bg-gradient-to-r from-purple-600 via-pink-600 to-orange-600 shadow-2xl shadow-purple-500/25"
+          )}
+          transition={{ 
+            type: "spring", 
+            duration: variant === "fancy" ? 0.6 : 0.5,
+            bounce: variant === "fancy" ? 0.2 : 0.1
+          }}
         />
       )}
       
@@ -118,6 +142,22 @@ export function TabsTrigger({ value, children, className, disabled }: TabsTrigge
       <span className="relative z-10 flex items-center space-x-2">
         {children}
       </span>
+
+      {/* Fancy variant: Shine effect for active tab */}
+      {variant === "fancy" && isActive && (
+        <motion.div
+          className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full rounded-lg"
+          animate={{ x: ["0%", "200%"] }}
+          transition={{ duration: 2, repeat: Infinity, repeatDelay: 3 }}
+        />
+      )}
+
+      {/* Fancy variant: Glow effect on hover */}
+      {variant === "fancy" && !isActive && (
+        <motion.div
+          className="absolute inset-0 bg-gradient-to-r from-primary-500/10 to-accent-500/10 rounded-lg opacity-0 hover:opacity-100 transition-opacity duration-300"
+        />
+      )}
     </button>
   );
 }
@@ -130,25 +170,39 @@ interface TabsContentProps {
 }
 
 export function TabsContent({ value, children, className }: TabsContentProps) {
-  const { activeTab } = useTabsContext();
+  const { activeTab, variant } = useTabsContext();
   const isActive = activeTab === value;
 
   if (!isActive) return null;
 
+  const animationProps = variant === "fancy" 
+    ? {
+        initial: { opacity: 0, y: 20, scale: 0.95 },
+        animate: { opacity: 1, y: 0, scale: 1 },
+        exit: { opacity: 0, y: -20, scale: 0.95 },
+        transition: { duration: 0.4, ease: "easeOut" }
+      }
+    : {
+        initial: { opacity: 0, y: 10 },
+        animate: { opacity: 1, y: 0 },
+        exit: { opacity: 0, y: -10 },
+        transition: { duration: 0.2 }
+      };
+
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 10 }}
-      animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, y: -10 }}
-      transition={{ duration: 0.2 }}
-      className={cn("mt-6", className)}
-    >
-      {children}
-    </motion.div>
+    <AnimatePresence mode="wait">
+      <motion.div
+        key={value}
+        className={cn("mt-6", className)}
+        {...animationProps}
+      >
+        {children}
+      </motion.div>
+    </AnimatePresence>
   );
 }
 
-// Underline variant components
+// Underline variant components (for backward compatibility)
 interface TabsTriggerUnderlineProps extends TabsTriggerProps {
   icon?: React.ReactNode;
   badge?: string | number;
@@ -193,5 +247,30 @@ export function TabsTriggerUnderline({
         </span>
       )}
     </button>
+  );
+}
+
+// Grid variant for equal width tabs
+interface TabsListGridProps extends TabsListProps {
+  columns: number;
+}
+
+export function TabsListGrid({ children, className, columns }: TabsListGridProps) {
+  const { variant } = useTabsContext();
+  
+  const variantStyles = {
+    default: "bg-gray-100 dark:bg-gray-800 p-1 rounded-xl",
+    fancy: "bg-gradient-to-r from-gray-100/80 to-gray-200/80 dark:from-gray-800/80 dark:to-gray-700/80 backdrop-blur-lg p-2 rounded-2xl border border-gray-200/50 dark:border-gray-700/50 shadow-lg"
+  };
+
+  return (
+    <div className={cn(
+      "grid gap-1 relative",
+      `grid-cols-${columns}`,
+      variantStyles[variant],
+      className
+    )}>
+      {children}
+    </div>
   );
 }
