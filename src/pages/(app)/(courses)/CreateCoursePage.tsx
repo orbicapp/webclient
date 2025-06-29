@@ -9,7 +9,6 @@ import {
   Globe,
   BookOpen,
   Zap,
-  ChevronDown,
   X,
   Check,
   AlertCircle,
@@ -21,17 +20,13 @@ import { Card, CardContent } from "@/components/ui/Card";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/Tabs";
 import Input from "@/components/ui/Input";
 import Button from "@/components/ui/Button";
+import Dropdown, { DropdownOption } from "@/components/ui/Dropdown";
 import { CourseCategory } from "@/services/course-service";
 import { AIService, GenerateCourseFromFileInput, GenerateCourseFromTextInput } from "@/services/ai-service";
 import { FileUploadClient } from "@/lib/utils/file-upload.utils";
 
 // Course categories with icons and descriptions
-const courseCategories: Array<{
-  value: CourseCategory;
-  label: string;
-  icon: string;
-  description: string;
-}> = [
+const courseCategories: DropdownOption[] = [
   { value: "mathematics", label: "Mathematics", icon: "📐", description: "Numbers, equations, and logic" },
   { value: "science", label: "Science", icon: "🔬", description: "Physics, chemistry, biology" },
   { value: "technology", label: "Technology", icon: "💻", description: "Programming, AI, digital skills" },
@@ -44,15 +39,15 @@ const courseCategories: Array<{
 ];
 
 // Languages with flags
-const languages = [
-  { value: "en", label: "English", flag: "🇺🇸" },
-  { value: "es", label: "Español", flag: "🇪🇸" },
-  { value: "fr", label: "Français", flag: "🇫🇷" },
-  { value: "de", label: "Deutsch", flag: "🇩🇪" },
-  { value: "it", label: "Italiano", flag: "🇮🇹" },
-  { value: "pt", label: "Português", flag: "🇵🇹" },
-  { value: "zh", label: "中文", flag: "🇨🇳" },
-  { value: "ja", label: "日本語", flag: "🇯🇵" },
+const languages: DropdownOption[] = [
+  { value: "en", label: "English", icon: "🇺🇸" },
+  { value: "es", label: "Español", icon: "🇪🇸" },
+  { value: "fr", label: "Français", icon: "🇫🇷" },
+  { value: "de", label: "Deutsch", icon: "🇩🇪" },
+  { value: "it", label: "Italiano", icon: "🇮🇹" },
+  { value: "pt", label: "Português", icon: "🇵🇹" },
+  { value: "zh", label: "中文", icon: "🇨🇳" },
+  { value: "ja", label: "日本語", icon: "🇯🇵" },
 ];
 
 interface CourseFormData {
@@ -72,8 +67,6 @@ export function CreateCoursePage() {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [isGenerating, setIsGenerating] = useState(false);
   const [generationStatus, setGenerationStatus] = useState<string>("");
-  const [showCategoryDropdown, setShowCategoryDropdown] = useState(false);
-  const [showLanguageDropdown, setShowLanguageDropdown] = useState(false);
   
   const fileInputRef = useRef<HTMLInputElement>(null);
   const cameraInputRef = useRef<HTMLInputElement>(null);
@@ -163,9 +156,6 @@ export function CreateCoursePage() {
     }
   };
 
-  const selectedCategory = courseCategories.find(cat => cat.value === formData.category);
-  const selectedLanguage = languages.find(lang => lang.value === formData.language);
-
   const canGenerate = () => {
     if (activeTab === "text") {
       return textContent.trim().length > 0;
@@ -251,116 +241,30 @@ export function CreateCoursePage() {
                 </div>
 
                 {/* Category Dropdown */}
-                <div className="relative">
-                  <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
-                    Category
-                  </label>
-                  <button
-                    onClick={() => setShowCategoryDropdown(!showCategoryDropdown)}
-                    className="w-full flex items-center justify-between px-4 py-3 bg-white/80 dark:bg-gray-800/80 backdrop-blur-lg border-2 border-gray-200/50 dark:border-gray-700/50 rounded-xl hover:border-purple-400 dark:hover:border-purple-500 transition-all duration-200"
-                  >
-                    <div className="flex items-center space-x-3">
-                      <span className="text-lg">{selectedCategory?.icon || "✨"}</span>
-                      <span className="text-gray-900 dark:text-gray-100">
-                        {selectedCategory?.label || "Auto-generated if empty"}
-                      </span>
-                    </div>
-                    <ChevronDown className={`w-5 h-5 text-gray-500 transition-transform ${showCategoryDropdown ? 'rotate-180' : ''}`} />
-                  </button>
-
-                  <AnimatePresence>
-                    {showCategoryDropdown && (
-                      <motion.div
-                        className="absolute top-full left-0 right-0 mt-2 bg-white dark:bg-gray-800 rounded-2xl shadow-2xl border-2 border-gray-200/50 dark:border-gray-700/50 z-50 max-h-80 overflow-y-auto"
-                        initial={{ opacity: 0, y: -10, scale: 0.95 }}
-                        animate={{ opacity: 1, y: 0, scale: 1 }}
-                        exit={{ opacity: 0, y: -10, scale: 0.95 }}
-                        transition={{ duration: 0.2 }}
-                      >
-                        <div className="p-2">
-                          {/* Clear selection option */}
-                          <button
-                            onClick={() => {
-                              setFormData(prev => ({ ...prev, category: "" }));
-                              setShowCategoryDropdown(false);
-                            }}
-                            className="w-full flex items-center space-x-3 px-4 py-3 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
-                          >
-                            <span className="text-lg">✨</span>
-                            <div className="text-left">
-                              <div className="font-medium text-gray-900 dark:text-gray-100">Auto-generate</div>
-                              <div className="text-sm text-gray-500 dark:text-gray-400">Let AI choose the best category</div>
-                            </div>
-                          </button>
-                          
-                          {courseCategories.map((category) => (
-                            <button
-                              key={category.value}
-                              onClick={() => {
-                                setFormData(prev => ({ ...prev, category: category.value }));
-                                setShowCategoryDropdown(false);
-                              }}
-                              className="w-full flex items-center space-x-3 px-4 py-3 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
-                            >
-                              <span className="text-lg">{category.icon}</span>
-                              <div className="text-left">
-                                <div className="font-medium text-gray-900 dark:text-gray-100">{category.label}</div>
-                                <div className="text-sm text-gray-500 dark:text-gray-400">{category.description}</div>
-                              </div>
-                            </button>
-                          ))}
-                        </div>
-                      </motion.div>
-                    )}
-                  </AnimatePresence>
+                <div>
+                  <Dropdown
+                    label="Category"
+                    placeholder="Auto-generated if empty"
+                    value={formData.category}
+                    options={courseCategories}
+                    onChange={(value) => setFormData(prev => ({ ...prev, category: value as CourseCategory }))}
+                    variant="glass"
+                    showClearOption
+                    clearOptionLabel="Auto-generate"
+                    clearOptionIcon="✨"
+                    clearOptionDescription="Let AI choose the best category"
+                  />
                 </div>
 
                 {/* Language Dropdown */}
-                <div className="relative">
-                  <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
-                    Language
-                  </label>
-                  <button
-                    onClick={() => setShowLanguageDropdown(!showLanguageDropdown)}
-                    className="w-full flex items-center justify-between px-4 py-3 bg-white/80 dark:bg-gray-800/80 backdrop-blur-lg border-2 border-gray-200/50 dark:border-gray-700/50 rounded-xl hover:border-purple-400 dark:hover:border-purple-500 transition-all duration-200"
-                  >
-                    <div className="flex items-center space-x-3">
-                      <span className="text-lg">{selectedLanguage?.flag}</span>
-                      <span className="text-gray-900 dark:text-gray-100">{selectedLanguage?.label}</span>
-                    </div>
-                    <ChevronDown className={`w-5 h-5 text-gray-500 transition-transform ${showLanguageDropdown ? 'rotate-180' : ''}`} />
-                  </button>
-
-                  <AnimatePresence>
-                    {showLanguageDropdown && (
-                      <motion.div
-                        className="absolute top-full left-0 right-0 mt-2 bg-white dark:bg-gray-800 rounded-2xl shadow-2xl border-2 border-gray-200/50 dark:border-gray-700/50 z-50 max-h-60 overflow-y-auto"
-                        initial={{ opacity: 0, y: -10, scale: 0.95 }}
-                        animate={{ opacity: 1, y: 0, scale: 1 }}
-                        exit={{ opacity: 0, y: -10, scale: 0.95 }}
-                        transition={{ duration: 0.2 }}
-                      >
-                        <div className="p-2">
-                          {languages.map((language) => (
-                            <button
-                              key={language.value}
-                              onClick={() => {
-                                setFormData(prev => ({ ...prev, language: language.value }));
-                                setShowLanguageDropdown(false);
-                              }}
-                              className="w-full flex items-center space-x-3 px-4 py-3 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
-                            >
-                              <span className="text-lg">{language.flag}</span>
-                              <span className="font-medium text-gray-900 dark:text-gray-100">{language.label}</span>
-                              {formData.language === language.value && (
-                                <Check className="w-4 h-4 text-purple-600 ml-auto" />
-                              )}
-                            </button>
-                          ))}
-                        </div>
-                      </motion.div>
-                    )}
-                  </AnimatePresence>
+                <div>
+                  <Dropdown
+                    label="Language"
+                    value={formData.language}
+                    options={languages}
+                    onChange={(value) => setFormData(prev => ({ ...prev, language: value }))}
+                    variant="glass"
+                  />
                 </div>
               </div>
             </CardContent>
