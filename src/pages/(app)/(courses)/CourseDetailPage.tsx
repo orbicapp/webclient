@@ -18,6 +18,7 @@ import {
   Eye,
   Lock
 } from "lucide-react";
+import { useState } from "react";
 
 import { useCourse } from "@/hooks/use-course";
 import { useCourseLevels } from "@/hooks/use-level";
@@ -29,10 +30,11 @@ import Badge from "@/components/ui/Badge";
 import Button from "@/components/ui/Button";
 import ProgressRing from "@/components/ui/ProgressRing";
 import { GamePath } from "@/components/course/GamePath";
+import { LevelModal } from "@/components/course/LevelModal";
 import { cn } from "@/lib/utils/class.utils";
 import { formatDate } from "@/lib/utils/class.utils";
 import { ProgressService } from "@/services/progress-service";
-import { useState } from "react";
+import { LevelWithChapter } from "@/hooks/use-course-path";
 
 export function CourseDetailPage() {
   const { courseId } = useParams<{ courseId: string }>();
@@ -44,6 +46,10 @@ export function CourseDetailPage() {
   // State for joining course
   const [isJoining, setIsJoining] = useState(false);
   const [joinError, setJoinError] = useState<string | null>(null);
+
+  // State for level modal
+  const [selectedLevel, setSelectedLevel] = useState<LevelWithChapter | null>(null);
+  const [isLevelModalOpen, setIsLevelModalOpen] = useState(false);
 
   const { scrollY } = useScroll();
   const headerOpacity = useTransform(scrollY, [0, 300], [1, 0]);
@@ -91,15 +97,14 @@ export function CourseDetailPage() {
     }
   };
 
-  const handleLevelClick = (level: any) => {
-    if (!isEnrolled) {
-      // Show join course prompt when clicking on levels without being enrolled
-      console.log("Must join course to play level:", level);
-      return;
-    }
-    
-    console.log("Level clicked:", level);
-    // TODO: Navigate to level or start game session
+  const handleLevelClick = (level: LevelWithChapter) => {
+    setSelectedLevel(level);
+    setIsLevelModalOpen(true);
+  };
+
+  const handleCloseLevelModal = () => {
+    setIsLevelModalOpen(false);
+    setSelectedLevel(null);
   };
 
   if (loading || levelsLoading || chaptersLoading || progressLoading) {
@@ -610,6 +615,15 @@ export function CourseDetailPage() {
           />
         )}
       </div>
+
+      {/* Level Modal */}
+      <LevelModal
+        level={selectedLevel}
+        isOpen={isLevelModalOpen}
+        onClose={handleCloseLevelModal}
+        previewMode={!isEnrolled}
+        onJoinCourse={handleJoinCourse}
+      />
 
       {/* Course Completion Celebration */}
       {courseStats.isCompleted && isEnrolled && (

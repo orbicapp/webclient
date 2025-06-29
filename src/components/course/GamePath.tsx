@@ -106,7 +106,7 @@ const LevelNode: React.FC<{
       whileTap={{ scale: isClickable ? 0.9 : 1 }}
       onHoverStart={() => setIsHovered(true)}
       onHoverEnd={() => setIsHovered(false)}
-      onClick={isClickable ? onClick : undefined}
+      onClick={onClick}
     >
       {/* Outer pulse ring for clickable levels */}
       {isClickable && (
@@ -207,7 +207,7 @@ const LevelNode: React.FC<{
               {previewMode ? (
                 <div className="text-xs text-orange-400 flex items-center mt-2">
                   <Eye className="w-3 h-3 mr-1" />
-                  Preview Mode - Join to play
+                  Preview Mode - Click to view details
                 </div>
               ) : (
                 <>
