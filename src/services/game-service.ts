@@ -31,6 +31,13 @@ export interface SubmitAnswerInput {
 }
 
 // DTOs (Outputs)
+export interface AnsweredQuestion {
+  questionIndex: number;
+  isCorrect: boolean;
+  userAnswer: any;
+  timeSpent: number; // in seconds
+}
+
 export interface LevelCompletion {
   chapterId: string;
   courseId: string;
@@ -67,7 +74,7 @@ export interface GameSession {
   stars: number;
   score: number;
   maxScore: number;
-  answeredQuestions: number[]; // ✅ Add this field to track answered questions
+  answeredQuestions: AnsweredQuestion[]; // ✅ Updated to use AnsweredQuestion type
   createdAt: string; // Date
   updatedAt: string; // Date
 }
@@ -108,13 +115,13 @@ async function abandonSession(sessionId: string) {
 
 async function getCurrentGameSession() {
   const { data, errors } = await apolloClient.query<{
-    gameSession?: GameSession;
+    currentGameSession?: GameSession;
   }>({
     query: GET_CURRENT_GAME_SESSION_QUERY,
     fetchPolicy: "network-only",
   });
 
-  return formatNullableResult<GameSession>(data?.gameSession, errors);
+  return formatNullableResult<GameSession>(data?.currentGameSession, errors);
 }
 
 async function getLevelCompletion(sessionId: string) {

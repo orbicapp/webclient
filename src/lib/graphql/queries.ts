@@ -198,7 +198,12 @@ export const GET_CURRENT_GAME_SESSION_QUERY = gql`
       stars
       score
       maxScore
-      answeredQuestions
+      answeredQuestions {
+        questionIndex
+        isCorrect
+        userAnswer
+        timeSpent
+      }
       createdAt
       updatedAt
     }

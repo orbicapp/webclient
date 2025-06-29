@@ -19,7 +19,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import { useCurrentGameSession } from "@/hooks/use-game";
 import { useLevel } from "@/hooks/use-level";
 import { useCourse } from "@/hooks/use-course";
-import { GameService } from "@/services/game-service";
+import { GameService, AnsweredQuestion } from "@/services/game-service";
 import { useGameStore } from "@/stores/game-store";
 import { Card, CardContent } from "@/components/ui/Card";
 import Button from "@/components/ui/Button";
@@ -31,7 +31,8 @@ interface QuestionComponentProps {
   questionIndex: number;
   onAnswer: (answer: any) => void;
   isSubmitting: boolean;
-  isAnswered: boolean; // ✅ Add this prop to show if question was already answered
+  isAnswered: boolean;
+  answeredQuestion?: AnsweredQuestion; // ✅ Add answered question data
 }
 
 const QuestionComponent: React.FC<QuestionComponentProps> = ({
@@ -39,9 +40,17 @@ const QuestionComponent: React.FC<QuestionComponentProps> = ({
   questionIndex,
   onAnswer,
   isSubmitting,
-  isAnswered
+  isAnswered,
+  answeredQuestion
 }) => {
   const [selectedAnswer, setSelectedAnswer] = useState<any>(null);
+
+  // ✅ Set the previous answer if question was already answered
+  useEffect(() => {
+    if (isAnswered && answeredQuestion) {
+      setSelectedAnswer(answeredQuestion.userAnswer);
+    }
+  }, [isAnswered, answeredQuestion]);
 
   const handleSubmit = () => {
     if (selectedAnswer !== null && !isSubmitting && !isAnswered) {
@@ -62,16 +71,24 @@ const QuestionComponent: React.FC<QuestionComponentProps> = ({
                 className={cn(
                   "w-full p-4 text-left rounded-xl border-2 transition-all duration-200",
                   selectedAnswer === index
-                    ? "border-primary-500 bg-primary-50 dark:bg-primary-900/20"
+                    ? isAnswered && answeredQuestion
+                      ? answeredQuestion.isCorrect
+                        ? "border-green-500 bg-green-50 dark:bg-green-900/20"
+                        : "border-red-500 bg-red-50 dark:bg-red-900/20"
+                      : "border-primary-500 bg-primary-50 dark:bg-primary-900/20"
                     : "border-gray-200 dark:border-gray-700 hover:border-primary-300 dark:hover:border-primary-600",
-                  (isSubmitting || isAnswered) && "opacity-50 cursor-not-allowed"
+                  (isSubmitting || isAnswered) && "cursor-not-allowed"
                 )}
               >
                 <div className="flex items-center space-x-3">
                   <div className={cn(
                     "w-6 h-6 rounded-full border-2 flex items-center justify-center",
                     selectedAnswer === index
-                      ? "border-primary-500 bg-primary-500"
+                      ? isAnswered && answeredQuestion
+                        ? answeredQuestion.isCorrect
+                          ? "border-green-500 bg-green-500"
+                          : "border-red-500 bg-red-500"
+                        : "border-primary-500 bg-primary-500"
                       : "border-gray-300 dark:border-gray-600"
                   )}>
                     {selectedAnswer === index && (
@@ -81,6 +98,16 @@ const QuestionComponent: React.FC<QuestionComponentProps> = ({
                   <span className="text-gray-900 dark:text-gray-100 font-medium">
                     {option.text}
                   </span>
+                  {/* ✅ Show correct/incorrect indicator */}
+                  {isAnswered && selectedAnswer === index && answeredQuestion && (
+                    <div className="ml-auto">
+                      {answeredQuestion.isCorrect ? (
+                        <CheckCircle className="w-5 h-5 text-green-600" />
+                      ) : (
+                        <X className="w-5 h-5 text-red-600" />
+                      )}
+                    </div>
+                  )}
                 </div>
               </button>
             ))}
@@ -96,13 +123,27 @@ const QuestionComponent: React.FC<QuestionComponentProps> = ({
               className={cn(
                 "p-6 rounded-xl border-2 transition-all duration-200 text-center",
                 selectedAnswer === true
-                  ? "border-green-500 bg-green-50 dark:bg-green-900/20"
+                  ? isAnswered && answeredQuestion
+                    ? answeredQuestion.isCorrect
+                      ? "border-green-500 bg-green-50 dark:bg-green-900/20"
+                      : "border-red-500 bg-red-50 dark:bg-red-900/20"
+                    : "border-green-500 bg-green-50 dark:bg-green-900/20"
                   : "border-gray-200 dark:border-gray-700 hover:border-green-300",
-                (isSubmitting || isAnswered) && "opacity-50 cursor-not-allowed"
+                (isSubmitting || isAnswered) && "cursor-not-allowed"
               )}
             >
               <CheckCircle className="w-8 h-8 mx-auto mb-2 text-green-600" />
               <span className="font-bold text-green-900 dark:text-green-100">True</span>
+              {/* ✅ Show result indicator */}
+              {isAnswered && selectedAnswer === true && answeredQuestion && (
+                <div className="mt-2">
+                  {answeredQuestion.isCorrect ? (
+                    <Badge variant="success" size="sm">Correct</Badge>
+                  ) : (
+                    <Badge variant="error" size="sm">Incorrect</Badge>
+                  )}
+                </div>
+              )}
             </button>
             <button
               onClick={() => !isAnswered && setSelectedAnswer(false)}
@@ -110,13 +151,27 @@ const QuestionComponent: React.FC<QuestionComponentProps> = ({
               className={cn(
                 "p-6 rounded-xl border-2 transition-all duration-200 text-center",
                 selectedAnswer === false
-                  ? "border-red-500 bg-red-50 dark:bg-red-900/20"
+                  ? isAnswered && answeredQuestion
+                    ? answeredQuestion.isCorrect
+                      ? "border-green-500 bg-green-50 dark:bg-green-900/20"
+                      : "border-red-500 bg-red-50 dark:bg-red-900/20"
+                    : "border-red-500 bg-red-50 dark:bg-red-900/20"
                   : "border-gray-200 dark:border-gray-700 hover:border-red-300",
-                (isSubmitting || isAnswered) && "opacity-50 cursor-not-allowed"
+                (isSubmitting || isAnswered) && "cursor-not-allowed"
               )}
             >
               <X className="w-8 h-8 mx-auto mb-2 text-red-600" />
               <span className="font-bold text-red-900 dark:text-red-100">False</span>
+              {/* ✅ Show result indicator */}
+              {isAnswered && selectedAnswer === false && answeredQuestion && (
+                <div className="mt-2">
+                  {answeredQuestion.isCorrect ? (
+                    <Badge variant="success" size="sm">Correct</Badge>
+                  ) : (
+                    <Badge variant="error" size="sm">Incorrect</Badge>
+                  )}
+                </div>
+              )}
             </button>
           </div>
         );
@@ -128,9 +183,33 @@ const QuestionComponent: React.FC<QuestionComponentProps> = ({
               value={selectedAnswer || ""}
               onChange={(e) => !isAnswered && setSelectedAnswer(e.target.value)}
               disabled={isSubmitting || isAnswered}
-              placeholder={isAnswered ? "Question already answered" : "Type your answer here..."}
-              className="w-full p-4 border-2 border-gray-200 dark:border-gray-700 rounded-xl focus:border-primary-500 focus:outline-none resize-none h-32 text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-800 disabled:opacity-50"
+              placeholder={isAnswered ? "Your answer" : "Type your answer here..."}
+              className={cn(
+                "w-full p-4 border-2 rounded-xl focus:border-primary-500 focus:outline-none resize-none h-32 text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-800",
+                isAnswered && answeredQuestion
+                  ? answeredQuestion.isCorrect
+                    ? "border-green-500 bg-green-50 dark:bg-green-900/20"
+                    : "border-red-500 bg-red-50 dark:bg-red-900/20"
+                  : "border-gray-200 dark:border-gray-700",
+                (isSubmitting || isAnswered) && "cursor-not-allowed"
+              )}
             />
+            {/* ✅ Show result for free choice */}
+            {isAnswered && answeredQuestion && (
+              <div className="mt-3 text-center">
+                {answeredQuestion.isCorrect ? (
+                  <Badge variant="success" size="lg">
+                    <CheckCircle className="w-4 h-4 mr-2" />
+                    Correct Answer
+                  </Badge>
+                ) : (
+                  <Badge variant="error" size="lg">
+                    <X className="w-4 h-4 mr-2" />
+                    Incorrect Answer
+                  </Badge>
+                )}
+              </div>
+            )}
           </div>
         );
 
@@ -152,12 +231,25 @@ const QuestionComponent: React.FC<QuestionComponentProps> = ({
         <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-4">
           {question.question}
         </h2>
-        {/* ✅ Show answered status */}
-        {isAnswered && (
-          <Badge variant="success" size="lg" className="mb-4">
-            <CheckCircle className="w-4 h-4 mr-2" />
-            Already Answered
-          </Badge>
+        {/* ✅ Show answered status with more details */}
+        {isAnswered && answeredQuestion && (
+          <div className="flex justify-center space-x-2 mb-4">
+            <Badge 
+              variant={answeredQuestion.isCorrect ? "success" : "error"} 
+              size="lg"
+            >
+              {answeredQuestion.isCorrect ? (
+                <CheckCircle className="w-4 h-4 mr-2" />
+              ) : (
+                <X className="w-4 h-4 mr-2" />
+              )}
+              {answeredQuestion.isCorrect ? "Correct" : "Incorrect"}
+            </Badge>
+            <Badge variant="secondary" size="lg">
+              <Clock className="w-4 h-4 mr-2" />
+              {answeredQuestion.timeSpent}s
+            </Badge>
+          </div>
         )}
       </div>
 
@@ -202,11 +294,11 @@ export function GameSessionPage() {
   useEffect(() => {
     if (currentSession && currentSession.answeredQuestions) {
       // Find the first unanswered question
-      const answeredSet = new Set(currentSession.answeredQuestions);
+      const answeredIndices = new Set(currentSession.answeredQuestions.map(aq => aq.questionIndex));
       let nextQuestionIndex = 0;
       
       // Find first question that hasn't been answered
-      while (nextQuestionIndex < (level?.questions?.length || 0) && answeredSet.has(nextQuestionIndex)) {
+      while (nextQuestionIndex < (level?.questions?.length || 0) && answeredIndices.has(nextQuestionIndex)) {
         nextQuestionIndex++;
       }
       
@@ -228,7 +320,7 @@ export function GameSessionPage() {
     setGameError(null);
 
     try {
-      const timeSpent = Date.now() - startTime;
+      const timeSpent = Math.floor((Date.now() - startTime) / 1000);
       
       // Prepare answer based on question type
       const question = level.questions[currentQuestionIndex];
@@ -259,8 +351,16 @@ export function GameSessionPage() {
         return;
       }
 
+      // ✅ Create new answered question object
+      const newAnsweredQuestion: AnsweredQuestion = {
+        questionIndex: currentQuestionIndex,
+        isCorrect: result.isCorrect,
+        userAnswer: answer,
+        timeSpent
+      };
+
       // ✅ Update the session with the new answered question
-      const updatedAnsweredQuestions = [...(currentSession.answeredQuestions || []), currentQuestionIndex];
+      const updatedAnsweredQuestions = [...(currentSession.answeredQuestions || []), newAnsweredQuestion];
       updateSession(currentSession._id, {
         answeredQuestions: updatedAnsweredQuestions,
         lives: result.livesRemaining
@@ -272,11 +372,11 @@ export function GameSessionPage() {
         navigate(`/course/${currentSession.courseId}/completion/${currentSession._id}`);
       } else {
         // Find next unanswered question
-        const answeredSet = new Set(updatedAnsweredQuestions);
+        const answeredIndices = new Set(updatedAnsweredQuestions.map(aq => aq.questionIndex));
         let nextQuestionIndex = currentQuestionIndex + 1;
         
         // Find next question that hasn't been answered
-        while (nextQuestionIndex < level.questions.length && answeredSet.has(nextQuestionIndex)) {
+        while (nextQuestionIndex < level.questions.length && answeredIndices.has(nextQuestionIndex)) {
           nextQuestionIndex++;
         }
         
@@ -404,8 +504,9 @@ export function GameSessionPage() {
   const answeredCount = currentSession.answeredQuestions?.length || 0;
   const progress = (answeredCount / level.questions.length) * 100;
   
-  // ✅ Check if current question is already answered
-  const isCurrentQuestionAnswered = currentSession.answeredQuestions?.includes(currentQuestionIndex) || false;
+  // ✅ Check if current question is already answered and get the answer data
+  const answeredQuestion = currentSession.answeredQuestions?.find(aq => aq.questionIndex === currentQuestionIndex);
+  const isCurrentQuestionAnswered = !!answeredQuestion;
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-indigo-900 via-purple-900 to-pink-900">
@@ -500,6 +601,7 @@ export function GameSessionPage() {
                   onAnswer={handleAnswer}
                   isSubmitting={isSubmitting}
                   isAnswered={isCurrentQuestionAnswered}
+                  answeredQuestion={answeredQuestion}
                 />
 
                 {/* ✅ Navigation for answered questions */}
