@@ -274,6 +274,31 @@ export const GET_CHAPTER_LEVELS_QUERY = gql`
       chapterId
       courseId
       order
+      questions {
+        type
+        question
+        ... on MultipleChoiceQuestion {
+          options {
+            text
+            isCorrect
+          }
+        }
+        ... on FreeChoiceQuestion {
+          acceptedAnswers
+        }
+        ... on TrueFalseQuestion {
+          correctAnswer
+        }
+        ... on PairsQuestion {
+          pairs {
+            left
+            right
+          }
+        }
+        ... on SequenceQuestion {
+          correctSequence
+        }
+      }
       createdAt
       updatedAt
     }
@@ -289,6 +314,31 @@ export const GET_COURSE_LEVELS_QUERY = gql`
       chapterId
       courseId
       order
+      questions {
+        type
+        question
+        ... on MultipleChoiceQuestion {
+          options {
+            text
+            isCorrect
+          }
+        }
+        ... on FreeChoiceQuestion {
+          acceptedAnswers
+        }
+        ... on TrueFalseQuestion {
+          correctAnswer
+        }
+        ... on PairsQuestion {
+          pairs {
+            left
+            right
+          }
+        }
+        ... on SequenceQuestion {
+          correctSequence
+        }
+      }
       createdAt
       updatedAt
     }
