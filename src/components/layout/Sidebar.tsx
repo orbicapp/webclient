@@ -23,7 +23,7 @@ export function Sidebar() {
         className={`fixed inset-y-0 z-40 flex flex-col bg-white dark:bg-gray-950 border-r-2 border-primary-100 dark:border-gray-800 shadow-xl transition-all duration-300 ${
           sidebarOpen ? "w-72" : "w-20"
         }`}
-        // Removed initial animation - only animate on mount once
+        // Only animate opacity on mount, no position animations
         animate={{ opacity: 1 }}
         transition={{ duration: 0.3 }}
       >
@@ -91,9 +91,9 @@ export function Sidebar() {
                 )}
               </AnimatePresence>
 
-              {/* Navigation items */}
+              {/* Navigation items - NO INITIAL ANIMATIONS */}
               <ul className="space-y-2 px-3">
-                {category.items.map((item, itemIndex) => {
+                {category.items.map((item) => {
                   const isActive = location.pathname === item.path;
                   const isLogout = item.name === "Logout";
 
@@ -139,6 +139,7 @@ export function Sidebar() {
                             } ${!sidebarOpen ? "justify-center" : ""}`}
                             whileHover={{ scale: 1.02, x: isActive ? 0 : 4 }}
                             whileTap={{ scale: 0.98 }}
+                            // REMOVED: initial, animate, transition - No more restart animations!
                           >
                             {/* Active indicator */}
                             {isActive && (
@@ -172,8 +173,8 @@ export function Sidebar() {
                             {/* Badge for some items */}
                             {item.name === "Explore" && sidebarOpen && (
                               <motion.div
-                                className="ml-auto"
-                                initial={{ opacity: 0, scale: 0 }}
+                                className="ml-auto relative z-10"
+                                // REMOVED: initial animations to prevent restart
                                 animate={{ opacity: 1, scale: 1 }}
                                 transition={{ delay: 0.2 }}
                               >
