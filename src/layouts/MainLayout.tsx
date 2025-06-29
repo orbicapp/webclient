@@ -38,8 +38,8 @@ export function MainLayout() {
         {/* Header */}
         <Header />
 
-        {/* Page content */}
-        <main className={`py-6 px-4 sm:px-6 lg:px-8 ${isMobile ? "pb-24" : ""}`}>
+        {/* Page content - NO PADDING HERE */}
+        <main className={`${isMobile ? "pb-24" : ""}`}>
           <AnimatePresence mode="wait">
             <motion.div
               key={location.pathname}
@@ -47,6 +47,7 @@ export function MainLayout() {
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -20 }}
               transition={{ duration: 0.3 }}
+              className="w-full"
             >
               <Outlet />
             </motion.div>

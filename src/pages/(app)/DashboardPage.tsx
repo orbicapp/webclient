@@ -1,5 +1,6 @@
 import { motion } from "framer-motion";
 
+import { ViewContainer } from "@/components/layout/ViewContainer";
 import { HeroCards } from "@/components/dashboard/HeroCards";
 import { CoursesInProgress } from "@/components/dashboard/CoursesInProgress";
 import { MyCreatedCourses } from "@/components/dashboard/MyCreatedCourses";
@@ -9,7 +10,7 @@ export function DashboardPage() {
   const { user } = useAuth();
 
   return (
-    <div className="max-w-7xl mx-auto">
+    <ViewContainer className="py-6">
       {/* Welcome Header */}
       <motion.div
         className="mb-8"
@@ -33,6 +34,6 @@ export function DashboardPage() {
 
       {/* My Created Courses */}
       <MyCreatedCourses />
-    </div>
+    </ViewContainer>
   );
 }

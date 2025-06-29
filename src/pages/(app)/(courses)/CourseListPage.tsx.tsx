@@ -2,6 +2,7 @@ import { useState } from "react";
 import { motion } from "framer-motion";
 import { Search, Filter, Grid, List } from "lucide-react";
 
+import { ViewContainer } from "@/components/layout/ViewContainer";
 import { useCourseSearch } from "@/hooks/use-course";
 import { Course } from "@/services/course-service";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/Card";
@@ -21,7 +22,7 @@ export function CourseListPage() {
 
   if (loading) {
     return (
-      <div className="max-w-7xl mx-auto">
+      <ViewContainer className="py-6">
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100 mb-2">
             Explore Courses
@@ -43,13 +44,13 @@ export function CourseListPage() {
             </div>
           </CardContent>
         </Card>
-      </div>
+      </ViewContainer>
     );
   }
 
   if (error || !results) {
     return (
-      <div className="max-w-7xl mx-auto">
+      <ViewContainer className="py-6">
         <Card>
           <CardContent>
             <div className="text-center py-12">
@@ -62,12 +63,12 @@ export function CourseListPage() {
             </div>
           </CardContent>
         </Card>
-      </div>
+      </ViewContainer>
     );
   }
 
   return (
-    <div className="max-w-7xl mx-auto">
+    <ViewContainer className="py-6">
       {/* Header */}
       <motion.div
         className="mb-8"
@@ -194,6 +195,6 @@ export function CourseListPage() {
           </Button>
         </div>
       )}
-    </div>
+    </ViewContainer>
   );
 }
