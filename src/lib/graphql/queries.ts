@@ -201,7 +201,6 @@ export const GET_CURRENT_GAME_SESSION_QUERY = gql`
       answeredQuestions {
         questionIndex
         isCorrect
-        userAnswer
         timeSpent
       }
       createdAt
