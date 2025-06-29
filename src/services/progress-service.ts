@@ -3,6 +3,7 @@ import {
   GET_COURSE_PROGRESS_QUERY,
   GET_MY_COURSES_WITH_PROGRESS_QUERY,
   GET_MY_PLAYING_COURSES_QUERY,
+  INITIALIZE_COURSE_PROGRESS_MUTATION,
 } from "../lib/graphql";
 import { formatResult } from "../lib/utils/service.utils";
 import { Course } from "./course-service";
@@ -49,6 +50,18 @@ async function getCourseProgress(courseId: string) {
   return formatResult<CourseProgress>(data?.courseProgress, errors);
 }
 
+async function initializeCourseProgress(courseId: string) {
+  const { data, errors } = await apolloClient.mutate<{
+    initializeCourseProgress: CourseProgress;
+  }>({
+    mutation: INITIALIZE_COURSE_PROGRESS_MUTATION,
+    variables: { courseId },
+    fetchPolicy: "network-only",
+  });
+
+  return formatResult<CourseProgress>(data?.initializeCourseProgress, errors);
+}
+
 async function getMyPlayingCourses() {
   const { data, errors } = await apolloClient.query<{
     myPlayingCourses: CourseProgress[];
@@ -87,6 +100,7 @@ async function getMyCoursesWithProgress() {
 
 export const ProgressService = {
   getCourseProgress,
+  initializeCourseProgress,
   getMyPlayingCourses,
   getMyCompletedCourses,
   getMyCoursesWithProgress,

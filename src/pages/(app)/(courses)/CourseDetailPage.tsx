@@ -12,7 +12,9 @@ import {
   Flame,
   Shield,
   Rocket,
-  Gem
+  Gem,
+  Play,
+  UserPlus
 } from "lucide-react";
 
 import { useCourse } from "@/hooks/use-course";
@@ -27,6 +29,8 @@ import ProgressRing from "@/components/ui/ProgressRing";
 import { GamePath } from "@/components/course/GamePath";
 import { cn } from "@/lib/utils/class.utils";
 import { formatDate } from "@/lib/utils/class.utils";
+import { ProgressService } from "@/services/progress-service";
+import { useState } from "react";
 
 export function CourseDetailPage() {
   const { courseId } = useParams<{ courseId: string }>();
@@ -34,6 +38,10 @@ export function CourseDetailPage() {
   const [levelsLoading, levels] = useCourseLevels(courseId!);
   const [chaptersLoading, chapters] = useCourseChapters(courseId!);
   const [progressLoading, progress] = useCourseProgress(courseId!);
+  
+  // State for joining course
+  const [isJoining, setIsJoining] = useState(false);
+  const [joinError, setJoinError] = useState<string | null>(null);
 
   const { scrollY } = useScroll();
   const headerOpacity = useTransform(scrollY, [0, 300], [1, 0]);
@@ -53,6 +61,33 @@ export function CourseDetailPage() {
 
   // Get course statistics
   const courseStats = useCourseStats(levelPath);
+
+  // Check if user is enrolled (has progress)
+  const isEnrolled = progress && progress._id && !progress._id.startsWith('temp-');
+  const hasStartedCourse = isEnrolled && (progress.totalScore > 0 || progress.completedLevels > 0);
+
+  const handleJoinCourse = async () => {
+    if (!courseId) return;
+    
+    setIsJoining(true);
+    setJoinError(null);
+
+    try {
+      const [result, error] = await ProgressService.initializeCourseProgress(courseId);
+      
+      if (error || !result) {
+        setJoinError(error || "Failed to join course");
+        return;
+      }
+
+      // Refresh the page to show the updated progress
+      window.location.reload();
+    } catch (err) {
+      setJoinError(err instanceof Error ? err.message : "Failed to join course");
+    } finally {
+      setIsJoining(false);
+    }
+  };
 
   const handleLevelClick = (level: any) => {
     console.log("Level clicked:", level);
@@ -298,76 +333,112 @@ export function CourseDetailPage() {
                       <span className="capitalize">{course.visibility}</span>
                     </div>
                   </motion.div>
+
+                  {/* Join Course Button - Show only if not enrolled */}
+                  {!isEnrolled && (
+                    <motion.div
+                      className="mt-8"
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: 0.6 }}
+                    >
+                      <Button
+                        onClick={handleJoinCourse}
+                        disabled={isJoining}
+                        size="lg"
+                        className="px-8 py-4 bg-gradient-to-r from-emerald-500 via-teal-500 to-cyan-500 hover:from-emerald-600 hover:via-teal-600 hover:to-cyan-600 text-white font-bold text-lg rounded-2xl shadow-2xl shadow-emerald-500/25 hover:shadow-emerald-500/40 transition-all duration-300"
+                        leftIcon={isJoining ? <motion.div
+                          className="w-5 h-5 border-2 border-white border-t-transparent rounded-full"
+                          animate={{ rotate: 360 }}
+                          transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+                        /> : <UserPlus className="w-5 h-5" />}
+                      >
+                        {isJoining ? "Joining..." : "Join Course"}
+                      </Button>
+
+                      {joinError && (
+                        <motion.div
+                          className="mt-4 p-3 bg-red-500/20 backdrop-blur-sm rounded-xl border border-red-500/30"
+                          initial={{ opacity: 0, y: 10 }}
+                          animate={{ opacity: 1, y: 0 }}
+                        >
+                          <p className="text-red-200 text-sm">{joinError}</p>
+                        </motion.div>
+                      )}
+                    </motion.div>
+                  )}
                 </div>
 
-                {/* Epic Progress Ring */}
-                <motion.div
-                  className="lg:ml-8"
-                  initial={{ opacity: 0, scale: 0 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  transition={{ delay: 0.6, type: "spring" }}
-                >
-                  <div className="relative">
-                    <ProgressRing 
-                      progress={courseStats.progressPercentage} 
-                      size={120} 
-                      strokeWidth={10}
-                      glow={courseStats.progressPercentage > 50}
-                      variant={courseStats.progressPercentage > 75 ? "rainbow" : "neon"}
-                    >
-                      <div className="text-center">
-                        <div className="text-2xl sm:text-3xl font-bold text-white mb-1">
-                          {courseStats.progressPercentage}%
-                        </div>
-                        <div className="text-xs sm:text-sm text-gray-300">Complete</div>
-                        <div className="flex items-center justify-center mt-2">
-                          <Star className="w-3 h-3 sm:w-4 sm:h-4 text-yellow-400 mr-1" />
-                          <span className="text-xs sm:text-sm text-yellow-400 font-semibold">
-                            {courseStats.totalStars}
-                          </span>
-                        </div>
-                      </div>
-                    </ProgressRing>
-                    
-                    {/* Floating achievement icons */}
-                    {courseStats.progressPercentage > 25 && (
-                      <motion.div
-                        className="absolute -top-4 -right-4 w-6 h-6 sm:w-8 sm:h-8 bg-gradient-to-r from-yellow-400 to-orange-500 rounded-full flex items-center justify-center"
-                        animate={{ 
-                          rotate: [0, 360],
-                          scale: [1, 1.2, 1]
-                        }}
-                        transition={{ 
-                          rotate: { duration: 3, repeat: Infinity },
-                          scale: { duration: 2, repeat: Infinity }
-                        }}
+                {/* Epic Progress Ring - Only show if enrolled */}
+                {isEnrolled && (
+                  <motion.div
+                    className="lg:ml-8"
+                    initial={{ opacity: 0, scale: 0 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    transition={{ delay: 0.6, type: "spring" }}
+                  >
+                    <div className="relative">
+                      <ProgressRing 
+                        progress={courseStats.progressPercentage} 
+                        size={120} 
+                        strokeWidth={10}
+                        glow={courseStats.progressPercentage > 50}
+                        variant={courseStats.progressPercentage > 75 ? "rainbow" : "neon"}
                       >
-                        <Flame className="w-3 h-3 sm:w-4 sm:h-4 text-white" />
-                      </motion.div>
-                    )}
-                    
-                    {courseStats.progressPercentage > 75 && (
-                      <motion.div
-                        className="absolute -bottom-4 -left-4 w-6 h-6 sm:w-8 sm:h-8 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full flex items-center justify-center"
-                        animate={{ 
-                          scale: [1, 1.3, 1],
-                          opacity: [0.8, 1, 0.8]
-                        }}
-                        transition={{ duration: 1.5, repeat: Infinity }}
-                      >
-                        <Trophy className="w-3 h-3 sm:w-4 sm:h-4 text-white" />
-                      </motion.div>
-                    )}
-                  </div>
-                </motion.div>
+                        <div className="text-center">
+                          <div className="text-2xl sm:text-3xl font-bold text-white mb-1">
+                            {courseStats.progressPercentage}%
+                          </div>
+                          <div className="text-xs sm:text-sm text-gray-300">Complete</div>
+                          <div className="flex items-center justify-center mt-2">
+                            <Star className="w-3 h-3 sm:w-4 sm:h-4 text-yellow-400 mr-1" />
+                            <span className="text-xs sm:text-sm text-yellow-400 font-semibold">
+                              {courseStats.totalStars}
+                            </span>
+                          </div>
+                        </div>
+                      </ProgressRing>
+                      
+                      {/* Floating achievement icons */}
+                      {courseStats.progressPercentage > 25 && (
+                        <motion.div
+                          className="absolute -top-4 -right-4 w-6 h-6 sm:w-8 sm:h-8 bg-gradient-to-r from-yellow-400 to-orange-500 rounded-full flex items-center justify-center"
+                          animate={{ 
+                            rotate: [0, 360],
+                            scale: [1, 1.2, 1]
+                          }}
+                          transition={{ 
+                            rotate: { duration: 3, repeat: Infinity },
+                            scale: { duration: 2, repeat: Infinity }
+                          }}
+                        >
+                          <Flame className="w-3 h-3 sm:w-4 sm:h-4 text-white" />
+                        </motion.div>
+                      )}
+                      
+                      {courseStats.progressPercentage > 75 && (
+                        <motion.div
+                          className="absolute -bottom-4 -left-4 w-6 h-6 sm:w-8 sm:h-8 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full flex items-center justify-center"
+                          animate={{ 
+                            scale: [1, 1.3, 1],
+                            opacity: [0.8, 1, 0.8]
+                          }}
+                          transition={{ duration: 1.5, repeat: Infinity }}
+                        >
+                          <Trophy className="w-3 h-3 sm:w-4 sm:h-4 text-white" />
+                        </motion.div>
+                      )}
+                    </div>
+                  </motion.div>
+                )}
               </div>
             </div>
           </div>
         </div>
       </motion.div>
 
-      {/* Course Stats Dashboard - Sticky Floating Island */}
-      {levelPath.length > 0 && (
+      {/* Course Stats Dashboard - Only show if enrolled and has progress */}
+      {isEnrolled && hasStartedCourse && levelPath.length > 0 && (
         <motion.div
           className="sticky top-4 z-40 flex justify-center px-4"
           style={{ 
@@ -450,9 +521,61 @@ export function CourseDetailPage() {
         </motion.div>
       )}
 
-      {/* Game Path */}
+      {/* Game Path or Join Course Message */}
       <div className="relative z-10 mt-8 sm:mt-12">
-        {levelPath.length === 0 ? (
+        {!isEnrolled ? (
+          // Show join course message
+          <motion.div
+            className="max-w-4xl mx-auto px-4 sm:px-6"
+            initial={{ opacity: 0, y: 50 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.8 }}
+          >
+            <Card variant="glass" className="text-center py-16 sm:py-20 bg-black/40 backdrop-blur-xl border-white/20">
+              <motion.div
+                className="w-20 h-20 sm:w-28 sm:h-28 bg-gradient-to-br from-emerald-500 via-teal-500 to-cyan-500 rounded-full flex items-center justify-center mx-auto mb-6 sm:mb-8 shadow-2xl shadow-emerald-500/50"
+                animate={{ 
+                  scale: [1, 1.1, 1],
+                  rotate: [0, 5, -5, 0]
+                }}
+                transition={{ duration: 3, repeat: Infinity }}
+              >
+                <UserPlus className="w-10 h-10 sm:w-14 sm:h-14 text-white" />
+              </motion.div>
+              <h3 className="text-2xl sm:text-3xl font-bold text-white mb-4">
+                Ready to Start Your Adventure?
+              </h3>
+              <p className="text-gray-300 mb-8 max-w-md mx-auto text-sm sm:text-base leading-relaxed">
+                Join this course to unlock all levels, track your progress, and start your learning journey!
+              </p>
+              <Button
+                onClick={handleJoinCourse}
+                disabled={isJoining}
+                size="lg"
+                className="px-8 py-4 bg-gradient-to-r from-emerald-500 via-teal-500 to-cyan-500 hover:from-emerald-600 hover:via-teal-600 hover:to-cyan-600 text-white font-bold text-lg rounded-2xl shadow-2xl shadow-emerald-500/25 hover:shadow-emerald-500/40 transition-all duration-300"
+                leftIcon={isJoining ? <motion.div
+                  className="w-5 h-5 border-2 border-white border-t-transparent rounded-full"
+                  animate={{ rotate: 360 }}
+                  transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+                /> : <UserPlus className="w-5 h-5" />}
+                glow
+              >
+                {isJoining ? "Joining Course..." : "Join Course Now"}
+              </Button>
+
+              {joinError && (
+                <motion.div
+                  className="mt-6 p-4 bg-red-500/20 backdrop-blur-sm rounded-xl border border-red-500/30 max-w-md mx-auto"
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                >
+                  <p className="text-red-200 text-sm">{joinError}</p>
+                </motion.div>
+              )}
+            </Card>
+          </motion.div>
+        ) : levelPath.length === 0 ? (
+          // Show no content message for enrolled users
           <motion.div
             className="max-w-4xl mx-auto px-4 sm:px-6"
             initial={{ opacity: 0, y: 50 }}
@@ -483,6 +606,7 @@ export function CourseDetailPage() {
             </Card>
           </motion.div>
         ) : (
+          // Show game path for enrolled users with content
           <GamePath levelPath={levelPath} onLevelClick={handleLevelClick} />
         )}
       </div>
