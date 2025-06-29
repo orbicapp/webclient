@@ -235,8 +235,8 @@ export const GET_LEVEL_QUERY = gql`
       courseId
       order
       questions {
-        type
         ... on MultipleChoiceQuestion {
+          type
           question
           options {
             text
@@ -244,14 +244,17 @@ export const GET_LEVEL_QUERY = gql`
           }
         }
         ... on FreeChoiceQuestion {
+          type
           question
           acceptedAnswers
         }
         ... on TrueFalseQuestion {
+          type
           question
           correctAnswer
         }
         ... on PairsQuestion {
+          type
           question
           pairs {
             left
@@ -259,6 +262,7 @@ export const GET_LEVEL_QUERY = gql`
           }
         }
         ... on SequenceQuestion {
+          type
           question
           correctSequence
         }
@@ -279,8 +283,8 @@ export const GET_CHAPTER_LEVELS_QUERY = gql`
       courseId
       order
       questions {
-        type
         ... on MultipleChoiceQuestion {
+          type
           question
           options {
             text
@@ -288,14 +292,17 @@ export const GET_CHAPTER_LEVELS_QUERY = gql`
           }
         }
         ... on FreeChoiceQuestion {
+          type
           question
           acceptedAnswers
         }
         ... on TrueFalseQuestion {
+          type
           question
           correctAnswer
         }
         ... on PairsQuestion {
+          type
           question
           pairs {
             left
@@ -303,6 +310,7 @@ export const GET_CHAPTER_LEVELS_QUERY = gql`
           }
         }
         ... on SequenceQuestion {
+          type
           question
           correctSequence
         }
@@ -323,8 +331,8 @@ export const GET_COURSE_LEVELS_QUERY = gql`
       courseId
       order
       questions {
-        type
         ... on MultipleChoiceQuestion {
+          type
           question
           options {
             text
@@ -332,14 +340,17 @@ export const GET_COURSE_LEVELS_QUERY = gql`
           }
         }
         ... on FreeChoiceQuestion {
+          type
           question
           acceptedAnswers
         }
         ... on TrueFalseQuestion {
+          type
           question
           correctAnswer
         }
         ... on PairsQuestion {
+          type
           question
           pairs {
             left
@@ -347,6 +358,7 @@ export const GET_COURSE_LEVELS_QUERY = gql`
           }
         }
         ... on SequenceQuestion {
+          type
           question
           correctSequence
         }
