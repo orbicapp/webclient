@@ -211,40 +211,6 @@ export function Sidebar() {
             </div>
           ))}
         </nav>
-
-        {/* Footer - Removed "Keep Learning" section */}
-        <div className="p-6 border-t border-primary-100 dark:border-gray-800">
-          <AnimatePresence>
-            {sidebarOpen ? (
-              <motion.div
-                className="p-4 bg-gradient-to-r from-primary-50 to-accent-50 dark:from-gray-800 dark:to-gray-700 rounded-2xl border border-primary-200 dark:border-gray-600"
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: 20 }}
-              >
-                <div className="text-center">
-                  <div className="text-sm font-bold text-gray-900 dark:text-white mb-1">
-                    🚀 Ready to Learn?
-                  </div>
-                  <div className="text-xs text-gray-500 dark:text-gray-400">
-                    Explore new courses
-                  </div>
-                </div>
-              </motion.div>
-            ) : (
-              <motion.div
-                className="flex justify-center"
-                initial={{ opacity: 0, scale: 0 }}
-                animate={{ opacity: 1, scale: 1 }}
-                exit={{ opacity: 0, scale: 0 }}
-              >
-                <div className="w-10 h-10 bg-gradient-to-r from-primary-500 to-accent-500 rounded-2xl flex items-center justify-center">
-                  <span className="text-lg">🚀</span>
-                </div>
-              </motion.div>
-            )}
-          </AnimatePresence>
-        </div>
       </motion.aside>
 
       {/* Floating Expand Button - Only when collapsed */}
