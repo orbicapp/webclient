@@ -7,6 +7,7 @@ import { AuthLayout } from "./layouts/AuthLayout";
 import { MainLayout } from "./layouts/MainLayout";
 import { DashboardPage } from "./pages/(app)/DashboardPage";
 import { MyCoursesPage } from "./pages/(app)/MyCoursesPage";
+import { ProfilePage } from "./pages/(app)/ProfilePage";
 import { SettingsPage } from "./pages/(app)/SettingsPage";
 import { LoginPage } from "./pages/(auth)/LoginPage";
 import { NotFoundPage } from "./pages/(misc)/NotFoundPage";
@@ -98,6 +99,7 @@ function App() {
         <Route element={<MainLayout />}>
           <Route path="/" element={<DashboardPage />} />
           <Route path="/my-courses" element={<MyCoursesPage />} />
+          <Route path="/profile" element={<ProfilePage />} />
           <Route path="/courses" element={<CourseListPage />} />
           <Route path="/courses/create" element={<CreateCoursePage />} />
           <Route path="/course/:courseId" element={<CourseDetailPage />} />
