@@ -1,21 +1,196 @@
 import { motion, AnimatePresence } from "framer-motion";
 import { ChevronLeftIcon, ChevronRightIcon, RocketIcon, LogOutIcon } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
+import { memo, useMemo } from "react";
 
 import { useAuth } from "@/hooks/use-auth";
 import { useSettingsStore } from "@/stores/settings-store";
 import { useResponsive } from "@/hooks/use-responsive";
-import { navCategories } from "./sidebar-data";
+import { navCategories, NavItem } from "./sidebar-data";
 import Badge from "../ui/Badge";
+
+// Memoized Navigation Item Component
+const NavigationItem = memo(({ 
+  item, 
+  isActive, 
+  sidebarOpen 
+}: { 
+  item: NavItem; 
+  isActive: boolean; 
+  sidebarOpen: boolean; 
+}) => {
+  const { logout } = useAuth();
+  const isLogout = item.name === "Logout";
+
+  // Don't show logout when sidebar is collapsed
+  if (isLogout && !sidebarOpen) {
+    return null;
+  }
+
+  if (isLogout) {
+    return (
+      <motion.button
+        onClick={() => logout()}
+        className={`w-full flex items-center px-4 py-3 rounded-2xl text-sm font-medium transition-all duration-200 group ${
+          sidebarOpen ? "" : "justify-center"
+        } text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 hover:text-red-700 dark:hover:text-red-300`}
+        whileHover={{ scale: 1.02, x: 4 }}
+        whileTap={{ scale: 0.98 }}
+      >
+        <span className={`${sidebarOpen ? "mr-3" : ""} transition-transform group-hover:scale-110`}>
+          {item.icon}
+        </span>
+        <AnimatePresence mode="wait">
+          {sidebarOpen && (
+            <motion.span
+              initial={{ opacity: 0, x: -10 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -10 }}
+              transition={{ duration: 0.15 }}
+            >
+              {item.name}
+            </motion.span>
+          )}
+        </AnimatePresence>
+      </motion.button>
+    );
+  }
+
+  return (
+    <Link to={item.path}>
+      <motion.div
+        className={`flex items-center px-4 py-3 rounded-2xl text-sm font-medium transition-all duration-200 group relative overflow-hidden ${
+          isActive
+            ? "bg-gradient-to-r from-primary-500 to-accent-500 text-white shadow-lg shadow-primary-500/25"
+            : "text-gray-700 dark:text-gray-300 hover:bg-primary-50 dark:hover:bg-gray-800 hover:text-primary-700 dark:hover:text-primary-400"
+        } ${!sidebarOpen ? "justify-center" : ""}`}
+        whileHover={{ scale: 1.02, x: isActive ? 0 : 4 }}
+        whileTap={{ scale: 0.98 }}
+        // NO initial animations to prevent restart
+      >
+        {/* Active indicator - This is the key: layoutId prevents restart */}
+        {isActive && (
+          <motion.div
+            className="absolute inset-0 bg-gradient-to-r from-primary-600 to-accent-600 rounded-2xl"
+            layoutId="activeNavIndicator"
+            transition={{ duration: 0.3, ease: "easeInOut" }}
+          />
+        )}
+
+        {/* Icon */}
+        <span className={`relative z-10 ${sidebarOpen ? "mr-3" : ""} transition-transform group-hover:scale-110`}>
+          {item.icon}
+        </span>
+
+        {/* Label */}
+        <AnimatePresence mode="wait">
+          {sidebarOpen && (
+            <motion.span
+              className="relative z-10"
+              initial={{ opacity: 0, x: -10 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -10 }}
+              transition={{ duration: 0.15 }}
+            >
+              {item.name}
+            </motion.span>
+          )}
+        </AnimatePresence>
+
+        {/* Badge for some items */}
+        {item.name === "Explore" && sidebarOpen && (
+          <motion.div
+            className="ml-auto relative z-10"
+            // Static animation, no restart
+            animate={{ opacity: 1, scale: 1 }}
+          >
+            <Badge variant="gradient" size="sm">
+              New
+            </Badge>
+          </motion.div>
+        )}
+
+        {/* Shine effect for active item */}
+        {isActive && (
+          <motion.div
+            className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full"
+            animate={{ x: ["0%", "200%"] }}
+            transition={{ duration: 2, repeat: Infinity, repeatDelay: 3 }}
+          />
+        )}
+      </motion.div>
+    </Link>
+  );
+});
+
+NavigationItem.displayName = "NavigationItem";
+
+// Memoized Category Component
+const NavigationCategory = memo(({ 
+  category, 
+  categoryIndex, 
+  sidebarOpen, 
+  currentPath 
+}: { 
+  category: any; 
+  categoryIndex: number; 
+  sidebarOpen: boolean; 
+  currentPath: string; 
+}) => {
+  // Memoize items to prevent unnecessary re-renders
+  const categoryItems = useMemo(() => 
+    category.items.map((item: NavItem) => ({
+      ...item,
+      isActive: currentPath === item.path
+    })), 
+    [category.items, currentPath]
+  );
+
+  return (
+    <div className={categoryIndex !== 0 ? "mt-8" : ""}>
+      {/* Category title */}
+      <AnimatePresence mode="wait">
+        {sidebarOpen && (
+          <motion.h3
+            className="px-6 mb-3 text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider"
+            initial={{ opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: -20 }}
+            transition={{ duration: 0.2 }}
+          >
+            {category.title}
+          </motion.h3>
+        )}
+      </AnimatePresence>
+
+      {/* Navigation items */}
+      <ul className="space-y-2 px-3">
+        {categoryItems.map((item) => (
+          <li key={item.path}>
+            <NavigationItem
+              item={item}
+              isActive={item.isActive}
+              sidebarOpen={sidebarOpen}
+            />
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+});
+
+NavigationCategory.displayName = "NavigationCategory";
 
 export function Sidebar() {
   const { sidebarOpen, toggleSidebar } = useSettingsStore();
-  const { logout } = useAuth();
   const { isMobile } = useResponsive();
   const location = useLocation();
 
   // Don't render sidebar on mobile (handled by header)
   if (isMobile) return null;
+
+  // Memoize current path to prevent unnecessary re-renders
+  const currentPath = useMemo(() => location.pathname, [location.pathname]);
 
   return (
     <>
@@ -72,134 +247,16 @@ export function Sidebar() {
           </AnimatePresence>
         </div>
 
-        {/* Navigation */}
+        {/* Navigation - Memoized categories */}
         <nav className="flex-1 py-6 overflow-y-auto">
           {navCategories.map((category, categoryIndex) => (
-            <div key={category.title} className={categoryIndex !== 0 ? "mt-8" : ""}>
-              {/* Category title */}
-              <AnimatePresence mode="wait">
-                {sidebarOpen && (
-                  <motion.h3
-                    className="px-6 mb-3 text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider"
-                    initial={{ opacity: 0, x: -20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    exit={{ opacity: 0, x: -20 }}
-                    transition={{ duration: 0.2 }}
-                  >
-                    {category.title}
-                  </motion.h3>
-                )}
-              </AnimatePresence>
-
-              {/* Navigation items - NO INITIAL ANIMATIONS */}
-              <ul className="space-y-2 px-3">
-                {category.items.map((item) => {
-                  const isActive = location.pathname === item.path;
-                  const isLogout = item.name === "Logout";
-
-                  // Don't show logout when sidebar is collapsed
-                  if (isLogout && !sidebarOpen) {
-                    return null;
-                  }
-
-                  return (
-                    <li key={item.path}>
-                      {isLogout ? (
-                        <motion.button
-                          onClick={() => logout()}
-                          className={`w-full flex items-center px-4 py-3 rounded-2xl text-sm font-medium transition-all duration-200 group ${
-                            sidebarOpen ? "" : "justify-center"
-                          } text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 hover:text-red-700 dark:hover:text-red-300`}
-                          whileHover={{ scale: 1.02, x: 4 }}
-                          whileTap={{ scale: 0.98 }}
-                        >
-                          <span className={`${sidebarOpen ? "mr-3" : ""} transition-transform group-hover:scale-110`}>
-                            {item.icon}
-                          </span>
-                          <AnimatePresence mode="wait">
-                            {sidebarOpen && (
-                              <motion.span
-                                initial={{ opacity: 0, x: -10 }}
-                                animate={{ opacity: 1, x: 0 }}
-                                exit={{ opacity: 0, x: -10 }}
-                                transition={{ duration: 0.15 }}
-                              >
-                                {item.name}
-                              </motion.span>
-                            )}
-                          </AnimatePresence>
-                        </motion.button>
-                      ) : (
-                        <Link to={item.path}>
-                          <motion.div
-                            className={`flex items-center px-4 py-3 rounded-2xl text-sm font-medium transition-all duration-200 group relative overflow-hidden ${
-                              isActive
-                                ? "bg-gradient-to-r from-primary-500 to-accent-500 text-white shadow-lg shadow-primary-500/25"
-                                : "text-gray-700 dark:text-gray-300 hover:bg-primary-50 dark:hover:bg-gray-800 hover:text-primary-700 dark:hover:text-primary-400"
-                            } ${!sidebarOpen ? "justify-center" : ""}`}
-                            whileHover={{ scale: 1.02, x: isActive ? 0 : 4 }}
-                            whileTap={{ scale: 0.98 }}
-                            // REMOVED: initial, animate, transition - No more restart animations!
-                          >
-                            {/* Active indicator */}
-                            {isActive && (
-                              <motion.div
-                                className="absolute inset-0 bg-gradient-to-r from-primary-600 to-accent-600 rounded-2xl"
-                                layoutId="activeNavIndicator"
-                                transition={{ duration: 0.3 }}
-                              />
-                            )}
-
-                            {/* Icon */}
-                            <span className={`relative z-10 ${sidebarOpen ? "mr-3" : ""} transition-transform group-hover:scale-110`}>
-                              {item.icon}
-                            </span>
-
-                            {/* Label */}
-                            <AnimatePresence mode="wait">
-                              {sidebarOpen && (
-                                <motion.span
-                                  className="relative z-10"
-                                  initial={{ opacity: 0, x: -10 }}
-                                  animate={{ opacity: 1, x: 0 }}
-                                  exit={{ opacity: 0, x: -10 }}
-                                  transition={{ duration: 0.15 }}
-                                >
-                                  {item.name}
-                                </motion.span>
-                              )}
-                            </AnimatePresence>
-
-                            {/* Badge for some items */}
-                            {item.name === "Explore" && sidebarOpen && (
-                              <motion.div
-                                className="ml-auto relative z-10"
-                                // REMOVED: initial animations to prevent restart
-                                animate={{ opacity: 1, scale: 1 }}
-                                transition={{ delay: 0.2 }}
-                              >
-                                <Badge variant="gradient" size="sm">
-                                  New
-                                </Badge>
-                              </motion.div>
-                            )}
-
-                            {/* Shine effect for active item */}
-                            {isActive && (
-                              <motion.div
-                                className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full"
-                                animate={{ x: ["0%", "200%"] }}
-                                transition={{ duration: 2, repeat: Infinity, repeatDelay: 3 }}
-                              />
-                            )}
-                          </motion.div>
-                        </Link>
-                      )}
-                    </li>
-                  );
-                })}
-              </ul>
-            </div>
+            <NavigationCategory
+              key={category.title}
+              category={category}
+              categoryIndex={categoryIndex}
+              sidebarOpen={sidebarOpen}
+              currentPath={currentPath}
+            />
           ))}
         </nav>
 
