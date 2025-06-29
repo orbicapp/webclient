@@ -2,32 +2,21 @@ import { useState } from "react";
 import { motion } from "framer-motion";
 import { 
   User, 
-  Bell, 
   Shield, 
   Palette, 
-  Globe, 
-  Download, 
-  Trash2, 
-  Eye, 
-  EyeOff,
   Camera,
   Mail,
   Lock,
-  Smartphone,
-  Monitor,
   Moon,
   Sun,
+  Globe,
   Volume2,
   VolumeX,
   Zap,
-  Crown,
-  Settings as SettingsIcon,
-  ChevronRight,
+  Monitor,
   Check,
   X,
-  AlertTriangle,
-  Info,
-  BookOpen
+  AlertTriangle
 } from "lucide-react";
 
 import { ViewContainer } from "@/components/layout/ViewContainer";
@@ -135,26 +124,6 @@ export function SettingsPage() {
   const [profileData, setProfileData] = useState({
     displayName: user?.displayName || "",
     email: user?.email || "",
-    bio: "",
-    location: "",
-    website: "",
-  });
-
-  const [notificationSettings, setNotificationSettings] = useState({
-    emailNotifications: true,
-    pushNotifications: true,
-    courseUpdates: true,
-    achievements: true,
-    weeklyDigest: false,
-    marketing: false,
-  });
-
-  const [privacySettings, setPrivacySettings] = useState({
-    profileVisibility: "public",
-    showProgress: true,
-    showAchievements: true,
-    allowMessages: true,
-    dataCollection: true,
   });
 
   const [appearanceSettings, setAppearanceSettings] = useState({
@@ -167,66 +136,8 @@ export function SettingsPage() {
 
   return (
     <ViewContainer className="py-8">
-      {/* Header */}
-      <motion.div
-        className="text-center mb-12"
-        initial={{ opacity: 0, y: -20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.6 }}
-      >
-        <div className="relative inline-block mb-6">
-          <motion.div
-            className="w-20 h-20 bg-gradient-to-br from-purple-500 via-pink-500 to-orange-500 rounded-3xl flex items-center justify-center shadow-2xl shadow-purple-500/25"
-            animate={{ 
-              rotate: [0, 5, -5, 0],
-              scale: [1, 1.05, 1]
-            }}
-            transition={{ 
-              duration: 4,
-              repeat: Infinity,
-              ease: "easeInOut"
-            }}
-          >
-            <SettingsIcon className="w-10 h-10 text-white" />
-          </motion.div>
-          
-          {/* Floating sparkles */}
-          {[...Array(6)].map((_, i) => (
-            <motion.div
-              key={i}
-              className="absolute w-2 h-2 bg-yellow-400 rounded-full"
-              style={{
-                left: `${20 + Math.cos(i * 60 * Math.PI / 180) * 40}px`,
-                top: `${20 + Math.sin(i * 60 * Math.PI / 180) * 40}px`,
-              }}
-              animate={{
-                scale: [0, 1, 0],
-                opacity: [0, 1, 0],
-              }}
-              transition={{
-                duration: 2,
-                repeat: Infinity,
-                delay: i * 0.3,
-              }}
-            />
-          ))}
-        </div>
-
-        <h1 className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-purple-600 via-pink-600 to-orange-600 bg-clip-text text-transparent mb-4">
-          Settings
-        </h1>
-        <p className="text-xl text-gray-600 dark:text-gray-300 max-w-2xl mx-auto leading-relaxed">
-          Customize your experience and manage your account preferences
-        </p>
-      </motion.div>
-
       {/* Settings Tabs */}
-      <motion.div
-        className="max-w-6xl mx-auto"
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.2, duration: 0.6 }}
-      >
+      <div className="max-w-6xl mx-auto">
         <Tabs defaultValue="profile" variant="fancy">
           <TabsList className="mb-8 justify-center">
             <TabsTrigger value="profile">
@@ -240,18 +151,6 @@ export function SettingsPage() {
             <TabsTrigger value="appearance">
               <Palette className="w-4 h-4" />
               <span>Appearance</span>
-            </TabsTrigger>
-            <TabsTrigger value="notifications">
-              <Bell className="w-4 h-4" />
-              <span>Notifications</span>
-            </TabsTrigger>
-            <TabsTrigger value="privacy">
-              <Eye className="w-4 h-4" />
-              <span>Privacy</span>
-            </TabsTrigger>
-            <TabsTrigger value="data">
-              <Download className="w-4 h-4" />
-              <span>Data</span>
             </TabsTrigger>
           </TabsList>
 
@@ -309,33 +208,7 @@ export function SettingsPage() {
                     leftIcon={<Mail className="w-5 h-5" />}
                     variant="glass"
                   />
-                  <Input
-                    label="Location"
-                    placeholder="City, Country"
-                    value={profileData.location}
-                    onChange={(e) => setProfileData(prev => ({ ...prev, location: e.target.value }))}
-                    leftIcon={<Globe className="w-5 h-5" />}
-                    variant="glass"
-                  />
-                  <Input
-                    label="Website"
-                    placeholder="https://yourwebsite.com"
-                    value={profileData.website}
-                    onChange={(e) => setProfileData(prev => ({ ...prev, website: e.target.value }))}
-                    leftIcon={<Globe className="w-5 h-5" />}
-                    variant="glass"
-                  />
                 </div>
-
-                <Input
-                  label="Bio"
-                  as="textarea"
-                  rows={3}
-                  placeholder="Tell us about yourself..."
-                  value={profileData.bio}
-                  onChange={(e) => setProfileData(prev => ({ ...prev, bio: e.target.value }))}
-                  variant="glass"
-                />
 
                 <div className="flex justify-end space-x-3">
                   <Button variant="outline">Cancel</Button>
@@ -365,44 +238,14 @@ export function SettingsPage() {
                   </SettingItem>
 
                   <SettingItem
-                    icon={<Smartphone className="w-5 h-5" />}
-                    title="Two-Factor Authentication"
-                    description="Add an extra layer of security to your account"
-                    badge="Recommended"
-                  >
-                    <Button variant="primary" size="sm">Enable</Button>
-                  </SettingItem>
-
-                  <SettingItem
                     icon={<Mail className="w-5 h-5" />}
                     title="Email Verification"
                     description="Verify your email address"
                   >
-                    <Badge variant="success">Verified</Badge>
+                    <Badge variant={user?.isEmailVerified ? "success" : "warning"}>
+                      {user?.isEmailVerified ? "Verified" : "Pending"}
+                    </Badge>
                   </SettingItem>
-                </CardContent>
-              </Card>
-
-              <Card variant="glass" className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-xl border-2 border-gray-200/50 dark:border-gray-700/50">
-                <CardHeader>
-                  <CardTitle className="flex items-center space-x-2">
-                    <Crown className="w-5 h-5" />
-                    <span>Subscription</span>
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="flex items-center justify-between p-4 bg-gradient-to-r from-purple-50 to-pink-50 dark:from-purple-900/20 dark:to-pink-900/20 rounded-xl border border-purple-200 dark:border-purple-800">
-                    <div className="flex items-center space-x-4">
-                      <div className="p-2 bg-purple-500 rounded-lg">
-                        <Crown className="w-5 h-5 text-white" />
-                      </div>
-                      <div>
-                        <h3 className="font-semibold text-gray-900 dark:text-gray-100">Free Plan</h3>
-                        <p className="text-sm text-gray-500 dark:text-gray-400">Access to basic features</p>
-                      </div>
-                    </div>
-                    <Button variant="accent">Upgrade to Pro</Button>
-                  </div>
                 </CardContent>
               </Card>
             </div>
@@ -483,219 +326,8 @@ export function SettingsPage() {
               </CardContent>
             </Card>
           </TabsContent>
-
-          {/* Notifications Settings */}
-          <TabsContent value="notifications">
-            <Card variant="glass" className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-xl border-2 border-gray-200/50 dark:border-gray-700/50">
-              <CardHeader>
-                <CardTitle className="flex items-center space-x-2">
-                  <Bell className="w-5 h-5" />
-                  <span>Notification Preferences</span>
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <SettingItem
-                  icon={<Mail className="w-5 h-5" />}
-                  title="Email Notifications"
-                  description="Receive notifications via email"
-                >
-                  <ToggleSwitch
-                    checked={notificationSettings.emailNotifications}
-                    onChange={(checked) => setNotificationSettings(prev => ({ ...prev, emailNotifications: checked }))}
-                  />
-                </SettingItem>
-
-                <SettingItem
-                  icon={<Smartphone className="w-5 h-5" />}
-                  title="Push Notifications"
-                  description="Receive push notifications on your device"
-                >
-                  <ToggleSwitch
-                    checked={notificationSettings.pushNotifications}
-                    onChange={(checked) => setNotificationSettings(prev => ({ ...prev, pushNotifications: checked }))}
-                  />
-                </SettingItem>
-
-                <SettingItem
-                  icon={<BookOpen className="w-5 h-5" />}
-                  title="Course Updates"
-                  description="Get notified about new content and updates"
-                >
-                  <ToggleSwitch
-                    checked={notificationSettings.courseUpdates}
-                    onChange={(checked) => setNotificationSettings(prev => ({ ...prev, courseUpdates: checked }))}
-                  />
-                </SettingItem>
-
-                <SettingItem
-                  icon={<Crown className="w-5 h-5" />}
-                  title="Achievements"
-                  description="Celebrate your learning milestones"
-                >
-                  <ToggleSwitch
-                    checked={notificationSettings.achievements}
-                    onChange={(checked) => setNotificationSettings(prev => ({ ...prev, achievements: checked }))}
-                  />
-                </SettingItem>
-
-                <SettingItem
-                  icon={<Mail className="w-5 h-5" />}
-                  title="Weekly Digest"
-                  description="Summary of your weekly progress"
-                >
-                  <ToggleSwitch
-                    checked={notificationSettings.weeklyDigest}
-                    onChange={(checked) => setNotificationSettings(prev => ({ ...prev, weeklyDigest: checked }))}
-                  />
-                </SettingItem>
-
-                <SettingItem
-                  icon={<Info className="w-5 h-5" />}
-                  title="Marketing Communications"
-                  description="Receive updates about new features and offers"
-                >
-                  <ToggleSwitch
-                    checked={notificationSettings.marketing}
-                    onChange={(checked) => setNotificationSettings(prev => ({ ...prev, marketing: checked }))}
-                  />
-                </SettingItem>
-              </CardContent>
-            </Card>
-          </TabsContent>
-
-          {/* Privacy Settings */}
-          <TabsContent value="privacy">
-            <Card variant="glass" className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-xl border-2 border-gray-200/50 dark:border-gray-700/50">
-              <CardHeader>
-                <CardTitle className="flex items-center space-x-2">
-                  <Eye className="w-5 h-5" />
-                  <span>Privacy & Visibility</span>
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <SettingItem
-                  icon={<User className="w-5 h-5" />}
-                  title="Profile Visibility"
-                  description="Control who can see your profile"
-                >
-                  <div className="w-48">
-                    <Dropdown
-                      value={privacySettings.profileVisibility}
-                      options={[
-                        { value: "public", label: "Public", description: "Everyone can see" },
-                        { value: "friends", label: "Friends Only", description: "Only friends can see" },
-                        { value: "private", label: "Private", description: "Only you can see" },
-                      ]}
-                      onChange={(value) => setPrivacySettings(prev => ({ ...prev, profileVisibility: value }))}
-                      variant="glass"
-                    />
-                  </div>
-                </SettingItem>
-
-                <SettingItem
-                  icon={<Crown className="w-5 h-5" />}
-                  title="Show Progress"
-                  description="Display your learning progress publicly"
-                >
-                  <ToggleSwitch
-                    checked={privacySettings.showProgress}
-                    onChange={(checked) => setPrivacySettings(prev => ({ ...prev, showProgress: checked }))}
-                  />
-                </SettingItem>
-
-                <SettingItem
-                  icon={<Crown className="w-5 h-5" />}
-                  title="Show Achievements"
-                  description="Display your badges and achievements"
-                >
-                  <ToggleSwitch
-                    checked={privacySettings.showAchievements}
-                    onChange={(checked) => setPrivacySettings(prev => ({ ...prev, showAchievements: checked }))}
-                  />
-                </SettingItem>
-
-                <SettingItem
-                  icon={<Mail className="w-5 h-5" />}
-                  title="Allow Messages"
-                  description="Let other users send you messages"
-                >
-                  <ToggleSwitch
-                    checked={privacySettings.allowMessages}
-                    onChange={(checked) => setPrivacySettings(prev => ({ ...prev, allowMessages: checked }))}
-                  />
-                </SettingItem>
-
-                <SettingItem
-                  icon={<Info className="w-5 h-5" />}
-                  title="Data Collection"
-                  description="Help improve the platform with usage analytics"
-                >
-                  <ToggleSwitch
-                    checked={privacySettings.dataCollection}
-                    onChange={(checked) => setPrivacySettings(prev => ({ ...prev, dataCollection: checked }))}
-                  />
-                </SettingItem>
-              </CardContent>
-            </Card>
-          </TabsContent>
-
-          {/* Data Management */}
-          <TabsContent value="data">
-            <div className="space-y-6">
-              <Card variant="glass" className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-xl border-2 border-gray-200/50 dark:border-gray-700/50">
-                <CardHeader>
-                  <CardTitle className="flex items-center space-x-2">
-                    <Download className="w-5 h-5" />
-                    <span>Data Export</span>
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <SettingItem
-                    icon={<Download className="w-5 h-5" />}
-                    title="Download Your Data"
-                    description="Export all your course data, progress, and settings"
-                  >
-                    <Button variant="outline" size="sm">Export Data</Button>
-                  </SettingItem>
-
-                  <SettingItem
-                    icon={<Download className="w-5 h-5" />}
-                    title="Download Certificates"
-                    description="Get PDF copies of your course completion certificates"
-                  >
-                    <Button variant="outline" size="sm">Download</Button>
-                  </SettingItem>
-                </CardContent>
-              </Card>
-
-              <Card variant="glass" className="bg-red-50/80 dark:bg-red-900/20 backdrop-blur-xl border-2 border-red-200/50 dark:border-red-800/50">
-                <CardHeader>
-                  <CardTitle className="flex items-center space-x-2 text-red-600 dark:text-red-400">
-                    <AlertTriangle className="w-5 h-5" />
-                    <span>Danger Zone</span>
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <SettingItem
-                    icon={<Trash2 className="w-5 h-5" />}
-                    title="Delete Account"
-                    description="Permanently delete your account and all associated data"
-                    warning
-                  >
-                    <Button 
-                      variant="danger" 
-                      size="sm"
-                      onClick={() => setShowDeleteConfirm(true)}
-                    >
-                      Delete Account
-                    </Button>
-                  </SettingItem>
-                </CardContent>
-              </Card>
-            </div>
-          </TabsContent>
         </Tabs>
-      </motion.div>
+      </div>
 
       {/* Delete Account Confirmation Modal */}
       {showDeleteConfirm && (
@@ -735,7 +367,7 @@ export function SettingsPage() {
               <Button 
                 variant="danger" 
                 className="flex-1"
-                leftIcon={<Trash2 className="w-4 h-4" />}
+                leftIcon={<X className="w-4 h-4" />}
               >
                 Delete Account
               </Button>
