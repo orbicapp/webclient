@@ -15,7 +15,7 @@
     <!-- Mandatory Bolt.new Badge Code -->
     <style>
       .bolt-badge {
-        transition: all 0.3s ease;
+        transition: all 0.2s ease;
       }
       @keyframes badgeIntro {
         0% {
@@ -28,7 +28,7 @@
         }
       }
       .bolt-badge-intro {
-        animation: badgeIntro 0.8s ease-out 1s both;
+        animation: badgeIntro 0.5s ease-out 1s both;
       }
       .bolt-badge-intro.animated {
         animation: none;
@@ -38,14 +38,14 @@
           transform: scale(1) rotate(0deg);
         }
         50% {
-          transform: scale(1.1) rotate(22deg);
+          transform: scale(1.05) rotate(22deg);
         }
         100% {
           transform: scale(1) rotate(0deg);
         }
       }
       .bolt-badge:hover {
-        animation: badgeHover 0.6s ease-in-out;
+        animation: badgeHover 0.4s ease-in-out;
       }
     </style>
   </head>
@@ -64,7 +64,7 @@
         <img
           src="https://storage.bolt.army/white_circle_360x360.png"
           alt="Built with Bolt.new badge"
-          class="w-20 h-20 md:w-28 md:h-28 rounded-full shadow-lg bolt-badge bolt-badge-intro"
+          class="w-16 h-16 md:w-24 md:h-24 rounded-full shadow-lg bolt-badge bolt-badge-intro"
           onanimationend="this.classList.add('animated')"
         />
       </a>
