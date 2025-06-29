@@ -4,31 +4,31 @@ import { formatResult } from "../lib/utils/service.utils";
 
 // Types
 export interface TrueFalseQuestion {
-  type: "true_false";
+  type: "TRUE_FALSE";
   question: string;
   correctAnswer: boolean;
 }
 
 export interface MultipleChoiceQuestion {
-  type: "multiple_choice";
+  type: "MULTIPLE_CHOICE";
   question: string;
   options: { text: string; isCorrect: boolean }[];
 }
 
 export interface PairsQuestion {
-  type: "pairs";
+  type: "PAIRS";
   question: string;
   pairs: { left: string; right: string }[];
 }
 
 export interface SequenceQuestion {
-  type: "sequence";
+  type: "SEQUENCE";
   question: string;
   correctSequence: string[];
 }
 
 export interface FreeChoiceQuestion {
-  type: "free_choice";
+  type: "FREE_CHOICE";
   question: string;
   acceptedAnswers: string[];
 }

@@ -49,7 +49,7 @@ const QuestionComponent: React.FC<QuestionComponentProps> = ({
 
   const renderQuestionContent = () => {
     switch (question.type) {
-      case "multiple_choice":
+      case "MULTIPLE_CHOICE":
         return (
           <div className="space-y-3">
             {question.options.map((option: any, index: number) => (
@@ -85,7 +85,7 @@ const QuestionComponent: React.FC<QuestionComponentProps> = ({
           </div>
         );
 
-      case "true_false":
+      case "TRUE_FALSE":
         return (
           <div className="grid grid-cols-2 gap-4">
             <button
@@ -119,7 +119,7 @@ const QuestionComponent: React.FC<QuestionComponentProps> = ({
           </div>
         );
 
-      case "free_choice":
+      case "FREE_CHOICE":
         return (
           <div>
             <textarea
@@ -207,13 +207,13 @@ export function GameSessionPage() {
       };
 
       switch (question.type) {
-        case "multiple_choice":
+        case "MULTIPLE_CHOICE":
           answerPayload.selectedOptionIndex = answer;
           break;
-        case "true_false":
+        case "TRUE_FALSE":
           answerPayload.booleanAnswer = answer;
           break;
-        case "free_choice":
+        case "FREE_CHOICE":
           answerPayload.freeAnswer = answer;
           break;
         default:
