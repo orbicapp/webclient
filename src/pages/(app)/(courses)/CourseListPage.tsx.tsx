@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { motion } from "framer-motion";
 import { Filter, Grid, List } from "lucide-react";
 
@@ -14,6 +14,7 @@ import CourseCard from "@/components/ui/CourseCard";
 
 export function CourseListPage() {
   const { getParam } = useSearchParamsState();
+  const isInitializedRef = useRef(false);
   
   // Get search from URL params
   const urlSearch = getParam('search');
@@ -23,9 +24,12 @@ export function CourseListPage() {
   // Debounce search to avoid excessive API calls
   const debouncedSearch = useDebounce(searchInput, 500);
   
-  // Sync local search with URL params
+  // Initialize search input from URL on mount
   useEffect(() => {
-    setSearchInput(urlSearch);
+    if (!isInitializedRef.current) {
+      setSearchInput(urlSearch);
+      isInitializedRef.current = true;
+    }
   }, [urlSearch]);
 
   // Use the search hook with debounced search
@@ -36,7 +40,7 @@ export function CourseListPage() {
     filter: { search: debouncedSearch.trim() || undefined },
   });
 
-  // Handle search input change
+  // Handle search input change - this is called by SearchInput component
   const handleSearchChange = useCallback((query: string) => {
     setSearchInput(query);
   }, []);

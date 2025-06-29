@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { SearchIcon, X } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate, useLocation } from 'react-router-dom';
@@ -25,19 +25,30 @@ export const SearchInput: React.FC<SearchInputProps> = ({
   const navigate = useNavigate();
   const location = useLocation();
   const { getParam, setParam } = useSearchParamsState();
+  const isInitializedRef = useRef(false);
   
   // Get initial search value from URL params
-  const initialSearch = getParam('search');
-  const [searchValue, setSearchValue] = useState(initialSearch);
+  const urlSearch = getParam('search');
+  const [searchValue, setSearchValue] = useState(urlSearch);
   const [isFocused, setIsFocused] = useState(false);
   
   // Debounce search value to avoid excessive API calls
   const debouncedSearch = useDebounce(searchValue, 500);
 
-  // Update URL params when debounced search changes
+  // Initialize search value from URL on mount
   useEffect(() => {
-    // Only update if we're on the courses page or if we have a search value
-    if (location.pathname === '/courses' || debouncedSearch) {
+    if (!isInitializedRef.current) {
+      setSearchValue(urlSearch);
+      isInitializedRef.current = true;
+    }
+  }, [urlSearch]);
+
+  // Update URL params when debounced search changes (but not on initial load)
+  useEffect(() => {
+    if (!isInitializedRef.current) return;
+
+    // Only update if the debounced value is different from URL
+    if (debouncedSearch !== urlSearch) {
       setParam('search', debouncedSearch);
       
       // Call onSearch callback if provided
@@ -48,18 +59,18 @@ export const SearchInput: React.FC<SearchInputProps> = ({
         navigate(`/courses?search=${encodeURIComponent(debouncedSearch)}`);
       }
     }
-  }, [debouncedSearch, location.pathname, setParam, onSearch, navigate]);
+  }, [debouncedSearch, urlSearch, location.pathname, setParam, onSearch, navigate]);
 
-  // Sync with URL params when they change externally
+  // Sync with URL params when they change externally (but don't override user input)
   useEffect(() => {
-    const urlSearch = getParam('search');
-    if (urlSearch !== searchValue) {
+    if (!isFocused && urlSearch !== searchValue) {
       setSearchValue(urlSearch);
     }
-  }, [getParam, searchValue]);
+  }, [urlSearch, isFocused, searchValue]);
 
   const handleInputChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-    setSearchValue(e.target.value);
+    const newValue = e.target.value;
+    setSearchValue(newValue);
   }, []);
 
   const handleClear = useCallback(() => {
