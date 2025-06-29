@@ -73,7 +73,7 @@ export function TabsList({ children, className }: TabsListProps) {
 
   const spacingStyles = {
     default: "flex items-center relative",
-    fancy: "flex items-center relative space-x-2"
+    fancy: "flex items-center relative"
   };
 
   return (
@@ -271,7 +271,7 @@ export function TabsListGrid({ children, className, columns }: TabsListGridProps
 
   const spacingStyles = {
     default: "gap-1",
-    fancy: "gap-2"
+    fancy: "gap-4"
   };
 
   return (
