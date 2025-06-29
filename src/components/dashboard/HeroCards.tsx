@@ -89,61 +89,55 @@ export function HeroCards() {
           variant="gradient" 
           className="bg-gradient-to-br from-secondary-500 via-emerald-500 to-teal-600 text-white border-0 shadow-xl shadow-secondary-500/25"
         >
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="text-lg font-bold text-white">
-              Current Streak
-            </h3>
-            <div className="p-2 bg-white/20 backdrop-blur-sm rounded-lg">
+          <div className="flex items-center justify-between">
+            <div className="flex-1">
+              {statsLoading ? (
+                <div className="space-y-2">
+                  <div className="h-6 bg-white/20 rounded animate-pulse"></div>
+                  <div className="h-4 bg-white/20 rounded animate-pulse w-3/4"></div>
+                </div>
+              ) : stats ? (
+                <>
+                  {/* First Line: Current Streak */}
+                  <div className="flex items-center space-x-2 mb-2">
+                    <span className="text-lg font-bold text-white">
+                      Current Streak:
+                    </span>
+                    <motion.span
+                      className="text-2xl font-bold text-white flex items-center"
+                      initial={{ scale: 0 }}
+                      animate={{ scale: 1 }}
+                      transition={{ delay: 0.5, type: "spring" }}
+                    >
+                      {stats.currentStreak}
+                      <Zap className="w-5 h-5 ml-1 text-yellow-300" />
+                    </motion.span>
+                  </div>
+                  
+                  {/* Second Line: Best Streak */}
+                  <div className="flex items-center space-x-2 text-white/90">
+                    <Trophy className="w-4 h-4 text-yellow-300" />
+                    <span className="text-sm">
+                      Best Streak: {stats.longestStreak} days
+                    </span>
+                  </div>
+                </>
+              ) : (
+                <div className="text-center">
+                  <div className="text-lg font-bold text-white mb-2">
+                    Start Learning!
+                  </div>
+                  <div className="text-sm text-white/80">
+                    Build your streak
+                  </div>
+                </div>
+              )}
+            </div>
+            
+            <div className="p-2 bg-white/20 backdrop-blur-sm rounded-lg ml-4">
               <Flame className="w-5 h-5 text-white" />
             </div>
           </div>
-
-          {statsLoading ? (
-            <div className="space-y-3">
-              <div className="h-8 bg-white/20 rounded animate-pulse"></div>
-              <div className="h-4 bg-white/20 rounded animate-pulse w-3/4"></div>
-            </div>
-          ) : stats ? (
-            <div className="text-center">
-              {/* Current Streak Number */}
-              <motion.div
-                className="text-4xl font-bold text-white mb-2 flex items-center justify-center"
-                initial={{ scale: 0 }}
-                animate={{ scale: 1 }}
-                transition={{ delay: 0.5, type: "spring" }}
-              >
-                {stats.currentStreak}
-                <Zap className="w-6 h-6 ml-2 text-yellow-300" />
-              </motion.div>
-              
-              {/* Days text */}
-              <div className="text-sm text-white/90 mb-4">
-                {stats.currentStreak === 1 ? 'day' : 'days'}
-              </div>
-
-              {/* Best Streak */}
-              <div className="p-3 bg-white/10 backdrop-blur-sm rounded-lg">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center space-x-2">
-                    <Trophy className="w-4 h-4 text-yellow-300" />
-                    <span className="text-sm text-white/90">
-                      Best Streak
-                    </span>
-                  </div>
-                  <span className="font-bold text-white">
-                    {stats.longestStreak} days
-                  </span>
-                </div>
-              </div>
-            </div>
-          ) : (
-            <div className="text-center py-4">
-              <Flame className="w-8 h-8 text-white/60 mx-auto mb-2" />
-              <p className="text-sm text-white/80">
-                Start learning to build your streak!
-              </p>
-            </div>
-          )}
         </Card>
       </motion.div>
     </div>
