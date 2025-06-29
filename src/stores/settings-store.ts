@@ -8,25 +8,56 @@ interface SettingsState {
 
   toggleTheme: () => void;
   toggleSidebar: () => void;
+  setTheme: (theme: "light" | "dark") => void;
 }
+
+// Function to apply theme to DOM
+const applyTheme = (theme: "light" | "dark") => {
+  if (theme === "dark") {
+    document.documentElement.classList.add("dark");
+  } else {
+    document.documentElement.classList.remove("dark");
+  }
+};
+
+// Initialize theme from localStorage immediately
+const getInitialTheme = (): "light" | "dark" => {
+  if (typeof window === "undefined") return "light";
+  
+  try {
+    const stored = localStorage.getItem(LocalKeys.PREFERENCES);
+    if (stored) {
+      const parsed = JSON.parse(stored);
+      return parsed.state?.theme || "light";
+    }
+  } catch (error) {
+    console.warn("Failed to parse stored theme:", error);
+  }
+  
+  return "light";
+};
+
+// Apply initial theme immediately
+const initialTheme = getInitialTheme();
+applyTheme(initialTheme);
 
 export const useSettingsStore = create<SettingsState>()(
   persist(
-    (set) => ({
-      // Getters
-      theme: "light",
+    (set, get) => ({
+      // Getters - Use the initial theme we detected
+      theme: initialTheme,
       sidebarOpen: false,
 
       // Setters
+      setTheme: (theme) => {
+        applyTheme(theme);
+        set({ theme });
+      },
+
       toggleTheme: () => {
-        const newTheme = document.documentElement.classList.contains("dark")
-          ? "light"
-          : "dark";
-        if (newTheme === "dark") {
-          document.documentElement.classList.add("dark");
-        } else {
-          document.documentElement.classList.remove("dark");
-        }
+        const currentTheme = get().theme;
+        const newTheme = currentTheme === "dark" ? "light" : "dark";
+        applyTheme(newTheme);
         set({ theme: newTheme });
       },
 
@@ -35,10 +66,10 @@ export const useSettingsStore = create<SettingsState>()(
     }),
     {
       name: LocalKeys.PREFERENCES,
-      onRehydrateStorage: (state) => {
-        // Apply theme on page load
-        if (state?.theme === "dark") {
-          document.documentElement.classList.add("dark");
+      onRehydrateStorage: () => (state) => {
+        // Apply theme when store rehydrates
+        if (state?.theme) {
+          applyTheme(state.theme);
         }
       },
     }
