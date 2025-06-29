@@ -26,7 +26,8 @@ import {
   Check,
   X,
   AlertTriangle,
-  Info
+  Info,
+  BookOpen
 } from "lucide-react";
 
 import { ViewContainer } from "@/components/layout/ViewContainer";
