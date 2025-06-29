@@ -43,17 +43,18 @@ const LevelNode: React.FC<{
   levelNumber: number;
   size: number;
   onClick?: () => void;
-}> = ({ level, x, y, chapterNumber, levelNumber, size, onClick }) => {
+  isPreviewMode?: boolean;
+}> = ({ level, x, y, chapterNumber, levelNumber, size, onClick, isPreviewMode = false }) => {
   const [isHovered, setIsHovered] = useState(false);
   
   const getNodeIcon = () => {
     if (level.isCompleted) return CheckCircle;
-    if (level.isUnlocked) return Play;
+    if (level.isUnlocked && !isPreviewMode) return Play;
     return Lock;
   };
   
   const getNodeStyles = () => {
-    if (level.isCompleted) {
+    if (level.isCompleted && !isPreviewMode) {
       return {
         bg: "bg-gradient-to-br from-emerald-400 via-emerald-500 to-green-600",
         shadow: "shadow-xl shadow-emerald-500/50",
@@ -61,7 +62,7 @@ const LevelNode: React.FC<{
         glow: "drop-shadow-[0_0_16px_rgba(16,185,129,0.7)]"
       };
     }
-    if (level.isUnlocked) {
+    if (level.isUnlocked && !isPreviewMode) {
       return {
         bg: "bg-gradient-to-br from-blue-400 via-blue-500 to-purple-600",
         shadow: "shadow-xl shadow-blue-500/50",
@@ -69,10 +70,17 @@ const LevelNode: React.FC<{
         glow: "drop-shadow-[0_0_16px_rgba(59,130,246,0.7)]"
       };
     }
+    // ✅ Preview mode or locked - show as locked with orange tint
     return {
-      bg: "bg-gradient-to-br from-gray-400 via-gray-500 to-gray-600",
-      shadow: "shadow-lg shadow-gray-500/30",
-      ring: "ring-gray-400/20",
+      bg: isPreviewMode 
+        ? "bg-gradient-to-br from-orange-400 via-orange-500 to-red-600 opacity-60"
+        : "bg-gradient-to-br from-gray-400 via-gray-500 to-gray-600",
+      shadow: isPreviewMode 
+        ? "shadow-lg shadow-orange-500/30" 
+        : "shadow-lg shadow-gray-500/30",
+      ring: isPreviewMode 
+        ? "ring-orange-400/20" 
+        : "ring-gray-400/20",
       glow: ""
     };
   };
@@ -80,21 +88,25 @@ const LevelNode: React.FC<{
   const Icon = getNodeIcon();
   const styles = getNodeStyles();
 
+  // ✅ Determine if clickable
+  const isClickable = !isPreviewMode && level.isUnlocked;
+
   return (
     <motion.div
-      className="absolute transform -translate-x-1/2 -translate-y-1/2 cursor-pointer z-20"
+      className="absolute transform -translate-x-1/2 -translate-y-1/2 z-20"
       style={{ left: x, top: y }}
       initial={{ scale: 0, opacity: 0 }}
       animate={{ scale: 1, opacity: 1 }}
       transition={{ delay: levelNumber * 0.03, duration: 0.5, type: "spring" }}
-      whileHover={{ scale: level.isUnlocked ? 1.15 : 1.05 }}
-      whileTap={{ scale: level.isUnlocked ? 0.9 : 1 }}
+      whileHover={{ scale: isClickable ? 1.15 : 1.05 }}
+      whileTap={{ scale: isClickable ? 0.9 : 1 }}
       onHoverStart={() => setIsHovered(true)}
       onHoverEnd={() => setIsHovered(false)}
-      onClick={level.isUnlocked ? onClick : undefined}
+      onClick={isClickable ? onClick : undefined}
+      style={{ cursor: isClickable ? 'pointer' : 'default' }}
     >
       {/* Outer pulse ring for unlocked levels */}
-      {level.isUnlocked && (
+      {level.isUnlocked && !isPreviewMode && (
         <motion.div
           className={cn(
             "absolute inset-0 rounded-full ring-4",
@@ -109,6 +121,19 @@ const LevelNode: React.FC<{
         />
       )}
       
+      {/* ✅ Preview mode pulse ring */}
+      {isPreviewMode && (
+        <motion.div
+          className="absolute inset-0 rounded-full ring-4 ring-orange-400/30"
+          style={{ width: size + 24, height: size + 24, left: -12, top: -12 }}
+          animate={{
+            scale: [1, 1.1, 1],
+            opacity: [0.2, 0.4, 0.2],
+          }}
+          transition={{ duration: 3, repeat: Infinity }}
+        />
+      )}
+      
       {/* Main node */}
       <div
         className={cn(
@@ -116,7 +141,7 @@ const LevelNode: React.FC<{
           styles.bg,
           styles.shadow,
           styles.glow,
-          level.isUnlocked && "hover:border-white/50"
+          isClickable && "hover:border-white/50"
         )}
         style={{ width: size, height: size }}
       >
@@ -127,7 +152,12 @@ const LevelNode: React.FC<{
         
         {/* Level number badge - Made larger and more prominent */}
         <div 
-          className="absolute -top-4 -right-4 bg-white rounded-full flex items-center justify-center font-bold text-gray-800 border-3 border-gray-100 shadow-xl"
+          className={cn(
+            "absolute -top-4 -right-4 rounded-full flex items-center justify-center font-bold border-3 shadow-xl",
+            isPreviewMode 
+              ? "bg-orange-100 border-orange-200 text-orange-800" 
+              : "bg-white border-gray-100 text-gray-800"
+          )}
           style={{ 
             width: size * 0.5, 
             height: size * 0.5, 
@@ -139,8 +169,8 @@ const LevelNode: React.FC<{
           {chapterNumber}-{levelNumber}
         </div>
         
-        {/* Stars for completed levels */}
-        {level.isCompleted && level.stars > 0 && (
+        {/* Stars for completed levels - only show if not in preview mode */}
+        {level.isCompleted && level.stars > 0 && !isPreviewMode && (
           <div 
             className="absolute left-1/2 transform -translate-x-1/2 flex space-x-1"
             style={{ bottom: -size * 0.3 }}
@@ -166,6 +196,15 @@ const LevelNode: React.FC<{
           </div>
         )}
         
+        {/* ✅ Preview lock indicator */}
+        {isPreviewMode && (
+          <div className="absolute -bottom-2 left-1/2 transform -translate-x-1/2">
+            <div className="bg-orange-500 text-white px-2 py-1 rounded-full text-xs font-bold shadow-lg">
+              Preview
+            </div>
+          </div>
+        )}
+        
         {/* Hover tooltip */}
         <AnimatePresence>
           {isHovered && (
@@ -178,16 +217,16 @@ const LevelNode: React.FC<{
             >
               <div className="font-semibold text-white">{level.title}</div>
               <div className="text-xs text-gray-300 mt-1">{level.chapter.title}</div>
-              {level.isCompleted && (
+              {level.isCompleted && !isPreviewMode && (
                 <div className="text-xs text-emerald-400 flex items-center mt-2">
                   <CheckCircle className="w-3 h-3 mr-1" />
                   Completed
                 </div>
               )}
-              {!level.isUnlocked && (
-                <div className="text-xs text-red-400 flex items-center mt-2">
+              {(!level.isUnlocked || isPreviewMode) && (
+                <div className="text-xs text-orange-400 flex items-center mt-2">
                   <Lock className="w-3 h-3 mr-1" />
-                  Locked
+                  {isPreviewMode ? "Preview Mode" : "Locked"}
                 </div>
               )}
               
@@ -208,7 +247,8 @@ const ChapterHeader: React.FC<{
   x: number;
   y: number;
   width: number;
-}> = ({ chapter, chapterNumber, isCompleted, x, y, width }) => {
+  isPreviewMode?: boolean;
+}> = ({ chapter, chapterNumber, isCompleted, x, y, width, isPreviewMode = false }) => {
   return (
     <motion.div
       className="absolute z-10"
@@ -226,9 +266,11 @@ const ChapterHeader: React.FC<{
           <motion.div
             className={cn(
               "relative px-6 py-4 rounded-2xl shadow-xl border-2 backdrop-blur-sm",
-              isCompleted 
-                ? "bg-emerald-500/90 border-emerald-400/50 shadow-emerald-500/40" 
-                : "bg-blue-500/90 border-blue-400/50 shadow-blue-500/40"
+              isPreviewMode
+                ? "bg-orange-500/90 border-orange-400/50 shadow-orange-500/40"
+                : isCompleted 
+                  ? "bg-emerald-500/90 border-emerald-400/50 shadow-emerald-500/40" 
+                  : "bg-blue-500/90 border-blue-400/50 shadow-blue-500/40"
             )}
             whileHover={{ scale: 1.02 }}
           >
@@ -241,9 +283,14 @@ const ChapterHeader: React.FC<{
                 <div className="text-white font-bold text-lg leading-tight">{chapter.title}</div>
                 <div className="text-white/90 text-sm mt-1">{chapter.description}</div>
               </div>
-              {isCompleted && (
+              {isCompleted && !isPreviewMode && (
                 <div className="w-10 h-10 bg-yellow-400/90 rounded-full flex items-center justify-center border-2 border-yellow-300">
                   <Trophy className="w-6 h-6 text-yellow-800" />
+                </div>
+              )}
+              {isPreviewMode && (
+                <div className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center border-2 border-white/30">
+                  <Lock className="w-6 h-6 text-white" />
                 </div>
               )}
             </div>
@@ -256,6 +303,9 @@ const ChapterHeader: React.FC<{
 
 export const GamePath: React.FC<GamePathProps> = ({ levelPath, onLevelClick }) => {
   const { isMobile, isTablet, screenWidth } = useResponsive();
+  
+  // ✅ Detect if this is preview mode (no progress data)
+  const isPreviewMode = levelPath.length > 0 && levelPath.every(level => !level.isCompleted && !level.isUnlocked);
   
   // Calculate responsive sizes - Made even larger as requested
   const nodeSize = isMobile ? 80 : isTablet ? 96 : 112;
@@ -280,9 +330,9 @@ export const GamePath: React.FC<GamePathProps> = ({ levelPath, onLevelClick }) =
       chapter: levels[0].chapter,
       levels: levels.sort((a, b) => a.order - b.order),
       chapterNumber: index + 1,
-      isCompleted: levels.every(l => l.isCompleted)
+      isCompleted: levels.every(l => l.isCompleted) && !isPreviewMode
     }));
-  }, [levelPath]);
+  }, [levelPath, isPreviewMode]);
 
   // Calculate positions with perfect centering
   const { levelPositions, totalHeight } = useMemo(() => {
@@ -335,7 +385,12 @@ export const GamePath: React.FC<GamePathProps> = ({ levelPath, onLevelClick }) =
 
   return (
     <div 
-      className="relative w-full overflow-hidden bg-gradient-to-b from-indigo-900 via-purple-900 to-pink-900"
+      className={cn(
+        "relative w-full overflow-hidden",
+        isPreviewMode 
+          ? "bg-gradient-to-b from-orange-900 via-red-900 to-pink-900"
+          : "bg-gradient-to-b from-indigo-900 via-purple-900 to-pink-900"
+      )}
       style={{ height: `${totalHeight}px`, minHeight: '100vh' }}
     >
       {/* Simplified animated background */}
@@ -379,6 +434,7 @@ export const GamePath: React.FC<GamePathProps> = ({ levelPath, onLevelClick }) =
             x={containerPadding}
             y={firstLevelOfChapter.y - chapterSpacing + 40}
             width={screenWidth - containerPadding * 2}
+            isPreviewMode={isPreviewMode}
           />
         );
       })}
@@ -394,31 +450,44 @@ export const GamePath: React.FC<GamePathProps> = ({ levelPath, onLevelClick }) =
           levelNumber={position.levelNumber}
           size={nodeSize}
           onClick={() => onLevelClick?.(position.level)}
+          isPreviewMode={isPreviewMode}
         />
       ))}
 
       {/* Floating action button */}
       <motion.button
         className={cn(
-          "fixed bottom-8 right-8 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center shadow-2xl shadow-blue-500/50 z-50 border-4 border-white/20",
-          isMobile ? "w-16 h-16" : "w-18 h-18"
+          "fixed bottom-8 right-8 rounded-full flex items-center justify-center shadow-2xl z-50 border-4 border-white/20",
+          isMobile ? "w-16 h-16" : "w-18 h-18",
+          isPreviewMode
+            ? "bg-gradient-to-r from-orange-500 to-red-600 shadow-orange-500/50"
+            : "bg-gradient-to-r from-blue-500 to-purple-600 shadow-blue-500/50"
         )}
         whileHover={{ scale: 1.05 }}
         whileTap={{ scale: 0.95 }}
         onClick={() => {
-          const nextLevel = levelPath.find(l => l.isUnlocked && !l.isCompleted);
-          if (nextLevel) {
-            const position = levelPositions.find(pos => pos.level._id === nextLevel._id);
-            if (position) {
-              window.scrollTo({
-                top: position.y - window.innerHeight / 2,
-                behavior: 'smooth'
-              });
+          if (isPreviewMode) {
+            // Scroll to top to show join button
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+          } else {
+            const nextLevel = levelPath.find(l => l.isUnlocked && !l.isCompleted);
+            if (nextLevel) {
+              const position = levelPositions.find(pos => pos.level._id === nextLevel._id);
+              if (position) {
+                window.scrollTo({
+                  top: position.y - window.innerHeight / 2,
+                  behavior: 'smooth'
+                });
+              }
             }
           }
         }}
       >
-        <Target className={cn("text-white", isMobile ? "w-7 h-7" : "w-8 h-8")} />
+        {isPreviewMode ? (
+          <Lock className={cn("text-white", isMobile ? "w-7 h-7" : "w-8 h-8")} />
+        ) : (
+          <Target className={cn("text-white", isMobile ? "w-7 h-7" : "w-8 h-8")} />
+        )}
       </motion.button>
     </div>
   );
