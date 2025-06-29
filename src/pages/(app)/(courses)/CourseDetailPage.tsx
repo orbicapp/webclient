@@ -12,10 +12,7 @@ import {
   Flame,
   Shield,
   Rocket,
-  Gem,
-  Lock,
-  Play,
-  UserPlus
+  Gem
 } from "lucide-react";
 
 import { useCourse } from "@/hooks/use-course";
@@ -47,34 +44,19 @@ export function CourseDetailPage() {
   const panelHeight = useTransform(scrollY, [300, 600], [1, 0.6]);
   const panelWidth = useTransform(scrollY, [300, 600], [1, 0.8]);
 
-  // ✅ Check if user is enrolled (has progress)
-  const isEnrolled = progress && progress.levelProgress && progress.levelProgress.length > 0;
-
   // Use the custom hook to calculate the level path
   const levelPath = useCoursePath({ 
     chapters: chapters || [], 
     levels: levels || [], 
-    progress: isEnrolled ? progress : null // ✅ Only pass progress if enrolled
+    progress 
   });
 
   // Get course statistics
   const courseStats = useCourseStats(levelPath);
 
   const handleLevelClick = (level: any) => {
-    if (!isEnrolled) {
-      // Show join course modal or redirect to enrollment
-      console.log("User needs to join course first");
-      return;
-    }
     console.log("Level clicked:", level);
     // TODO: Navigate to level or start game session
-  };
-
-  const handleJoinCourse = async () => {
-    console.log("Joining course:", courseId);
-    // TODO: Implement course enrollment logic
-    // This would typically call an API to enroll the user
-    // and then refresh the progress data
   };
 
   if (loading || levelsLoading || chaptersLoading || progressLoading) {
@@ -271,14 +253,6 @@ export function CourseDetailPage() {
                       <Target className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" />
                       {courseStats.totalLevels} Levels
                     </Badge>
-                    
-                    {/* ✅ Preview/Enrolled Badge */}
-                    {!isEnrolled && (
-                      <Badge variant="warning" size="md" glow>
-                        <Lock className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" />
-                        Preview Mode
-                      </Badge>
-                    )}
                   </motion.div>
                   
                   {/* Title */}
@@ -326,100 +300,65 @@ export function CourseDetailPage() {
                   </motion.div>
                 </div>
 
-                {/* Epic Progress Ring or Join Button */}
+                {/* Epic Progress Ring */}
                 <motion.div
                   className="lg:ml-8"
                   initial={{ opacity: 0, scale: 0 }}
                   animate={{ opacity: 1, scale: 1 }}
                   transition={{ delay: 0.6, type: "spring" }}
                 >
-                  {isEnrolled ? (
-                    // ✅ Show progress ring if enrolled
-                    <div className="relative">
-                      <ProgressRing 
-                        progress={courseStats.progressPercentage} 
-                        size={120} 
-                        strokeWidth={10}
-                        glow={courseStats.progressPercentage > 50}
-                        variant={courseStats.progressPercentage > 75 ? "rainbow" : "neon"}
-                      >
-                        <div className="text-center">
-                          <div className="text-2xl sm:text-3xl font-bold text-white mb-1">
-                            {courseStats.progressPercentage}%
-                          </div>
-                          <div className="text-xs sm:text-sm text-gray-300">Complete</div>
-                          <div className="flex items-center justify-center mt-2">
-                            <Star className="w-3 h-3 sm:w-4 sm:h-4 text-yellow-400 mr-1" />
-                            <span className="text-xs sm:text-sm text-yellow-400 font-semibold">
-                              {courseStats.totalStars}
-                            </span>
-                          </div>
+                  <div className="relative">
+                    <ProgressRing 
+                      progress={courseStats.progressPercentage} 
+                      size={120} 
+                      strokeWidth={10}
+                      glow={courseStats.progressPercentage > 50}
+                      variant={courseStats.progressPercentage > 75 ? "rainbow" : "neon"}
+                    >
+                      <div className="text-center">
+                        <div className="text-2xl sm:text-3xl font-bold text-white mb-1">
+                          {courseStats.progressPercentage}%
                         </div>
-                      </ProgressRing>
-                      
-                      {/* Floating achievement icons */}
-                      {courseStats.progressPercentage > 25 && (
-                        <motion.div
-                          className="absolute -top-4 -right-4 w-6 h-6 sm:w-8 sm:h-8 bg-gradient-to-r from-yellow-400 to-orange-500 rounded-full flex items-center justify-center"
-                          animate={{ 
-                            rotate: [0, 360],
-                            scale: [1, 1.2, 1]
-                          }}
-                          transition={{ 
-                            rotate: { duration: 3, repeat: Infinity },
-                            scale: { duration: 2, repeat: Infinity }
-                          }}
-                        >
-                          <Flame className="w-3 h-3 sm:w-4 sm:h-4 text-white" />
-                        </motion.div>
-                      )}
-                      
-                      {courseStats.progressPercentage > 75 && (
-                        <motion.div
-                          className="absolute -bottom-4 -left-4 w-6 h-6 sm:w-8 sm:h-8 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full flex items-center justify-center"
-                          animate={{ 
-                            scale: [1, 1.3, 1],
-                            opacity: [0.8, 1, 0.8]
-                          }}
-                          transition={{ duration: 1.5, repeat: Infinity }}
-                        >
-                          <Trophy className="w-3 h-3 sm:w-4 sm:h-4 text-white" />
-                        </motion.div>
-                      )}
-                    </div>
-                  ) : (
-                    // ✅ Show join button if not enrolled
-                    <div className="text-center">
+                        <div className="text-xs sm:text-sm text-gray-300">Complete</div>
+                        <div className="flex items-center justify-center mt-2">
+                          <Star className="w-3 h-3 sm:w-4 sm:h-4 text-yellow-400 mr-1" />
+                          <span className="text-xs sm:text-sm text-yellow-400 font-semibold">
+                            {courseStats.totalStars}
+                          </span>
+                        </div>
+                      </div>
+                    </ProgressRing>
+                    
+                    {/* Floating achievement icons */}
+                    {courseStats.progressPercentage > 25 && (
                       <motion.div
-                        className="w-32 h-32 bg-gradient-to-br from-orange-500 via-red-500 to-pink-500 rounded-full flex items-center justify-center mx-auto mb-4 shadow-2xl shadow-orange-500/50 border-4 border-white/20"
+                        className="absolute -top-4 -right-4 w-6 h-6 sm:w-8 sm:h-8 bg-gradient-to-r from-yellow-400 to-orange-500 rounded-full flex items-center justify-center"
                         animate={{ 
-                          scale: [1, 1.05, 1],
-                          boxShadow: [
-                            "0 0 20px rgba(249, 115, 22, 0.5)",
-                            "0 0 40px rgba(249, 115, 22, 0.8)",
-                            "0 0 20px rgba(249, 115, 22, 0.5)"
-                          ]
+                          rotate: [0, 360],
+                          scale: [1, 1.2, 1]
                         }}
-                        transition={{ duration: 2, repeat: Infinity }}
+                        transition={{ 
+                          rotate: { duration: 3, repeat: Infinity },
+                          scale: { duration: 2, repeat: Infinity }
+                        }}
                       >
-                        <Lock className="w-16 h-16 text-white" />
+                        <Flame className="w-3 h-3 sm:w-4 sm:h-4 text-white" />
                       </motion.div>
-                      
-                      <Button
-                        onClick={handleJoinCourse}
-                        size="lg"
-                        className="bg-gradient-to-r from-orange-500 via-red-500 to-pink-500 hover:from-orange-600 hover:via-red-600 hover:to-pink-600 text-white font-bold px-8 py-4 rounded-2xl shadow-2xl shadow-orange-500/50 hover:shadow-orange-500/70 transition-all duration-300"
-                        leftIcon={<UserPlus className="w-5 h-5" />}
-                        glow
+                    )}
+                    
+                    {courseStats.progressPercentage > 75 && (
+                      <motion.div
+                        className="absolute -bottom-4 -left-4 w-6 h-6 sm:w-8 sm:h-8 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full flex items-center justify-center"
+                        animate={{ 
+                          scale: [1, 1.3, 1],
+                          opacity: [0.8, 1, 0.8]
+                        }}
+                        transition={{ duration: 1.5, repeat: Infinity }}
                       >
-                        Join Course
-                      </Button>
-                      
-                      <p className="text-white/70 text-sm mt-2">
-                        Start your learning journey
-                      </p>
-                    </div>
-                  )}
+                        <Trophy className="w-3 h-3 sm:w-4 sm:h-4 text-white" />
+                      </motion.div>
+                    )}
+                  </div>
                 </motion.div>
               </div>
             </div>
@@ -441,107 +380,71 @@ export function CourseDetailPage() {
           transition={{ delay: 0.7 }}
         >
           <Card variant="glass" className="bg-black/50 backdrop-blur-xl border-white/20 shadow-2xl rounded-2xl overflow-hidden">
-            <div className="p-2 sm:p-4">
-              {/* ✅ Title based on enrollment status */}
-              <div className="text-center mb-3">
-                <h3 className="text-sm sm:text-base font-bold text-white flex items-center justify-center space-x-2">
-                  {isEnrolled ? (
-                    <>
-                      <Trophy className="w-4 h-4 text-yellow-400" />
-                      <span>Your Progress</span>
-                    </>
-                  ) : (
-                    <>
-                      <BookOpen className="w-4 h-4 text-blue-400" />
-                      <span>Course Preview</span>
-                    </>
-                  )}
-                </h3>
-              </div>
+            <div className="grid grid-cols-4 gap-1 sm:gap-3 text-center p-2 sm:p-4">
+              <motion.div
+                whileHover={{ scale: 1.05 }}
+                className="p-1 sm:p-3 rounded-lg bg-gradient-to-br from-blue-500/20 to-purple-500/20 border border-blue-500/30"
+              >
+                <div className="text-sm sm:text-2xl font-bold text-blue-400 mb-1 flex items-center justify-center">
+                  <Target className="w-3 h-3 sm:w-5 sm:h-5 mr-1" />
+                  <span className="hidden sm:inline">{courseStats.completedLevels}</span>
+                  <span className="sm:hidden">{courseStats.completedLevels}</span>
+                </div>
+                <div className="text-xs text-gray-300 hidden sm:block">
+                  of {courseStats.totalLevels} Levels
+                </div>
+                <div className="text-xs text-gray-300 sm:hidden">
+                  Levels
+                </div>
+              </motion.div>
               
-              <div className="grid grid-cols-4 gap-1 sm:gap-3 text-center">
-                <motion.div
-                  whileHover={{ scale: 1.05 }}
-                  className="p-1 sm:p-3 rounded-lg bg-gradient-to-br from-blue-500/20 to-purple-500/20 border border-blue-500/30"
-                >
-                  <div className="text-sm sm:text-2xl font-bold text-blue-400 mb-1 flex items-center justify-center">
-                    <Target className="w-3 h-3 sm:w-5 sm:h-5 mr-1" />
-                    <span className="hidden sm:inline">
-                      {isEnrolled ? courseStats.completedLevels : courseStats.totalLevels}
-                    </span>
-                    <span className="sm:hidden">
-                      {isEnrolled ? courseStats.completedLevels : courseStats.totalLevels}
-                    </span>
-                  </div>
-                  <div className="text-xs text-gray-300 hidden sm:block">
-                    {isEnrolled ? `of ${courseStats.totalLevels} Levels` : "Total Levels"}
-                  </div>
-                  <div className="text-xs text-gray-300 sm:hidden">
-                    Levels
-                  </div>
-                </motion.div>
-                
-                <motion.div
-                  whileHover={{ scale: 1.05 }}
-                  className="p-1 sm:p-3 rounded-lg bg-gradient-to-br from-purple-500/20 to-pink-500/20 border border-purple-500/30"
-                >
-                  <div className="text-sm sm:text-2xl font-bold text-purple-400 mb-1 flex items-center justify-center">
-                    <Crown className="w-3 h-3 sm:w-5 sm:h-5 mr-1" />
-                    <span>
-                      {isEnrolled ? courseStats.completedChapters : courseStats.totalChapters}
-                    </span>
-                  </div>
-                  <div className="text-xs text-gray-300 hidden sm:block">
-                    {isEnrolled ? `of ${courseStats.totalChapters} Chapters` : "Total Chapters"}
-                  </div>
-                  <div className="text-xs text-gray-300 sm:hidden">
-                    Chapters
-                  </div>
-                </motion.div>
-                
-                <motion.div
-                  whileHover={{ scale: 1.05 }}
-                  className="p-1 sm:p-3 rounded-lg bg-gradient-to-br from-yellow-500/20 to-orange-500/20 border border-yellow-500/30"
-                >
-                  <div className="text-sm sm:text-2xl font-bold text-yellow-400 mb-1 flex items-center justify-center">
-                    <Star className="w-3 h-3 sm:w-5 sm:h-5 mr-1" />
-                    <span>
-                      {isEnrolled ? courseStats.totalStars : courseStats.maxPossibleStars}
-                    </span>
-                  </div>
-                  <div className="text-xs text-gray-300 hidden sm:block">
-                    {isEnrolled ? `of ${courseStats.maxPossibleStars} Stars` : "Max Stars"}
-                  </div>
-                  <div className="text-xs text-gray-300 sm:hidden">
-                    Stars
-                  </div>
-                </motion.div>
-                
-                <motion.div
-                  whileHover={{ scale: 1.05 }}
-                  className="p-1 sm:p-3 rounded-lg bg-gradient-to-br from-green-500/20 to-emerald-500/20 border border-green-500/30"
-                >
-                  <div className="text-sm sm:text-2xl font-bold text-green-400 mb-1 flex items-center justify-center">
-                    {isEnrolled ? (
-                      <>
-                        <Zap className="w-3 h-3 sm:w-5 sm:h-5 mr-1" />
-                        <span>{courseStats.progressPercentage}%</span>
-                      </>
-                    ) : (
-                      <>
-                        <Lock className="w-3 h-3 sm:w-5 sm:h-5 mr-1" />
-                        <span>0%</span>
-                      </>
-                    )}
-                  </div>
-                  <div className="text-xs text-gray-300 hidden sm:block">
-                    {isEnrolled ? "Complete" : "Locked"}
-                  </div>
-                  <div className="text-xs text-gray-300 sm:hidden">
-                    {isEnrolled ? "Done" : "Locked"}
-                  </div>
-                </motion.div>
-              </div>
+              <motion.div
+                whileHover={{ scale: 1.05 }}
+                className="p-1 sm:p-3 rounded-lg bg-gradient-to-br from-purple-500/20 to-pink-500/20 border border-purple-500/30"
+              >
+                <div className="text-sm sm:text-2xl font-bold text-purple-400 mb-1 flex items-center justify-center">
+                  <Crown className="w-3 h-3 sm:w-5 sm:h-5 mr-1" />
+                  <span>{courseStats.completedChapters}</span>
+                </div>
+                <div className="text-xs text-gray-300 hidden sm:block">
+                  of {courseStats.totalChapters} Chapters
+                </div>
+                <div className="text-xs text-gray-300 sm:hidden">
+                  Chapters
+                </div>
+              </motion.div>
+              
+              <motion.div
+                whileHover={{ scale: 1.05 }}
+                className="p-1 sm:p-3 rounded-lg bg-gradient-to-br from-yellow-500/20 to-orange-500/20 border border-yellow-500/30"
+              >
+                <div className="text-sm sm:text-2xl font-bold text-yellow-400 mb-1 flex items-center justify-center">
+                  <Star className="w-3 h-3 sm:w-5 sm:h-5 mr-1" />
+                  <span>{courseStats.totalStars}</span>
+                </div>
+                <div className="text-xs text-gray-300 hidden sm:block">
+                  of {courseStats.maxPossibleStars} Stars
+                </div>
+                <div className="text-xs text-gray-300 sm:hidden">
+                  Stars
+                </div>
+              </motion.div>
+              
+              <motion.div
+                whileHover={{ scale: 1.05 }}
+                className="p-1 sm:p-3 rounded-lg bg-gradient-to-br from-green-500/20 to-emerald-500/20 border border-green-500/30"
+              >
+                <div className="text-sm sm:text-2xl font-bold text-green-400 mb-1 flex items-center justify-center">
+                  <Zap className="w-3 h-3 sm:w-5 sm:h-5 mr-1" />
+                  <span>{courseStats.progressPercentage}%</span>
+                </div>
+                <div className="text-xs text-gray-300 hidden sm:block">
+                  Complete
+                </div>
+                <div className="text-xs text-gray-300 sm:hidden">
+                  Done
+                </div>
+              </motion.div>
             </div>
           </Card>
         </motion.div>
@@ -580,15 +483,12 @@ export function CourseDetailPage() {
             </Card>
           </motion.div>
         ) : (
-          <GamePath 
-            levelPath={levelPath} 
-            onLevelClick={handleLevelClick}
-          />
+          <GamePath levelPath={levelPath} onLevelClick={handleLevelClick} />
         )}
       </div>
 
-      {/* Course Completion Celebration - Only show if enrolled and completed */}
-      {isEnrolled && courseStats.isCompleted && (
+      {/* Course Completion Celebration */}
+      {courseStats.isCompleted && (
         <motion.div
           className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4"
           initial={{ opacity: 0 }}
@@ -633,40 +533,6 @@ export function CourseDetailPage() {
               </Badge>
             </div>
           </motion.div>
-        </motion.div>
-      )}
-
-      {/* ✅ Join Course Overlay for non-enrolled users */}
-      {!isEnrolled && (
-        <motion.div
-          className="fixed bottom-8 left-1/2 transform -translate-x-1/2 z-50"
-          initial={{ opacity: 0, y: 100 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 1, duration: 0.5 }}
-        >
-          <Card variant="glass" className="bg-black/80 backdrop-blur-xl border-orange-500/50 shadow-2xl">
-            <div className="p-6 text-center">
-              <div className="flex items-center justify-center space-x-3 mb-4">
-                <Lock className="w-6 h-6 text-orange-400" />
-                <h3 className="text-lg font-bold text-white">
-                  Ready to Start Learning?
-                </h3>
-              </div>
-              <p className="text-gray-300 mb-4 text-sm">
-                Join this course to unlock all levels and track your progress
-              </p>
-              <Button
-                onClick={handleJoinCourse}
-                size="lg"
-                className="bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white font-bold px-8 py-3 rounded-xl shadow-lg shadow-orange-500/50 hover:shadow-orange-500/70 transition-all duration-300"
-                leftIcon={<UserPlus className="w-5 h-5" />}
-                glow
-                fullWidth
-              >
-                Join Course Now
-              </Button>
-            </div>
-          </Card>
         </motion.div>
       )}
     </div>
