@@ -190,7 +190,7 @@ export function GameSessionPage() {
   }, [sessionLoading, currentSession, navigate]);
 
   const handleAnswer = async (answer: any) => {
-    if (!currentSession || !level || isSubmitting) return;
+    if (!currentSession || !level || !level.questions || isSubmitting) return;
 
     setIsSubmitting(true);
     setGameError(null);
@@ -293,6 +293,52 @@ export function GameSessionPage() {
             </p>
             <Button onClick={() => navigate("/")} variant="primary">
               Return Home
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  // Add defensive check for level.questions
+  if (!level.questions || !Array.isArray(level.questions) || level.questions.length === 0) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-red-900 via-pink-900 to-purple-900 flex items-center justify-center p-4">
+        <Card className="max-w-md mx-auto text-center">
+          <CardContent>
+            <AlertTriangle className="w-16 h-16 text-yellow-500 mx-auto mb-4" />
+            <h1 className="text-2xl font-bold text-yellow-600 mb-2">No Questions Available</h1>
+            <p className="text-gray-600 mb-6">
+              This level doesn't have any questions configured. Please return to the course and try again.
+            </p>
+            <Button 
+              onClick={() => navigate(`/course/${currentSession.courseId}`)} 
+              variant="primary"
+            >
+              Return to Course
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  // Add bounds check for currentQuestionIndex
+  if (currentQuestionIndex >= level.questions.length) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-red-900 via-pink-900 to-purple-900 flex items-center justify-center p-4">
+        <Card className="max-w-md mx-auto text-center">
+          <CardContent>
+            <AlertTriangle className="w-16 h-16 text-yellow-500 mx-auto mb-4" />
+            <h1 className="text-2xl font-bold text-yellow-600 mb-2">Question Not Found</h1>
+            <p className="text-gray-600 mb-6">
+              The requested question is not available. Please return to the course.
+            </p>
+            <Button 
+              onClick={() => navigate(`/course/${currentSession.courseId}`)} 
+              variant="primary"
+            >
+              Return to Course
             </Button>
           </CardContent>
         </Card>
