@@ -12,7 +12,9 @@ import {
   Monitor,
   Check,
   X,
-  AlertTriangle
+  AlertTriangle,
+  Send,
+  Loader2
 } from "lucide-react";
 
 import { ViewContainer } from "@/components/layout/ViewContainer";
@@ -25,6 +27,7 @@ import Avatar from "@/components/ui/Avatar";
 import Dropdown from "@/components/ui/Dropdown";
 import { useAuth } from "@/hooks/use-auth";
 import { useSettingsStore } from "@/stores/settings-store";
+import { AuthService } from "@/services/auth-service";
 import { cn } from "@/lib/utils/class.utils";
 
 // Language options
@@ -123,6 +126,38 @@ export function SettingsPage() {
   const [appearanceSettings, setAppearanceSettings] = useState({
     language: "en",
   });
+
+  // Email verification state
+  const [verificationCode, setVerificationCode] = useState("");
+  const [isVerifying, setIsVerifying] = useState(false);
+  const [verificationError, setVerificationError] = useState<string | null>(null);
+  const [verificationSuccess, setVerificationSuccess] = useState(false);
+
+  const handleVerifyEmail = async () => {
+    if (!verificationCode.trim()) {
+      setVerificationError("Please enter the verification code");
+      return;
+    }
+
+    setIsVerifying(true);
+    setVerificationError(null);
+
+    try {
+      const [success, error] = await AuthService.verifyEmail(verificationCode);
+      
+      if (error || !success) {
+        setVerificationError(error || "Verification failed");
+      } else {
+        setVerificationSuccess(true);
+        setVerificationCode("");
+        // TODO: Update user state to reflect verified email
+      }
+    } catch (err) {
+      setVerificationError("An unexpected error occurred");
+    } finally {
+      setIsVerifying(false);
+    }
+  };
 
   return (
     <ViewContainer className="py-8">
@@ -225,15 +260,68 @@ export function SettingsPage() {
                     <Button variant="outline" size="sm">Change</Button>
                   </SettingItem>
 
-                  <SettingItem
-                    icon={<Mail className="w-5 h-5" />}
-                    title="Email Verification"
-                    description="Verify your email address"
-                  >
-                    <Badge variant={user?.isEmailVerified ? "success" : "warning"}>
-                      {user?.isEmailVerified ? "Verified" : "Pending"}
-                    </Badge>
-                  </SettingItem>
+                  {/* Email Verification Section */}
+                  <div className="p-4 rounded-xl border bg-gray-50 dark:bg-gray-800/50 border-gray-200 dark:border-gray-700">
+                    <div className="flex items-center space-x-4 mb-4">
+                      <div className="p-2 rounded-lg bg-primary-100 dark:bg-primary-900/30 text-primary-600 dark:text-primary-400">
+                        <Mail className="w-5 h-5" />
+                      </div>
+                      <div className="flex-1">
+                        <div className="flex items-center space-x-2">
+                          <h3 className="font-medium text-gray-900 dark:text-gray-100">Email Verification</h3>
+                          <Badge variant={user?.isEmailVerified ? "success" : "warning"}>
+                            {user?.isEmailVerified ? "Verified" : "Pending"}
+                          </Badge>
+                        </div>
+                        <p className="text-sm text-gray-500 dark:text-gray-400">
+                          {user?.isEmailVerified 
+                            ? "Your email address has been verified" 
+                            : "Verify your email address to secure your account"
+                          }
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* Verification form - only show if not verified */}
+                    {!user?.isEmailVerified && (
+                      <div className="space-y-4">
+                        {verificationSuccess ? (
+                          <div className="flex items-center space-x-2 p-3 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg">
+                            <Check className="w-5 h-5 text-green-600 dark:text-green-400" />
+                            <span className="text-green-800 dark:text-green-200 font-medium">
+                              Email verified successfully!
+                            </span>
+                          </div>
+                        ) : (
+                          <>
+                            <div className="flex space-x-3">
+                              <div className="flex-1">
+                                <Input
+                                  placeholder="Enter verification code"
+                                  value={verificationCode}
+                                  onChange={(e) => setVerificationCode(e.target.value)}
+                                  error={verificationError || undefined}
+                                  leftIcon={<Mail className="w-5 h-5" />}
+                                />
+                              </div>
+                              <Button
+                                onClick={handleVerifyEmail}
+                                disabled={isVerifying || !verificationCode.trim()}
+                                variant="primary"
+                                leftIcon={isVerifying ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
+                              >
+                                {isVerifying ? "Verifying..." : "Verify"}
+                              </Button>
+                            </div>
+                            
+                            <p className="text-xs text-gray-500 dark:text-gray-400">
+                              Check your email for the verification code. If you didn't receive it, check your spam folder.
+                            </p>
+                          </>
+                        )}
+                      </div>
+                    )}
+                  </div>
                 </CardContent>
               </Card>
             </div>
