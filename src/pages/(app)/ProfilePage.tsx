@@ -17,7 +17,6 @@ import {
   Shield,
   Camera,
   Edit3,
-  Mail,
   MapPin,
   Link as LinkIcon,
   MoreHorizontal
@@ -60,7 +59,7 @@ interface StatCardProps {
 
 const StatCard: React.FC<StatCardProps> = ({ title, value, subtitle, icon, color, trend }) => (
   <Card className="relative overflow-hidden">
-    <CardContent className="p-6">
+    <CardContent>
       <div className="flex items-center justify-between">
         <div className="flex-1">
           <p className="text-sm font-medium text-gray-600 dark:text-gray-400 mb-1">{title}</p>
@@ -201,7 +200,7 @@ export function ProfilePage() {
       <div className="max-w-6xl mx-auto space-y-8">
         {/* Profile Header */}
         <Card className="relative overflow-hidden bg-gradient-to-br from-primary-500 via-purple-600 to-pink-600 border-0 text-white">
-          <CardContent className="p-8">
+          <CardContent>
             <div className="flex flex-col md:flex-row items-start md:items-center space-y-6 md:space-y-0 md:space-x-8">
               {/* Avatar and basic info */}
               <div className="flex items-center space-x-6">
@@ -222,12 +221,9 @@ export function ProfilePage() {
                   <h1 className="text-3xl font-bold text-white mb-2">
                     {user?.displayName || "User"}
                   </h1>
-                  <p className="text-white/80 mb-3">@{user?.username || "username"}</p>
-                  <div className="flex items-center space-x-4 text-sm text-white/70">
-                    <div className="flex items-center space-x-1">
-                      <Mail className="w-4 h-4" />
-                      <span>{user?.email}</span>
-                    </div>
+                  <div className="flex items-center space-x-2 text-white/80 mb-3">
+                    <span>@{user?.username || "username"}</span>
+                    <span>•</span>
                     <div className="flex items-center space-x-1">
                       <Calendar className="w-4 h-4" />
                       <span>Joined {formatDate(user?.createdAt || new Date().toISOString())}</span>
@@ -396,7 +392,7 @@ export function ProfilePage() {
                     ? 'bg-gradient-to-br from-yellow-50 to-orange-50 dark:from-yellow-900/20 dark:to-orange-900/20 border-yellow-200 dark:border-yellow-800' 
                     : 'opacity-60'
                 }`}>
-                  <CardContent className="p-6">
+                  <CardContent>
                     <div className="flex items-start space-x-4">
                       <div className={`text-4xl ${achievement.unlocked ? '' : 'grayscale'}`}>
                         {achievement.icon}
