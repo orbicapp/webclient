@@ -20,7 +20,7 @@ export function Sidebar() {
   return (
     <>
       <motion.aside
-        className={`fixed inset-y-0 z-40 flex flex-col bg-white dark:bg-gray-900 border-r-2 border-primary-100 dark:border-gray-700 shadow-xl transition-all duration-300 ${
+        className={`fixed inset-y-0 z-40 flex flex-col bg-white dark:bg-gray-950 border-r-2 border-primary-100 dark:border-gray-800 shadow-xl transition-all duration-300 ${
           sidebarOpen ? "w-72" : "w-20"
         }`}
         initial={{ x: -80, opacity: 0 }}
@@ -28,7 +28,7 @@ export function Sidebar() {
         transition={{ duration: 0.3 }}
       >
         {/* Header */}
-        <div className={`flex items-center px-6 py-6 border-b border-primary-100 dark:border-gray-700 ${
+        <div className={`flex items-center px-6 py-6 border-b border-primary-100 dark:border-gray-800 ${
           sidebarOpen ? "" : "justify-center"
         }`}>
           {/* Logo */}
@@ -59,7 +59,7 @@ export function Sidebar() {
             {sidebarOpen && (
               <motion.button
                 onClick={toggleSidebar}
-                className="ml-auto p-2 rounded-xl bg-primary-100 dark:bg-gray-700 text-primary-600 dark:text-primary-400 hover:bg-primary-200 dark:hover:bg-gray-600 transition-colors"
+                className="ml-auto p-2 rounded-xl bg-primary-100 dark:bg-gray-800 text-primary-600 dark:text-primary-400 hover:bg-primary-200 dark:hover:bg-gray-700 transition-colors"
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
                 initial={{ opacity: 0, scale: 0 }}
@@ -143,7 +143,7 @@ export function Sidebar() {
                             className={`flex items-center px-4 py-3 rounded-2xl text-sm font-medium transition-all duration-200 group relative overflow-hidden ${
                               isActive
                                 ? "bg-gradient-to-r from-primary-500 to-accent-500 text-white shadow-lg shadow-primary-500/25"
-                                : "text-gray-700 dark:text-gray-300 hover:bg-primary-50 dark:hover:bg-gray-700 hover:text-primary-700 dark:hover:text-primary-400"
+                                : "text-gray-700 dark:text-gray-300 hover:bg-primary-50 dark:hover:bg-gray-800 hover:text-primary-700 dark:hover:text-primary-400"
                             } ${!sidebarOpen ? "justify-center" : ""}`}
                             whileHover={{ scale: 1.02, x: isActive ? 0 : 4 }}
                             whileTap={{ scale: 0.98 }}

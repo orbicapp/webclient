@@ -18,7 +18,7 @@ export function SidebarMobile() {
 
   return (
     <motion.nav 
-      className="fixed bottom-0 left-0 right-0 z-50 bg-white/95 dark:bg-gray-900/95 backdrop-blur-xl border-t-2 border-primary-100 dark:border-gray-700 shadow-2xl"
+      className="fixed bottom-0 left-0 right-0 z-50 bg-white/95 dark:bg-gray-950/95 backdrop-blur-xl border-t-2 border-primary-100 dark:border-gray-800 shadow-2xl"
       initial={{ y: 100 }}
       animate={{ y: 0 }}
       transition={{ duration: 0.3 }}
@@ -103,7 +103,7 @@ export function SidebarMobile() {
       </div>
 
       {/* Safe area for devices with home indicator */}
-      <div className="h-safe-area-inset-bottom bg-white/95 dark:bg-gray-900/95" />
+      <div className="h-safe-area-inset-bottom bg-white/95 dark:bg-gray-950/95" />
     </motion.nav>
   );
 }

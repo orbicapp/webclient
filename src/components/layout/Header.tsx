@@ -33,7 +33,7 @@ export function Header() {
   return (
     <>
       <motion.header 
-        className="sticky top-0 z-50 bg-white/90 dark:bg-gray-900/90 backdrop-blur-xl border-b-2 border-primary-100 dark:border-gray-700"
+        className="sticky top-0 z-50 bg-white/90 dark:bg-gray-950/90 backdrop-blur-xl border-b-2 border-primary-100 dark:border-gray-800"
         initial={{ y: -100 }}
         animate={{ y: 0 }}
         transition={{ duration: 0.3 }}
@@ -46,7 +46,7 @@ export function Header() {
               {isMobile && (
                 <motion.button
                   onClick={() => setShowMobileMenu(!showMobileMenu)}
-                  className="p-2 rounded-xl bg-primary-100 dark:bg-gray-700 text-primary-600 dark:text-primary-400 hover:bg-primary-200 dark:hover:bg-gray-600 transition-colors"
+                  className="p-2 rounded-xl bg-primary-100 dark:bg-gray-800 text-primary-600 dark:text-primary-400 hover:bg-primary-200 dark:hover:bg-gray-700 transition-colors"
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
                 >
@@ -62,7 +62,7 @@ export function Header() {
               {!isMobile && (
                 <motion.button
                   onClick={toggleSidebar}
-                  className="p-2 rounded-xl bg-primary-100 dark:bg-gray-700 text-primary-600 dark:text-primary-400 hover:bg-primary-200 dark:hover:bg-gray-600 transition-colors"
+                  className="p-2 rounded-xl bg-primary-100 dark:bg-gray-800 text-primary-600 dark:text-primary-400 hover:bg-primary-200 dark:hover:bg-gray-700 transition-colors"
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
                 >
@@ -81,7 +81,7 @@ export function Header() {
                   <input
                     type="search"
                     placeholder="Search courses, topics..."
-                    className="block w-full rounded-2xl pl-12 pr-4 py-3 border-2 border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:border-primary-500 dark:focus:border-primary-400 focus:outline-none focus:ring-0 transition-colors placeholder:text-gray-500"
+                    className="block w-full rounded-2xl pl-12 pr-4 py-3 border-2 border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:border-primary-500 dark:focus:border-primary-400 focus:outline-none focus:ring-0 transition-colors placeholder:text-gray-500"
                   />
                 </div>
               </div>
@@ -92,7 +92,7 @@ export function Header() {
               {/* User Stats (Desktop) */}
               {!isMobile && !statsLoading && stats && (
                 <motion.div 
-                  className="flex items-center space-x-4 px-4 py-2 bg-gradient-to-r from-primary-50 to-accent-50 dark:from-gray-700 dark:to-gray-600 rounded-2xl border border-primary-200 dark:border-gray-600"
+                  className="flex items-center space-x-4 px-4 py-2 bg-gradient-to-r from-primary-50 to-accent-50 dark:from-gray-800 dark:to-gray-700 rounded-2xl border border-primary-200 dark:border-gray-700"
                   whileHover={{ scale: 1.02 }}
                 >
                   {/* Streak */}
@@ -122,7 +122,7 @@ export function Header() {
               {/* Theme toggle */}
               <motion.button
                 onClick={toggleTheme}
-                className="p-3 rounded-2xl bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
+                className="p-3 rounded-2xl bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
               >
@@ -137,7 +137,7 @@ export function Header() {
               <div className="relative">
                 <motion.button
                   onClick={() => setShowNotifications(!showNotifications)}
-                  className="p-3 rounded-2xl bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors relative"
+                  className="p-3 rounded-2xl bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors relative"
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
                 >
@@ -226,7 +226,7 @@ export function Header() {
                 {/* Mobile user stats */}
                 {!statsLoading && stats && (
                   <div className="grid grid-cols-2 gap-4 mb-6">
-                    <div className="p-4 bg-gradient-to-r from-orange-50 to-red-50 dark:from-gray-700 dark:to-gray-600 rounded-2xl border border-orange-200 dark:border-gray-600">
+                    <div className="p-4 bg-gradient-to-r from-orange-50 to-red-50 dark:from-gray-800 dark:to-gray-700 rounded-2xl border border-orange-200 dark:border-gray-700">
                       <div className="flex items-center space-x-3">
                         <div className="w-10 h-10 bg-gradient-to-r from-orange-400 to-red-500 rounded-xl flex items-center justify-center">
                           <Flame className="w-5 h-5 text-white" />
@@ -238,7 +238,7 @@ export function Header() {
                       </div>
                     </div>
 
-                    <div className="p-4 bg-gradient-to-r from-yellow-50 to-orange-50 dark:from-gray-700 dark:to-gray-600 rounded-2xl border border-yellow-200 dark:border-gray-600">
+                    <div className="p-4 bg-gradient-to-r from-yellow-50 to-orange-50 dark:from-gray-800 dark:to-gray-700 rounded-2xl border border-yellow-200 dark:border-gray-700">
                       <div className="flex items-center space-x-3">
                         <div className="w-10 h-10 bg-gradient-to-r from-yellow-400 to-orange-500 rounded-xl flex items-center justify-center">
                           <Gem className="w-5 h-5 text-white" />
