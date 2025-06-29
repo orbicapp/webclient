@@ -236,26 +236,30 @@ export const GET_LEVEL_QUERY = gql`
       order
       questions {
         type
-        question
         ... on MultipleChoiceQuestion {
+          question
           options {
             text
             isCorrect
           }
         }
         ... on FreeChoiceQuestion {
+          question
           acceptedAnswers
         }
         ... on TrueFalseQuestion {
+          question
           correctAnswer
         }
         ... on PairsQuestion {
+          question
           pairs {
             left
             right
           }
         }
         ... on SequenceQuestion {
+          question
           correctSequence
         }
       }
@@ -276,26 +280,30 @@ export const GET_CHAPTER_LEVELS_QUERY = gql`
       order
       questions {
         type
-        question
         ... on MultipleChoiceQuestion {
+          question
           options {
             text
             isCorrect
           }
         }
         ... on FreeChoiceQuestion {
+          question
           acceptedAnswers
         }
         ... on TrueFalseQuestion {
+          question
           correctAnswer
         }
         ... on PairsQuestion {
+          question
           pairs {
             left
             right
           }
         }
         ... on SequenceQuestion {
+          question
           correctSequence
         }
       }
@@ -316,26 +324,30 @@ export const GET_COURSE_LEVELS_QUERY = gql`
       order
       questions {
         type
-        question
         ... on MultipleChoiceQuestion {
+          question
           options {
             text
             isCorrect
           }
         }
         ... on FreeChoiceQuestion {
+          question
           acceptedAnswers
         }
         ... on TrueFalseQuestion {
+          question
           correctAnswer
         }
         ... on PairsQuestion {
+          question
           pairs {
             left
             right
           }
         }
         ... on SequenceQuestion {
+          question
           correctSequence
         }
       }
