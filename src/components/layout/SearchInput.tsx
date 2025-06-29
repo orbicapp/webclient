@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect, useRef } from 'react';
 import { SearchIcon, X } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
@@ -25,34 +25,37 @@ export const SearchInput: React.FC<SearchInputProps> = ({
   const navigate = useNavigate();
   const { getParam, setParam } = useSearchParamsState();
   const [isFocused, setIsFocused] = useState(false);
+  const isInitializedRef = useRef(false);
   
-  // ✅ Separate state for each variant to avoid conflicts
+  // ✅ Separate state for each variant
   const [headerValue, setHeaderValue] = useState('');
-  const [pageValue, setPageValue] = useState(() => getParam('search'));
+  const [pageValue, setPageValue] = useState('');
+  
+  // ✅ Initialize page value from URL only once
+  useEffect(() => {
+    if (variant === 'page' && !isInitializedRef.current) {
+      const urlSearch = getParam('search');
+      setPageValue(urlSearch);
+      isInitializedRef.current = true;
+    }
+  }, [variant, getParam]);
   
   // ✅ Use different values based on variant
   const currentValue = variant === 'header' ? headerValue : pageValue;
   
-  // ✅ Debounce only for page variant (header navigates immediately)
+  // ✅ Debounce only for page variant
   const debouncedPageValue = useDebounce(pageValue, 500);
   
-  // ✅ Update URL params when page search is debounced
-  React.useEffect(() => {
-    if (variant === 'page') {
-      setParam('search', debouncedPageValue);
-      onSearch?.(debouncedPageValue);
-    }
-  }, [debouncedPageValue, variant, setParam, onSearch]);
-
-  // ✅ Sync page input with URL params (but not header)
-  React.useEffect(() => {
-    if (variant === 'page') {
-      const urlSearch = getParam('search');
-      if (urlSearch !== pageValue) {
-        setPageValue(urlSearch);
+  // ✅ Update URL params when page search is debounced (but don't update local state)
+  useEffect(() => {
+    if (variant === 'page' && isInitializedRef.current) {
+      const currentUrlSearch = getParam('search');
+      if (debouncedPageValue !== currentUrlSearch) {
+        setParam('search', debouncedPageValue);
+        onSearch?.(debouncedPageValue);
       }
     }
-  }, [getParam, variant, pageValue]);
+  }, [debouncedPageValue, variant, setParam, onSearch, getParam]);
 
   const handleInputChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
@@ -60,6 +63,7 @@ export const SearchInput: React.FC<SearchInputProps> = ({
     if (variant === 'header') {
       setHeaderValue(value);
     } else {
+      // ✅ Only update local state, don't sync with URL until debounced
       setPageValue(value);
     }
   }, [variant]);
@@ -76,9 +80,10 @@ export const SearchInput: React.FC<SearchInputProps> = ({
           navigate('/courses');
         }
       } else {
-        // ✅ Page: Update URL immediately
-        setParam('search', currentValue.trim());
-        onSearch?.(currentValue.trim());
+        // ✅ Page: Update URL immediately (bypass debounce)
+        const trimmedValue = currentValue.trim();
+        setParam('search', trimmedValue);
+        onSearch?.(trimmedValue);
       }
     }
     
@@ -135,7 +140,7 @@ export const SearchInput: React.FC<SearchInputProps> = ({
       />
 
       {/* Loading indicator for page variant */}
-      {variant === 'page' && pageValue !== debouncedPageValue && (
+      {variant === 'page' && pageValue !== debouncedPageValue && pageValue.length > 0 && (
         <div className="absolute inset-y-0 right-12 flex items-center">
           <div className="w-4 h-4 border-2 border-primary-500 border-t-transparent rounded-full animate-spin"></div>
         </div>
