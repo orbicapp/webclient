@@ -23,8 +23,8 @@ export function Sidebar() {
         className={`fixed inset-y-0 z-40 flex flex-col bg-white dark:bg-gray-950 border-r-2 border-primary-100 dark:border-gray-800 shadow-xl transition-all duration-300 ${
           sidebarOpen ? "w-72" : "w-20"
         }`}
-        initial={{ x: -80, opacity: 0 }}
-        animate={{ x: 0, opacity: 1 }}
+        // Removed initial animation - only animate on mount once
+        animate={{ opacity: 1 }}
         transition={{ duration: 0.3 }}
       >
         {/* Header */}
@@ -39,7 +39,7 @@ export function Sidebar() {
             <div className="w-10 h-10 bg-gradient-to-br from-primary-500 to-accent-500 rounded-2xl flex items-center justify-center shadow-lg">
               <RocketIcon className="w-6 h-6 text-white" />
             </div>
-            <AnimatePresence>
+            <AnimatePresence mode="wait">
               {sidebarOpen && (
                 <motion.span
                   className="text-2xl font-bold bg-gradient-to-r from-primary-600 to-accent-600 bg-clip-text text-transparent"
@@ -55,7 +55,7 @@ export function Sidebar() {
           </motion.div>
 
           {/* Collapse button */}
-          <AnimatePresence>
+          <AnimatePresence mode="wait">
             {sidebarOpen && (
               <motion.button
                 onClick={toggleSidebar}
@@ -77,14 +77,14 @@ export function Sidebar() {
           {navCategories.map((category, categoryIndex) => (
             <div key={category.title} className={categoryIndex !== 0 ? "mt-8" : ""}>
               {/* Category title */}
-              <AnimatePresence>
+              <AnimatePresence mode="wait">
                 {sidebarOpen && (
                   <motion.h3
                     className="px-6 mb-3 text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider"
                     initial={{ opacity: 0, x: -20 }}
                     animate={{ opacity: 1, x: 0 }}
                     exit={{ opacity: 0, x: -20 }}
-                    transition={{ duration: 0.2, delay: categoryIndex * 0.05 }}
+                    transition={{ duration: 0.2 }}
                   >
                     {category.title}
                   </motion.h3>
@@ -103,15 +103,7 @@ export function Sidebar() {
                   }
 
                   return (
-                    <motion.li
-                      key={item.path}
-                      initial={{ opacity: 0, x: -20 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      transition={{ 
-                        duration: 0.2, 
-                        delay: (categoryIndex * 0.1) + (itemIndex * 0.05) 
-                      }}
-                    >
+                    <li key={item.path}>
                       {isLogout ? (
                         <motion.button
                           onClick={() => logout()}
@@ -124,7 +116,7 @@ export function Sidebar() {
                           <span className={`${sidebarOpen ? "mr-3" : ""} transition-transform group-hover:scale-110`}>
                             {item.icon}
                           </span>
-                          <AnimatePresence>
+                          <AnimatePresence mode="wait">
                             {sidebarOpen && (
                               <motion.span
                                 initial={{ opacity: 0, x: -10 }}
@@ -153,8 +145,6 @@ export function Sidebar() {
                               <motion.div
                                 className="absolute inset-0 bg-gradient-to-r from-primary-600 to-accent-600 rounded-2xl"
                                 layoutId="activeNavIndicator"
-                                initial={{ opacity: 0 }}
-                                animate={{ opacity: 1 }}
                                 transition={{ duration: 0.3 }}
                               />
                             )}
@@ -165,7 +155,7 @@ export function Sidebar() {
                             </span>
 
                             {/* Label */}
-                            <AnimatePresence>
+                            <AnimatePresence mode="wait">
                               {sidebarOpen && (
                                 <motion.span
                                   className="relative z-10"
@@ -204,13 +194,47 @@ export function Sidebar() {
                           </motion.div>
                         </Link>
                       )}
-                    </motion.li>
+                    </li>
                   );
                 })}
               </ul>
             </div>
           ))}
         </nav>
+
+        {/* Footer */}
+        <div className="p-6 border-t border-primary-100 dark:border-gray-800">
+          <AnimatePresence mode="wait">
+            {sidebarOpen ? (
+              <motion.div
+                className="p-4 bg-gradient-to-r from-primary-50 to-accent-50 dark:from-gray-800 dark:to-gray-700 rounded-2xl border border-primary-200 dark:border-gray-700"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: 20 }}
+              >
+                <div className="text-center">
+                  <div className="text-sm font-bold text-gray-900 dark:text-white mb-1">
+                    🚀 Keep Learning!
+                  </div>
+                  <div className="text-xs text-gray-500 dark:text-gray-400">
+                    You're doing great
+                  </div>
+                </div>
+              </motion.div>
+            ) : (
+              <motion.div
+                className="flex justify-center"
+                initial={{ opacity: 0, scale: 0 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0 }}
+              >
+                <div className="w-10 h-10 bg-gradient-to-r from-primary-500 to-accent-500 rounded-2xl flex items-center justify-center">
+                  <span className="text-lg">🚀</span>
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
       </motion.aside>
 
       {/* Floating Expand Button - Only when collapsed */}
