@@ -26,7 +26,7 @@ export function MainLayout() {
 
   return (
     <div className={`min-h-screen bg-gray-50 dark:bg-gray-900 flex ${theme}`}>
-      {/* Desktop Sidebar - Only render when not mobile */}
+      {/* Desktop Sidebar - ✅ STATIC - No AnimatePresence here */}
       {!isMobile && <Sidebar />}
 
       {/* Main content */}
@@ -35,10 +35,10 @@ export function MainLayout() {
           !isMobile && sidebarOpen ? "ml-72" : !isMobile ? "ml-20" : "ml-0"
         }`}
       >
-        {/* Header */}
+        {/* Header - ✅ STATIC - No AnimatePresence here */}
         <Header />
 
-        {/* Page content - NO PADDING HERE */}
+        {/* Page content - ✅ ONLY animate the page content, not the layout */}
         <main className={`${isMobile ? "pb-24" : ""}`}>
           <AnimatePresence mode="wait">
             <motion.div
@@ -54,7 +54,7 @@ export function MainLayout() {
           </AnimatePresence>
         </main>
 
-        {/* Mobile Navigation */}
+        {/* Mobile Navigation - ✅ STATIC - No AnimatePresence here */}
         <SidebarMobile />
       </div>
     </div>

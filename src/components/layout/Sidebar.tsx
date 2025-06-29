@@ -65,9 +65,8 @@ const NavigationItem = memo(({
         } ${!sidebarOpen ? "justify-center" : ""}`}
         whileHover={{ scale: 1.02, x: isActive ? 0 : 4 }}
         whileTap={{ scale: 0.98 }}
-        // ✅ Remove initial animations to prevent restart
       >
-        {/* Active indicator - This is the key: layoutId prevents restart */}
+        {/* Active indicator - ✅ Use layoutId for smooth transitions */}
         {isActive && (
           <motion.div
             className="absolute inset-0 bg-gradient-to-r from-primary-600 to-accent-600 rounded-2xl"
@@ -100,7 +99,6 @@ const NavigationItem = memo(({
         {item.name === "Explore" && sidebarOpen && (
           <motion.div
             className="ml-auto relative z-10"
-            // ✅ Static animation, no restart
             animate={{ opacity: 1, scale: 1 }}
           >
             <Badge variant="gradient" size="sm">
@@ -198,7 +196,7 @@ export function Sidebar() {
       const handleScroll = () => {
         scrollPositionRef.current = nav.scrollTop;
       };
-      nav.addEventListener('scroll', handleScroll);
+      nav.addEventListener('scroll', handleScroll, { passive: true });
       return () => nav.removeEventListener('scroll', handleScroll);
     }
   }, []);
@@ -216,14 +214,11 @@ export function Sidebar() {
 
   return (
     <>
-      <motion.aside
+      {/* ✅ STATIC SIDEBAR - No motion.aside, no initial animations */}
+      <aside
         className={`fixed inset-y-0 z-40 flex flex-col bg-white dark:bg-gray-950 border-r-2 border-primary-100 dark:border-gray-800 shadow-xl transition-all duration-300 ${
           sidebarOpen ? "w-72" : "w-20"
         }`}
-        // ✅ Only animate opacity on mount, no position animations
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ duration: 0.3 }}
       >
         {/* Header */}
         <div className={`flex items-center px-6 py-6 border-b border-primary-100 dark:border-gray-800 ${
@@ -320,7 +315,7 @@ export function Sidebar() {
             )}
           </AnimatePresence>
         </div>
-      </motion.aside>
+      </aside>
 
       {/* Floating Expand Button - Only when collapsed */}
       <AnimatePresence>
