@@ -99,7 +99,7 @@ export function TabsTrigger({ value, children, className, disabled }: TabsTrigge
   const { activeTab, setActiveTab, variant } = useTabsContext();
   const isActive = activeTab === value;
 
-  const baseStyles = "relative px-4 py-2.5 text-sm font-medium transition-all duration-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed";
+  const baseStyles = "mx-3 relative px-4 py-2.5 text-sm font-medium transition-all duration-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed";
   
   const variantStyles = {
     default: {
