@@ -23,6 +23,14 @@ import { GameNavigation } from "@/components/game/GameNavigation";
 import { QuestionRenderer } from "@/components/game/QuestionRenderer";
 import { LevelCompleteScreen } from "@/components/game/LevelCompleteScreen";
 
+// ✅ NEW: Interface for question queue management
+interface QuestionQueueItem {
+  originalIndex: number; // Original question index (for API)
+  currentPosition: number; // Current position in queue
+  attempts: number; // Number of attempts made
+  isCompleted: boolean; // Whether correctly answered
+}
+
 export function GameSessionPage() {
   const navigate = useNavigate();
   const [sessionLoading, currentSession, sessionError] =
@@ -36,8 +44,10 @@ export function GameSessionPage() {
     currentSession?.courseId || ""
   );
 
-  // Initialize currentQuestionIndex based on answered questions
-  const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
+  // ✅ NEW: Question queue management
+  const [questionQueue, setQuestionQueue] = useState<QuestionQueueItem[]>([]);
+  const [currentQueuePosition, setCurrentQueuePosition] = useState(0);
+  
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [gameError, setGameError] = useState<string | null>(null);
   const [startTime] = useState(Date.now());
@@ -50,31 +60,38 @@ export function GameSessionPage() {
 
   const { clearCurrentSession, updateSession } = useGameStore();
 
-  // Set initial question index based on answered questions
+  // ✅ NEW: Initialize question queue
   useEffect(() => {
-    if (currentSession && currentSession.answeredQuestions) {
-      // Find the first unanswered question
-      const answeredIndices = new Set(
-        currentSession.answeredQuestions.map((aq) => aq.questionIndex)
-      );
-      let nextQuestionIndex = 0;
+    if (level?.questions && questionQueue.length === 0) {
+      const initialQueue: QuestionQueueItem[] = level.questions.map((_, index) => ({
+        originalIndex: index,
+        currentPosition: index,
+        attempts: 0,
+        isCompleted: false
+      }));
 
-      // Find first question that hasn't been answered
-      while (
-        nextQuestionIndex < (level?.questions?.length || 0) &&
-        answeredIndices.has(nextQuestionIndex)
-      ) {
-        nextQuestionIndex++;
+      // Mark already answered questions as completed
+      if (currentSession?.answeredQuestions) {
+        currentSession.answeredQuestions.forEach(answered => {
+          const queueItem = initialQueue.find(item => item.originalIndex === answered.questionIndex);
+          if (queueItem && answered.isCorrect) {
+            queueItem.isCompleted = true;
+          }
+        });
       }
 
-      setCurrentQuestionIndex(nextQuestionIndex);
+      setQuestionQueue(initialQueue);
+      
+      // Find first incomplete question
+      const firstIncomplete = initialQueue.findIndex(item => !item.isCompleted);
+      setCurrentQueuePosition(firstIncomplete >= 0 ? firstIncomplete : 0);
     }
-  }, [currentSession, level]);
+  }, [level, currentSession, questionQueue.length]);
 
   // Clear question result when changing questions
   useEffect(() => {
     setQuestionResult(null);
-  }, [currentQuestionIndex]);
+  }, [currentQueuePosition]);
 
   // ✅ NEW: Check for game over when lives reach 0
   useEffect(() => {
@@ -91,9 +108,25 @@ export function GameSessionPage() {
     }
   }, [sessionLoading, currentSession, navigate]);
 
+  // ✅ NEW: Get current question from queue
+  const getCurrentQuestion = () => {
+    if (!level?.questions || questionQueue.length === 0) return null;
+    const currentItem = questionQueue[currentQueuePosition];
+    if (!currentItem) return null;
+    return level.questions[currentItem.originalIndex];
+  };
+
+  const getCurrentQuestionIndex = () => {
+    if (questionQueue.length === 0) return 0;
+    const currentItem = questionQueue[currentQueuePosition];
+    return currentItem?.originalIndex || 0;
+  };
+
   const handleAnswer = async (answer: unknown) => {
     if (!currentSession || !level || !level.questions || isSubmitting) return;
 
+    const currentQuestionIndex = getCurrentQuestionIndex();
+    
     setIsSubmitting(true);
     setGameError(null);
 
@@ -104,7 +137,7 @@ export function GameSessionPage() {
       const question = level.questions[currentQuestionIndex];
       const answerPayload: SubmitAnswerInput = {
         sessionId: currentSession._id,
-        questionIndex: currentQuestionIndex,
+        questionIndex: currentQuestionIndex, // ✅ Always use original index
         timeSpent,
       };
 
@@ -133,8 +166,34 @@ export function GameSessionPage() {
         return;
       }
 
-      // ✅ Store the question result for immediate feedback - NO AUTO NAVIGATION
+      // ✅ Store the question result for immediate feedback
       setQuestionResult(result);
+
+      // ✅ NEW: Update question queue based on result
+      setQuestionQueue(prevQueue => {
+        const newQueue = [...prevQueue];
+        const currentItem = newQueue[currentQueuePosition];
+        
+        if (currentItem) {
+          currentItem.attempts += 1;
+          
+          if (result.isCorrect) {
+            // ✅ Mark as completed, stays in current position
+            currentItem.isCompleted = true;
+          } else {
+            // ✅ Move to end of queue for retry
+            const itemToMove = newQueue.splice(currentQueuePosition, 1)[0];
+            newQueue.push(itemToMove);
+            
+            // Update positions
+            newQueue.forEach((item, index) => {
+              item.currentPosition = index;
+            });
+          }
+        }
+        
+        return newQueue;
+      });
 
       // Create new answered question object
       const newAnsweredQuestion: AnsweredQuestion = {
@@ -154,11 +213,8 @@ export function GameSessionPage() {
         lives: result.livesRemaining,
       });
 
-      // ✅ COMPLETELY MANUAL - User must click "Next Question" to continue
-
-      // ✅ Check if lives are depleted - show game over screen instead of auto-navigation
+      // ✅ Check if lives are depleted - show game over screen
       if (result.livesRemaining <= 0) {
-        // Game over will be handled by useEffect above
         return;
       }
     } catch (err) {
@@ -171,28 +227,33 @@ export function GameSessionPage() {
   };
 
   const handleNextQuestion = () => {
-    if (!level?.questions || !currentSession) return;
+    if (questionQueue.length === 0) return;
 
-    // Find next unanswered question
-    const answeredIndices = new Set(
-      currentSession.answeredQuestions?.map((aq) => aq.questionIndex) || []
+    // ✅ NEW: Find next incomplete question
+    const nextIncompleteIndex = questionQueue.findIndex(
+      (item, index) => index > currentQueuePosition && !item.isCompleted
     );
-    let nextQuestionIndex = currentQuestionIndex + 1;
 
-    // Find next question that hasn't been answered
-    while (
-      nextQuestionIndex < level.questions.length &&
-      answeredIndices.has(nextQuestionIndex)
-    ) {
-      nextQuestionIndex++;
-    }
-
-    if (nextQuestionIndex < level.questions.length) {
-      setCurrentQuestionIndex(nextQuestionIndex);
-      setQuestionResult(null); // Clear previous result
+    if (nextIncompleteIndex >= 0) {
+      setCurrentQueuePosition(nextIncompleteIndex);
+      setQuestionResult(null);
     } else {
-      // All questions answered - finish level
+      // ✅ All questions completed - finish level
       handleFinishLevel();
+    }
+  };
+
+  const handlePreviousQuestion = () => {
+    if (currentQueuePosition > 0) {
+      setCurrentQueuePosition(currentQueuePosition - 1);
+      setQuestionResult(null);
+    }
+  };
+
+  const handleJumpToQuestion = (queuePosition: number) => {
+    if (queuePosition >= 0 && queuePosition < questionQueue.length) {
+      setCurrentQueuePosition(queuePosition);
+      setQuestionResult(null);
     }
   };
 
@@ -250,7 +311,8 @@ export function GameSessionPage() {
       // Update the current session and reset game state
       updateSession(newSession._id, newSession);
       setShowGameOver(false);
-      setCurrentQuestionIndex(0);
+      setCurrentQueuePosition(0);
+      setQuestionQueue([]);
       setQuestionResult(null);
       setGameError(null);
     } catch (err) {
@@ -338,8 +400,9 @@ export function GameSessionPage() {
     );
   }
 
-  // Add bounds check for currentQuestionIndex
-  if (currentQuestionIndex >= level.questions.length) {
+  // ✅ NEW: Check if all questions are completed
+  const allQuestionsCompleted = questionQueue.every(item => item.isCompleted);
+  if (allQuestionsCompleted && questionQueue.length > 0) {
     return (
       <LevelCompleteScreen
         onReturn={() => {
@@ -350,11 +413,25 @@ export function GameSessionPage() {
     );
   }
 
-  const currentQuestion = level.questions[currentQuestionIndex];
+  // ✅ NEW: Get current question from queue
+  const currentQuestion = getCurrentQuestion();
+  const currentQuestionIndex = getCurrentQuestionIndex();
 
-  // Calculate progress based on answered questions, not current index
-  const answeredCount = currentSession.answeredQuestions?.length || 0;
-  const progressTotal = (answeredCount / level.questions.length) * 100;
+  if (!currentQuestion) {
+    return (
+      <LevelCompleteScreen
+        onReturn={() => {
+          clearCurrentSession();
+          navigate(`/course/${currentSession.courseId}`);
+        }}
+      />
+    );
+  }
+
+  // ✅ NEW: Calculate progress based on completed questions
+  const completedCount = questionQueue.filter(item => item.isCompleted).length;
+  const totalQuestions = questionQueue.length;
+  const progressTotal = totalQuestions > 0 ? (completedCount / totalQuestions) * 100 : 0;
 
   // Check if current question is already answered and get the answer data
   const answeredQuestion = currentSession.answeredQuestions?.find(
@@ -362,16 +439,10 @@ export function GameSessionPage() {
   );
   const isCurrentQuestionAnswered = !!answeredQuestion;
 
-  // ✅ Check if there are more unanswered questions AFTER current one
-  const answeredIndices = new Set(
-    currentSession.answeredQuestions?.map((aq) => aq.questionIndex) || []
+  // ✅ NEW: Check if there are more incomplete questions
+  const hasMoreIncompleteQuestions = questionQueue.some(
+    (item, index) => index > currentQueuePosition && !item.isCompleted
   );
-  const hasMoreUnansweredQuestions = level.questions.some(
-    (_, index) => !answeredIndices.has(index) && index > currentQuestionIndex
-  );
-
-  // ✅ Check if ALL questions are answered
-  const allQuestionsAnswered = answeredIndices.size === level.questions.length;
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-indigo-900 via-purple-900 to-pink-900">
@@ -397,7 +468,7 @@ export function GameSessionPage() {
       <div className="max-w-4xl mx-auto px-4 py-8">
         <AnimatePresence mode="wait">
           <motion.div
-            key={currentQuestionIndex}
+            key={`${currentQueuePosition}-${currentQuestionIndex}`}
             initial={{ opacity: 0, x: 50 }}
             animate={{ opacity: 1, x: 0 }}
             exit={{ opacity: 0, x: -50 }}
@@ -407,10 +478,20 @@ export function GameSessionPage() {
               <CardContent>
                 {/* Question Header */}
                 <div className="text-center mb-6">
-                  <Badge variant="primary" size="lg" className="mb-4">
-                    Question {currentQuestionIndex + 1} of{" "}
-                    {level.questions.length} ({progressTotal.toFixed(0)}%)
-                  </Badge>
+                  <div className="flex items-center justify-center space-x-4 mb-4">
+                    <Badge variant="primary" size="lg">
+                      Question {currentQueuePosition + 1} of {totalQuestions}
+                    </Badge>
+                    <Badge variant="secondary" size="lg">
+                      Progress: {progressTotal.toFixed(0)}%
+                    </Badge>
+                    {/* ✅ NEW: Show retry indicator */}
+                    {questionQueue[currentQueuePosition]?.attempts > 0 && (
+                      <Badge variant="warning" size="lg">
+                        Retry #{questionQueue[currentQueuePosition].attempts + 1}
+                      </Badge>
+                    )}
+                  </div>
                 </div>
 
                 {/* Error Display */}
@@ -440,28 +521,78 @@ export function GameSessionPage() {
                   questionResult={questionResult}
                 />
 
-                {/* Manual Navigation Controls */}
+                {/* ✅ NEW: Enhanced Navigation Controls */}
                 <GameNavigation
-                  currentQuestionIndex={currentQuestionIndex}
-                  totalQuestions={level.questions.length}
+                  currentQuestionIndex={currentQueuePosition}
+                  totalQuestions={totalQuestions}
                   isCurrentQuestionAnswered={isCurrentQuestionAnswered}
                   questionResult={questionResult}
-                  hasMoreUnansweredQuestions={hasMoreUnansweredQuestions}
-                  allQuestionsAnswered={allQuestionsAnswered}
-                  answeredCount={answeredCount}
-                  onPreviousQuestion={() =>
-                    setCurrentQuestionIndex(currentQuestionIndex - 1)
-                  }
+                  hasMoreUnansweredQuestions={hasMoreIncompleteQuestions}
+                  allQuestionsAnswered={allQuestionsCompleted}
+                  answeredCount={completedCount}
+                  onPreviousQuestion={handlePreviousQuestion}
                   onNextQuestion={() => {
-                    setCurrentQuestionIndex(currentQuestionIndex + 1);
+                    if (currentQueuePosition < totalQuestions - 1) {
+                      setCurrentQueuePosition(currentQueuePosition + 1);
+                      setQuestionResult(null);
+                    }
                   }}
                   onNextUnansweredQuestion={handleNextQuestion}
                   onFinishLevel={handleFinishLevel}
                   onReviewMode={() => {
-                    setCurrentQuestionIndex(0);
+                    setCurrentQueuePosition(0);
                     setQuestionResult(null);
                   }}
                 />
+
+                {/* ✅ NEW: Question Queue Status */}
+                <div className="mt-6 p-4 bg-gray-50 dark:bg-gray-800 rounded-xl">
+                  <div className="text-center">
+                    <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
+                      Question Status
+                    </h4>
+                    <div className="flex flex-wrap justify-center gap-2">
+                      {questionQueue.map((item, index) => (
+                        <button
+                          key={item.originalIndex}
+                          onClick={() => handleJumpToQuestion(index)}
+                          className={`w-8 h-8 rounded-full text-xs font-bold transition-all duration-200 ${
+                            index === currentQueuePosition
+                              ? "bg-primary-500 text-white ring-2 ring-primary-300"
+                              : item.isCompleted
+                              ? "bg-green-500 text-white hover:bg-green-600"
+                              : item.attempts > 0
+                              ? "bg-yellow-500 text-white hover:bg-yellow-600"
+                              : "bg-gray-300 dark:bg-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-400 dark:hover:bg-gray-500"
+                          }`}
+                          title={`Question ${item.originalIndex + 1} - ${
+                            item.isCompleted 
+                              ? "Completed" 
+                              : item.attempts > 0 
+                                ? `${item.attempts} attempts` 
+                                : "Not attempted"
+                          }`}
+                        >
+                          {item.originalIndex + 1}
+                        </button>
+                      ))}
+                    </div>
+                    <div className="flex justify-center space-x-4 mt-3 text-xs text-gray-500 dark:text-gray-400">
+                      <div className="flex items-center space-x-1">
+                        <div className="w-3 h-3 bg-green-500 rounded-full"></div>
+                        <span>Completed</span>
+                      </div>
+                      <div className="flex items-center space-x-1">
+                        <div className="w-3 h-3 bg-yellow-500 rounded-full"></div>
+                        <span>Retry</span>
+                      </div>
+                      <div className="flex items-center space-x-1">
+                        <div className="w-3 h-3 bg-gray-400 rounded-full"></div>
+                        <span>Pending</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
               </CardContent>
             </Card>
           </motion.div>
