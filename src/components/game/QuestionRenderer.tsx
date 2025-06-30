@@ -154,19 +154,15 @@ export function QuestionRenderer({
       {/* Question Content */}
       {renderQuestionContent()}
 
-      {/* Additional Status Messages */}
-      {isAnswered && (
-        <div className="text-center">
-          <p className="text-gray-500 dark:text-gray-400 text-sm">
-            This question has already been answered in this session.
-          </p>
-        </div>
-      )}
-
+      {/* ✅ REMOVED: "This question has already been answered in this session." message */}
+      
       {questionResult && !isAnswered && (
         <div className="text-center">
           <p className="text-gray-500 dark:text-gray-400 text-sm">
-            Answer submitted! Review the feedback above.
+            {questionResult.isCorrect 
+              ? "Great job! Click 'Next Question' to continue." 
+              : "Try again or click 'Next Question' to retry this question later."
+            }
           </p>
         </div>
       )}

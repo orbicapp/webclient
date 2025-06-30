@@ -180,16 +180,8 @@ export function GameSessionPage() {
           if (result.isCorrect) {
             // ✅ Mark as completed, stays in current position
             currentItem.isCompleted = true;
-          } else {
-            // ✅ Move to end of queue for retry
-            const itemToMove = newQueue.splice(currentQueuePosition, 1)[0];
-            newQueue.push(itemToMove);
-            
-            // Update positions
-            newQueue.forEach((item, index) => {
-              item.currentPosition = index;
-            });
           }
+          // ✅ NEW: Don't move incorrect answers until user clicks "Next Question"
         }
         
         return newQueue;
@@ -229,7 +221,27 @@ export function GameSessionPage() {
   const handleNextQuestion = () => {
     if (questionQueue.length === 0) return;
 
-    // ✅ NEW: Find next incomplete question
+    // ✅ NEW: If current question was answered incorrectly, move it to end
+    if (questionResult && !questionResult.isCorrect) {
+      setQuestionQueue(prevQueue => {
+        const newQueue = [...prevQueue];
+        const itemToMove = newQueue.splice(currentQueuePosition, 1)[0];
+        newQueue.push(itemToMove);
+        
+        // Update positions
+        newQueue.forEach((item, index) => {
+          item.currentPosition = index;
+        });
+        
+        return newQueue;
+      });
+      
+      // Stay at same position (which now has a different question)
+      setQuestionResult(null);
+      return;
+    }
+
+    // ✅ Find next incomplete question
     const nextIncompleteIndex = questionQueue.findIndex(
       (item, index) => index > currentQueuePosition && !item.isCompleted
     );
@@ -433,11 +445,8 @@ export function GameSessionPage() {
   const totalQuestions = questionQueue.length;
   const progressTotal = totalQuestions > 0 ? (completedCount / totalQuestions) * 100 : 0;
 
-  // Check if current question is already answered and get the answer data
-  const answeredQuestion = currentSession.answeredQuestions?.find(
-    (aq) => aq.questionIndex === currentQuestionIndex
-  );
-  const isCurrentQuestionAnswered = !!answeredQuestion;
+  // ✅ NEW: Check if current question is already answered correctly (not just attempted)
+  const isCurrentQuestionCompleted = questionQueue[currentQueuePosition]?.isCompleted || false;
 
   // ✅ NEW: Check if there are more incomplete questions
   const hasMoreIncompleteQuestions = questionQueue.some(
@@ -516,8 +525,8 @@ export function GameSessionPage() {
                   questionIndex={currentQuestionIndex}
                   onAnswer={handleAnswer}
                   isSubmitting={isSubmitting}
-                  isAnswered={isCurrentQuestionAnswered}
-                  answeredQuestion={answeredQuestion}
+                  isAnswered={isCurrentQuestionCompleted}
+                  answeredQuestion={undefined} // ✅ Don't pass answered question for retry logic
                   questionResult={questionResult}
                 />
 
@@ -525,7 +534,7 @@ export function GameSessionPage() {
                 <GameNavigation
                   currentQuestionIndex={currentQueuePosition}
                   totalQuestions={totalQuestions}
-                  isCurrentQuestionAnswered={isCurrentQuestionAnswered}
+                  isCurrentQuestionAnswered={isCurrentQuestionCompleted}
                   questionResult={questionResult}
                   hasMoreUnansweredQuestions={hasMoreIncompleteQuestions}
                   allQuestionsAnswered={allQuestionsCompleted}
