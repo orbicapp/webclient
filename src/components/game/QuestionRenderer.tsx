@@ -107,7 +107,7 @@ export function QuestionRenderer({
   const canSubmit = selectedAnswer !== null && selectedAnswer !== undefined && !questionResult && !isAnswered;
 
   return (
-    <div className={`${isMobile ? 'h-full flex flex-col' : 'space-y-6'}`}>
+    <div className={`${isMobile ? 'h-full flex flex-col space-between' : 'space-y-6'}`}>
       {/* Question Content - ✅ Mobile: Take most of the space */}
       <div className={isMobile ? 'flex-1' : ''}>
         {renderQuestionContent()}
