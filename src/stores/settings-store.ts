@@ -5,10 +5,12 @@ import { persist } from "zustand/middleware";
 interface SettingsState {
   theme: "light" | "dark";
   sidebarOpen: boolean;
+  language: string;
 
   toggleTheme: () => void;
   toggleSidebar: () => void;
   setTheme: (theme: "light" | "dark") => void;
+  setLanguage: (language: string) => void;
 }
 
 // Function to apply theme to DOM
@@ -23,7 +25,7 @@ const applyTheme = (theme: "light" | "dark") => {
 // Initialize theme from localStorage immediately
 const getInitialTheme = (): "light" | "dark" => {
   if (typeof window === "undefined") return "light";
-  
+
   try {
     const stored = localStorage.getItem(LocalKeys.PREFERENCES);
     if (stored) {
@@ -33,25 +35,48 @@ const getInitialTheme = (): "light" | "dark" => {
   } catch (error) {
     console.warn("Failed to parse stored theme:", error);
   }
-  
+
   return "light";
+};
+
+// Initialize language from localStorage
+const getInitialLanguage = (): string => {
+  if (typeof window === "undefined") return "en";
+
+  try {
+    const stored = localStorage.getItem(LocalKeys.PREFERENCES);
+    if (stored) {
+      const parsed = JSON.parse(stored);
+      return parsed.state?.language || "en";
+    }
+  } catch (error) {
+    console.warn("Failed to parse stored language:", error);
+  }
+
+  return "en";
 };
 
 // Apply initial theme immediately
 const initialTheme = getInitialTheme();
+const initialLanguage = getInitialLanguage();
 applyTheme(initialTheme);
 
 export const useSettingsStore = create<SettingsState>()(
   persist(
     (set, get) => ({
-      // Getters - Use the initial theme we detected
+      // Getters - Use the initial values we detected
       theme: initialTheme,
       sidebarOpen: false,
+      language: initialLanguage,
 
       // Setters
       setTheme: (theme) => {
         applyTheme(theme);
         set({ theme });
+      },
+
+      setLanguage: (language) => {
+        set({ language });
       },
 
       toggleTheme: () => {

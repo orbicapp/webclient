@@ -1,11 +1,11 @@
 import { useState, useRef, useEffect } from "react";
-import { motion, AnimatePresence } from "framer-motion";
-import { 
-  Upload, 
-  Camera, 
-  FileText, 
-  Sparkles, 
-  Wand2, 
+import { motion } from "framer-motion";
+import {
+  Upload,
+  Camera,
+  FileText,
+  Sparkles,
+  Wand2,
   Globe,
   BookOpen,
   Zap,
@@ -15,31 +15,87 @@ import {
   Loader2,
   CheckCircle,
   ExternalLink,
-  RefreshCw
+  RefreshCw,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
 import { ViewContainer } from "@/components/layout/ViewContainer";
 import { Card, CardContent } from "@/components/ui/Card";
-import { Tabs, TabsListGrid, TabsTrigger, TabsContent } from "@/components/ui/Tabs";
+import {
+  Tabs,
+  TabsListGrid,
+  TabsTrigger,
+  TabsContent,
+} from "@/components/ui/Tabs";
 import Input from "@/components/ui/Input";
 import Button from "@/components/ui/Button";
 import Dropdown, { DropdownOption } from "@/components/ui/Dropdown";
 import { CourseCategory } from "@/services/course-service";
-import { AIService, GenerateCourseFromFileInput, GenerateCourseFromTextInput, CourseGenerationStatus } from "@/services/ai-service";
+import {
+  AIService,
+  GenerateCourseFromFileInput,
+  GenerateCourseFromTextInput,
+  CourseGenerationStatus,
+} from "@/services/ai-service";
 import { FileUploadClient } from "@/lib/utils/file-upload.utils";
+import { useI18n } from "@/hooks/use-i18n";
 
 // Course categories with icons and descriptions
 const courseCategories: DropdownOption[] = [
-  { value: "mathematics", label: "Mathematics", icon: "📐", description: "Numbers, equations, and logic" },
-  { value: "science", label: "Science", icon: "🔬", description: "Physics, chemistry, biology" },
-  { value: "technology", label: "Technology", icon: "💻", description: "Programming, AI, digital skills" },
-  { value: "language", label: "Language", icon: "🗣️", description: "Communication and linguistics" },
-  { value: "history", label: "History", icon: "📚", description: "Past events and civilizations" },
-  { value: "art", label: "Art", icon: "🎨", description: "Creative expression and design" },
-  { value: "business", label: "Business", icon: "💼", description: "Entrepreneurship and management" },
-  { value: "health", label: "Health", icon: "🏥", description: "Wellness and medical knowledge" },
-  { value: "other", label: "Other", icon: "✨", description: "Miscellaneous topics" },
+  {
+    value: "mathematics",
+    label: "Mathematics",
+    icon: "📐",
+    description: "Numbers, equations, and logic",
+  },
+  {
+    value: "science",
+    label: "Science",
+    icon: "🔬",
+    description: "Physics, chemistry, biology",
+  },
+  {
+    value: "technology",
+    label: "Technology",
+    icon: "💻",
+    description: "Programming, AI, digital skills",
+  },
+  {
+    value: "language",
+    label: "Language",
+    icon: "🗣️",
+    description: "Communication and linguistics",
+  },
+  {
+    value: "history",
+    label: "History",
+    icon: "📚",
+    description: "Past events and civilizations",
+  },
+  {
+    value: "art",
+    label: "Art",
+    icon: "🎨",
+    description: "Creative expression and design",
+  },
+  {
+    value: "business",
+    label: "Business",
+    icon: "💼",
+    description: "Entrepreneurship and management",
+  },
+  {
+    value: "health",
+    label: "Health",
+    icon: "🏥",
+    description: "Wellness and medical knowledge",
+  },
+  {
+    value: "other",
+    label: "Other",
+    icon: "✨",
+    description: "Miscellaneous topics",
+  },
 ];
 
 // Languages with flags
@@ -66,6 +122,8 @@ const GenerationProgress: React.FC<{
   onGoToCourse: (courseId: string) => void;
   onRetry: () => void;
 }> = ({ status, onGoToCourse, onRetry }) => {
+  const { t } = useI18n();
+
   const getStatusIcon = () => {
     switch (status.status) {
       case "pending":
@@ -99,15 +157,13 @@ const GenerationProgress: React.FC<{
   const getStatusText = () => {
     switch (status.status) {
       case "pending":
-        return "Preparando generación...";
-      case "processing":
-        return "Generando curso con IA...";
+        return t("createCourse.generation.status.preparing");
       case "completed":
-        return "¡Curso generado exitosamente!";
+        return t("createCourse.generation.status.completed");
       case "failed":
-        return "Error en la generación";
+        return t("createCourse.generation.status.failed");
       default:
-        return "Procesando...";
+        return t("createCourse.generation.status.processing");
     }
   };
 
@@ -121,16 +177,22 @@ const GenerationProgress: React.FC<{
       {/* Status Icon */}
       <motion.div
         className="relative mx-auto"
-        animate={status.status === "processing" ? {
-          scale: [1, 1.1, 1],
-          rotate: [0, 5, -5, 0]
-        } : {}}
+        animate={
+          status.status === "processing"
+            ? {
+                scale: [1, 1.1, 1],
+                rotate: [0, 5, -5, 0],
+              }
+            : {}
+        }
         transition={{ duration: 2, repeat: Infinity }}
       >
-        <div className={`w-24 h-24 bg-gradient-to-br ${getStatusColor()} rounded-3xl flex items-center justify-center mx-auto shadow-2xl`}>
+        <div
+          className={`w-24 h-24 bg-gradient-to-br ${getStatusColor()} rounded-3xl flex items-center justify-center mx-auto shadow-2xl`}
+        >
           {getStatusIcon()}
         </div>
-        
+
         {/* Floating sparkles for processing */}
         {status.status === "processing" && (
           <>
@@ -139,8 +201,8 @@ const GenerationProgress: React.FC<{
                 key={i}
                 className="absolute w-2 h-2 bg-yellow-400 rounded-full"
                 style={{
-                  left: `${20 + Math.cos(i * 60 * Math.PI / 180) * 50}px`,
-                  top: `${20 + Math.sin(i * 60 * Math.PI / 180) * 50}px`,
+                  left: `${20 + Math.cos((i * 60 * Math.PI) / 180) * 50}px`,
+                  top: `${20 + Math.sin((i * 60 * Math.PI) / 180) * 50}px`,
                 }}
                 animate={{
                   scale: [0, 1, 0],
@@ -173,7 +235,7 @@ const GenerationProgress: React.FC<{
       {(status.status === "pending" || status.status === "processing") && (
         <div className="w-full max-w-md mx-auto">
           <div className="flex justify-between text-sm text-gray-600 dark:text-gray-400 mb-2">
-            <span>Progreso</span>
+            <span>{t("createCourse.generation.status.progress")}</span>
             <span>{Math.round(status.progress)}%</span>
           </div>
           <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-3">
@@ -236,7 +298,7 @@ const GenerationProgress: React.FC<{
             leftIcon={<ExternalLink className="w-5 h-5" />}
             className="bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700"
           >
-            Ver Curso Generado
+            {t("createCourse.generation.status.goToCourse")}
           </Button>
         )}
 
@@ -248,7 +310,7 @@ const GenerationProgress: React.FC<{
             leftIcon={<RefreshCw className="w-5 h-5" />}
             className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
           >
-            Intentar de Nuevo
+            {t("createCourse.generation.status.retry")}
           </Button>
         )}
       </div>
@@ -257,10 +319,16 @@ const GenerationProgress: React.FC<{
       {(status.createdAt || status.completedAt) && (
         <div className="text-xs text-gray-500 dark:text-gray-400 space-y-1">
           {status.createdAt && (
-            <div>Iniciado: {new Date(status.createdAt).toLocaleString()}</div>
+            <div>
+              {t("createCourse.timestamps.startedAt")}
+              {new Date(status.createdAt).toLocaleString()}
+            </div>
           )}
           {status.completedAt && (
-            <div>Completado: {new Date(status.completedAt).toLocaleString()}</div>
+            <div>
+              {t("createCourse.timestamps.createdAt")}
+              {new Date(status.completedAt).toLocaleString()}
+            </div>
           )}
         </div>
       )}
@@ -269,6 +337,7 @@ const GenerationProgress: React.FC<{
 };
 
 export function CreateCoursePage() {
+  const { t } = useI18n();
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState("document");
   const [formData, setFormData] = useState<CourseFormData>({
@@ -280,9 +349,10 @@ export function CreateCoursePage() {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [isGenerating, setIsGenerating] = useState(false);
   const [generationJobId, setGenerationJobId] = useState<string | null>(null);
-  const [generationStatus, setGenerationStatus] = useState<CourseGenerationStatus | null>(null);
+  const [generationStatus, setGenerationStatus] =
+    useState<CourseGenerationStatus | null>(null);
   const [generationError, setGenerationError] = useState<string | null>(null);
-  
+
   const fileInputRef = useRef<HTMLInputElement>(null);
   const cameraInputRef = useRef<HTMLInputElement>(null);
   const uploadClient = new FileUploadClient();
@@ -292,7 +362,7 @@ export function CreateCoursePage() {
   const pollGenerationStatus = async (jobId: string) => {
     try {
       const [status, error] = await AIService.getCourseGenerationStatus(jobId);
-      
+
       if (error) {
         console.error("Error polling generation status:", error);
         setGenerationError(error);
@@ -302,7 +372,7 @@ export function CreateCoursePage() {
 
       if (status) {
         setGenerationStatus(status);
-        
+
         // Stop polling if generation is complete or failed
         if (status.status === "completed" || status.status === "failed") {
           stopPolling();
@@ -311,7 +381,9 @@ export function CreateCoursePage() {
       }
     } catch (err) {
       console.error("Error in polling:", err);
-      setGenerationError(err instanceof Error ? err.message : "Error checking status");
+      setGenerationError(
+        err instanceof Error ? err.message : "Error checking status"
+      );
       stopPolling();
     }
   };
@@ -320,7 +392,7 @@ export function CreateCoursePage() {
   const startPolling = (jobId: string) => {
     // Initial call
     pollGenerationStatus(jobId);
-    
+
     // Set up interval for every 3 seconds
     pollingIntervalRef.current = setInterval(() => {
       pollGenerationStatus(jobId);
@@ -375,7 +447,7 @@ export function CreateCoursePage() {
 
       if (activeTab === "text") {
         if (!textContent.trim()) {
-          throw new Error("Por favor ingresa contenido para generar un curso");
+          throw new Error(t("createCourse.generate.requirements.text"));
         }
 
         const input: GenerateCourseFromTextInput = {
@@ -387,13 +459,13 @@ export function CreateCoursePage() {
 
         const [result, error] = await AIService.generateCourseFromText(input);
         if (error || !result) {
-          throw new Error(error || "Error al iniciar la generación del curso");
+          throw new Error(error || t("createCourse.unknownError"));
         }
         jobId = result;
       } else {
         // Document or camera
         if (!selectedFile) {
-          throw new Error("Por favor selecciona un archivo o toma una foto");
+          throw new Error(t("createCourse.generate.requirements.file"));
         }
 
         // Upload file first
@@ -412,7 +484,7 @@ export function CreateCoursePage() {
 
         const [result, error] = await AIService.generateCourseFromfile(input);
         if (error || !result) {
-          throw new Error(error || "Error al iniciar la generación del curso");
+          throw new Error(error || t("createCourse.unknownError"));
         }
         jobId = result;
       }
@@ -420,10 +492,11 @@ export function CreateCoursePage() {
       // Start polling for status updates
       setGenerationJobId(jobId);
       startPolling(jobId);
-      
     } catch (error) {
       console.error("Generation failed:", error);
-      setGenerationError(error instanceof Error ? error.message : "Error desconocido");
+      setGenerationError(
+        error instanceof Error ? error.message : t("createCourse.unknownError")
+      );
       setIsGenerating(false);
     }
   };
@@ -448,7 +521,10 @@ export function CreateCoursePage() {
     return (
       <ViewContainer className="py-8">
         <div className="max-w-2xl mx-auto">
-          <Card variant="glass" className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-xl border-2 border-gray-200/50 dark:border-gray-700/50">
+          <Card
+            variant="glass"
+            className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-xl border-2 border-gray-200/50 dark:border-gray-700/50"
+          >
             <CardContent>
               {generationStatus ? (
                 <GenerationProgress
@@ -461,15 +537,19 @@ export function CreateCoursePage() {
                   <motion.div
                     className="w-16 h-16 bg-gradient-to-br from-purple-500 to-pink-500 rounded-2xl flex items-center justify-center mx-auto mb-6"
                     animate={{ rotate: 360 }}
-                    transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
+                    transition={{
+                      duration: 2,
+                      repeat: Infinity,
+                      ease: "linear",
+                    }}
                   >
                     <Loader2 className="w-8 h-8 text-white" />
                   </motion.div>
                   <h3 className="text-xl font-bold text-gray-900 dark:text-gray-100 mb-2">
-                    Iniciando generación...
+                    {t("createCourse.starting.title")}
                   </h3>
                   <p className="text-gray-600 dark:text-gray-400">
-                    Preparando tu curso con IA
+                    {t("createCourse.starting.description")}
                   </p>
                 </div>
               )}
@@ -484,7 +564,7 @@ export function CreateCoursePage() {
                     <AlertCircle className="w-5 h-5 text-red-600 dark:text-red-400" />
                     <div>
                       <p className="text-red-800 dark:text-red-200 font-medium">
-                        Error en la generación
+                        {t("createCourse.generation.error")}
                       </p>
                       <p className="text-red-600 dark:text-red-400 text-sm">
                         {generationError}
@@ -498,7 +578,7 @@ export function CreateCoursePage() {
                       size="sm"
                       leftIcon={<RefreshCw className="w-4 h-4" />}
                     >
-                      Intentar de Nuevo
+                      {t("common.tryAgain")}
                     </Button>
                   </div>
                 </motion.div>
@@ -522,27 +602,27 @@ export function CreateCoursePage() {
         <div className="relative inline-block mb-6">
           <motion.div
             className="w-20 h-20 bg-gradient-to-br from-purple-500 via-pink-500 to-orange-500 rounded-3xl flex items-center justify-center shadow-2xl shadow-purple-500/25"
-            animate={{ 
+            animate={{
               rotate: [0, 5, -5, 0],
-              scale: [1, 1.05, 1]
+              scale: [1, 1.05, 1],
             }}
-            transition={{ 
+            transition={{
               duration: 4,
               repeat: Infinity,
-              ease: "easeInOut"
+              ease: "easeInOut",
             }}
           >
             <Wand2 className="w-10 h-10 text-white" />
           </motion.div>
-          
+
           {/* Floating sparkles */}
           {[...Array(6)].map((_, i) => (
             <motion.div
               key={i}
               className="absolute w-2 h-2 bg-yellow-400 rounded-full"
               style={{
-                left: `${20 + Math.cos(i * 60 * Math.PI / 180) * 40}px`,
-                top: `${20 + Math.sin(i * 60 * Math.PI / 180) * 40}px`,
+                left: `${20 + Math.cos((i * 60 * Math.PI) / 180) * 40}px`,
+                top: `${20 + Math.sin((i * 60 * Math.PI) / 180) * 40}px`,
               }}
               animate={{
                 scale: [0, 1, 0],
@@ -558,10 +638,10 @@ export function CreateCoursePage() {
         </div>
 
         <h1 className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-purple-600 via-pink-600 to-orange-600 bg-clip-text text-transparent mb-4">
-          Crear con IA
+          {t("createCourse.title")}
         </h1>
         <p className="text-xl text-gray-600 dark:text-gray-300 max-w-2xl mx-auto leading-relaxed">
-          Transforma tu conocimiento en un curso interactivo. Sube un documento, captura contenido o escribe tus ideas.
+          {t("createCourse.description")}
         </p>
       </motion.div>
 
@@ -572,16 +652,26 @@ export function CreateCoursePage() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.2, duration: 0.6 }}
         >
-          <Card variant="gradient" className="mb-8 bg-gradient-to-br from-white to-gray-50 dark:from-gray-800 dark:to-gray-900 border-2 border-gray-200/50 dark:border-gray-700/50">
+          <Card
+            variant="gradient"
+            className="mb-8 bg-gradient-to-br from-white to-gray-50 dark:from-gray-800 dark:to-gray-900 border-2 border-gray-200/50 dark:border-gray-700/50"
+          >
             <CardContent>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 {/* Course Title */}
                 <div className="md:col-span-1">
                   <Input
-                    label="Título del Curso"
-                    placeholder="Se genera automáticamente si está vacío"
+                    label={t("createCourse.courseDetails.title")}
+                    placeholder={t(
+                      "createCourse.courseDetails.titlePlaceholder"
+                    )}
                     value={formData.title}
-                    onChange={(e) => setFormData(prev => ({ ...prev, title: e.target.value }))}
+                    onChange={(e) =>
+                      setFormData((prev) => ({
+                        ...prev,
+                        title: e.target.value,
+                      }))
+                    }
                     leftIcon={<BookOpen className="w-5 h-5" />}
                     variant="glass"
                   />
@@ -590,26 +680,39 @@ export function CreateCoursePage() {
                 {/* Category Dropdown */}
                 <div>
                   <Dropdown
-                    label="Categoría"
-                    placeholder="Se genera automáticamente si está vacío"
+                    label={t("createCourse.courseDetails.category")}
+                    placeholder={t(
+                      "createCourse.courseDetails.categoryPlaceholder"
+                    )}
                     value={formData.category}
                     options={courseCategories}
-                    onChange={(value) => setFormData(prev => ({ ...prev, category: value as CourseCategory }))}
+                    onChange={(value) =>
+                      setFormData((prev) => ({
+                        ...prev,
+                        category: value as CourseCategory,
+                      }))
+                    }
                     variant="glass"
                     showClearOption
-                    clearOptionLabel="Auto-generar"
+                    clearOptionLabel={t(
+                      "createCourse.courseDetails.autoGenerate"
+                    )}
                     clearOptionIcon="✨"
-                    clearOptionDescription="Deja que la IA elija la mejor categoría"
+                    clearOptionDescription={t(
+                      "createCourse.courseDetails.autoGenerateDescription"
+                    )}
                   />
                 </div>
 
                 {/* Language Dropdown */}
                 <div>
                   <Dropdown
-                    label="Idioma"
+                    label={t("createCourse.courseDetails.language")}
                     value={formData.language}
                     options={languages}
-                    onChange={(value) => setFormData(prev => ({ ...prev, language: value }))}
+                    onChange={(value) =>
+                      setFormData((prev) => ({ ...prev, language: value }))
+                    }
                     variant="glass"
                   />
                 </div>
@@ -624,21 +727,29 @@ export function CreateCoursePage() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.4, duration: 0.6 }}
         >
-          <Card variant="glass" className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-xl border-2 border-gray-200/50 dark:border-gray-700/50">
+          <Card
+            variant="glass"
+            className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-xl border-2 border-gray-200/50 dark:border-gray-700/50"
+          >
             <CardContent>
-              <Tabs value={activeTab} onValueChange={setActiveTab} variant="fancy">
+              <Tabs
+                value={activeTab}
+                onValueChange={setActiveTab}
+                defaultValue="document"
+                variant="fancy"
+              >
                 <TabsListGrid columns={3} className="mb-8">
                   <TabsTrigger value="document">
                     <Upload className="w-4 h-4" />
-                    <span>Documento</span>
+                    <span>{t("createCourse.tabs.document")}</span>
                   </TabsTrigger>
                   <TabsTrigger value="camera">
                     <Camera className="w-4 h-4" />
-                    <span>Foto</span>
+                    <span>{t("createCourse.tabs.camera")}</span>
                   </TabsTrigger>
                   <TabsTrigger value="text">
                     <FileText className="w-4 h-4" />
-                    <span>Texto</span>
+                    <span>{t("createCourse.tabs.text")}</span>
                   </TabsTrigger>
                 </TabsListGrid>
 
@@ -663,10 +774,10 @@ export function CreateCoursePage() {
                       >
                         <Upload className="w-16 h-16 text-purple-500 mx-auto mb-4" />
                         <h3 className="text-xl font-bold text-gray-900 dark:text-gray-100 mb-2">
-                          Subir Documento
+                          {t("createCourse.document.title")}
                         </h3>
                         <p className="text-gray-600 dark:text-gray-400">
-                          Archivos PDF, Word, Texto o Markdown
+                          {t("createCourse.document.description")}
                         </p>
                       </button>
                     </motion.div>
@@ -683,9 +794,12 @@ export function CreateCoursePage() {
                               <FileText className="w-5 h-5 text-white" />
                             </div>
                             <div>
-                              <div className="font-medium text-green-900 dark:text-green-100">{selectedFile.name}</div>
+                              <div className="font-medium text-green-900 dark:text-green-100">
+                                {selectedFile.name}
+                              </div>
                               <div className="text-sm text-green-600 dark:text-green-400">
-                                {(selectedFile.size / 1024 / 1024).toFixed(2)} MB
+                                {(selectedFile.size / 1024 / 1024).toFixed(2)}{" "}
+                                MB
                               </div>
                             </div>
                           </div>
@@ -723,10 +837,10 @@ export function CreateCoursePage() {
                       >
                         <Camera className="w-16 h-16 text-blue-500 mx-auto mb-4" />
                         <h3 className="text-xl font-bold text-gray-900 dark:text-gray-100 mb-2">
-                          Tomar Foto
+                          {t("createCourse.camera.title")}
                         </h3>
                         <p className="text-gray-600 dark:text-gray-400">
-                          Captura notas, pizarras o documentos
+                          {t("createCourse.camera.description")}
                         </p>
                       </button>
                     </motion.div>
@@ -743,9 +857,12 @@ export function CreateCoursePage() {
                               <Camera className="w-5 h-5 text-white" />
                             </div>
                             <div>
-                              <div className="font-medium text-blue-900 dark:text-blue-100">Foto capturada</div>
+                              <div className="font-medium text-blue-900 dark:text-blue-100">
+                                Foto capturada
+                              </div>
                               <div className="text-sm text-blue-600 dark:text-blue-400">
-                                {(selectedFile.size / 1024 / 1024).toFixed(2)} MB
+                                {(selectedFile.size / 1024 / 1024).toFixed(2)}{" "}
+                                MB
                               </div>
                             </div>
                           </div>
@@ -765,22 +882,25 @@ export function CreateCoursePage() {
                 <TabsContent value="text" className="space-y-6">
                   <div>
                     <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">
-                      Contenido del Curso
+                      {t("createCourse.text.title")}
                     </label>
                     <textarea
                       value={textContent}
                       onChange={(e) => setTextContent(e.target.value)}
-                      placeholder="Escribe el contenido de tu curso aquí... Comparte tu conocimiento, explica conceptos, proporciona ejemplos y crea material de aprendizaje atractivo."
+                      placeholder={t("createCourse.text.placeholder")}
                       className="w-full h-64 px-4 py-3 bg-white/80 dark:bg-gray-800/80 backdrop-blur-lg border-2 border-gray-200/50 dark:border-gray-700/50 rounded-2xl focus:border-purple-400 dark:focus:border-purple-500 focus:outline-none focus:ring-0 transition-all duration-200 resize-none text-gray-900 dark:text-gray-100 placeholder:text-gray-500 dark:placeholder:text-gray-400"
                     />
                     <div className="flex justify-between items-center mt-2">
                       <div className="text-sm text-gray-500 dark:text-gray-400">
-                        {textContent.length} caracteres
+                        {textContent.length}{" "}
+                        {t("createCourse.text.charactersCount")}
                       </div>
                       {textContent.length > 100 && (
                         <div className="flex items-center space-x-1 text-green-600 dark:text-green-400">
                           <Check className="w-4 h-4" />
-                          <span className="text-sm">Buena longitud para procesamiento con IA</span>
+                          <span className="text-sm">
+                            {t("createCourse.text.goodLength")}
+                          </span>
                         </div>
                       )}
                     </div>
@@ -795,18 +915,26 @@ export function CreateCoursePage() {
                   disabled={!canGenerate() || isGenerating}
                   size="lg"
                   className="px-12 py-4 bg-gradient-to-r from-purple-600 via-pink-600 to-orange-600 hover:from-purple-700 hover:via-pink-700 hover:to-orange-700 text-white font-bold text-lg rounded-2xl shadow-2xl shadow-purple-500/25 hover:shadow-purple-500/40 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
-                  leftIcon={isGenerating ? <Loader2 className="w-6 h-6 animate-spin" /> : <Sparkles className="w-6 h-6" />}
+                  leftIcon={
+                    isGenerating ? (
+                      <Loader2 className="w-6 h-6 animate-spin" />
+                    ) : (
+                      <Sparkles className="w-6 h-6" />
+                    )
+                  }
                 >
-                  {isGenerating ? "Generando Curso..." : "Generar Curso con IA"}
+                  {isGenerating
+                    ? t("createCourse.generate.generating")
+                    : t("createCourse.generate.button")}
                 </Button>
 
                 {!canGenerate() && !isGenerating && (
                   <div className="mt-4 flex items-center justify-center space-x-2 text-gray-500 dark:text-gray-400">
                     <AlertCircle className="w-4 h-4" />
                     <span className="text-sm">
-                      {activeTab === "text" 
-                        ? "Por favor ingresa contenido para generar un curso" 
-                        : "Por favor sube un archivo o toma una foto"}
+                      {activeTab === "text"
+                        ? t("createCourse.generate.requirements.text")
+                        : t("createCourse.generate.requirements.file")}
                     </span>
                   </div>
                 )}
@@ -825,19 +953,23 @@ export function CreateCoursePage() {
           {[
             {
               icon: <Zap className="w-8 h-8" />,
-              title: "Procesamiento Inteligente",
-              description: "La IA analiza tu contenido y crea lecciones estructuradas automáticamente"
+              title: t("createCourse.features.intelligentProcessing.title"),
+              description: t(
+                "createCourse.features.intelligentProcessing.description"
+              ),
             },
             {
               icon: <BookOpen className="w-8 h-8" />,
-              title: "Contenido Interactivo",
-              description: "Genera cuestionarios, ejercicios y actividades de aprendizaje atractivas"
+              title: t("createCourse.features.interactiveContent.title"),
+              description: t(
+                "createCourse.features.interactiveContent.description"
+              ),
             },
             {
               icon: <Globe className="w-8 h-8" />,
-              title: "Multi-idioma",
-              description: "Crea cursos en múltiples idiomas con traducción automática"
-            }
+              title: t("createCourse.features.multiLanguage.title"),
+              description: t("createCourse.features.multiLanguage.description"),
+            },
           ].map((feature, index) => (
             <motion.div
               key={index}
