@@ -189,19 +189,43 @@ export function Sidebar() {
   // Memoize current path to prevent unnecessary re-renders
   const currentPath = useMemo(() => location.pathname, [location.pathname]);
 
-  // ✅ Check feature flag for social features
+  // ✅ Check feature flags
   const isSocialEnabled = import.meta.env.VITE_ENABLE_FEATURE_SOCIAL === 'true';
+  const isAchievementsEnabled = import.meta.env.VITE_ENABLE_FEATURE_ACHIEVEMENTS === 'true';
+  const isLeaderboardEnabled = import.meta.env.VITE_ENABLE_FEATURE_LEADERBOARD === 'true';
 
   // ✅ Filter navigation categories based on feature flags
   const filteredNavCategories = useMemo(() => {
-    return navCategories.filter(category => {
-      // Hide social category if feature is disabled
-      if (category.title === "Social" && !isSocialEnabled) {
-        return false;
-      }
-      return true;
+    return navCategories.map(category => {
+      // Filter items within categories based on feature flags
+      const filteredItems = category.items.filter(item => {
+        // Hide social category if feature is disabled
+        if (category.title === "Social" && !isSocialEnabled) {
+          return false;
+        }
+        
+        // Hide achievements if feature is disabled
+        if (item.name === "Achievements" && !isAchievementsEnabled) {
+          return false;
+        }
+        
+        // Hide leaderboard if feature is disabled
+        if (item.name === "Leaderboard" && !isLeaderboardEnabled) {
+          return false;
+        }
+        
+        return true;
+      });
+
+      return {
+        ...category,
+        items: filteredItems
+      };
+    }).filter(category => {
+      // Remove categories that have no items left after filtering
+      return category.items.length > 0;
     });
-  }, [isSocialEnabled]);
+  }, [isSocialEnabled, isAchievementsEnabled, isLeaderboardEnabled]);
 
   // ✅ Save scroll position before route changes
   useEffect(() => {
