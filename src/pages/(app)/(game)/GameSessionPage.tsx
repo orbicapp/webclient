@@ -529,23 +529,8 @@ export function GameSessionPage() {
                   </motion.div>
                 )}
 
-                {/* Question Content - Mobile fullscreen */}
-                <div className="flex-1 overflow-y-auto px-4 py-6">
-                  <QuestionRenderer
-                    question={currentQuestion}
-                    questionIndex={currentQuestionIndex}
-                    onAnswer={handleAnswerSelection}
-                    isSubmitting={isSubmitting}
-                    isAnswered={isCurrentQuestionCompleted}
-                    answeredQuestion={undefined}
-                    questionResult={questionResult}
-                    selectedAnswer={selectedAnswer}
-                    onSubmitAnswer={handleSubmitAnswer}
-                  />
-                </div>
-
                 {/* ✅ NEW: Mobile Footer with compact header info */}
-                <div className="flex-col bg-black/20 backdrop-blur-xl border-t border-white/10">
+                <div className="flex-shrink-0 bg-black/20 backdrop-blur-xl border-t border-white/10">
                   {/* Compact Header Row */}
                   <div className="flex items-center justify-between px-4 py-3 border-b border-white/10">
                     <button
@@ -568,6 +553,21 @@ export function GameSessionPage() {
                       </div>
                     </div>
                   </div>
+
+                                  {/* Question Content - Mobile fullscreen */}
+                <div className="flex-1 overflow-y-auto px-4 py-6">
+                  <QuestionRenderer
+                    question={currentQuestion}
+                    questionIndex={currentQuestionIndex}
+                    onAnswer={handleAnswerSelection}
+                    isSubmitting={isSubmitting}
+                    isAnswered={isCurrentQuestionCompleted}
+                    answeredQuestion={undefined}
+                    questionResult={questionResult}
+                    selectedAnswer={selectedAnswer}
+                    onSubmitAnswer={handleSubmitAnswer}
+                  />
+                </div>
 
                   {/* Progress bar */}
                   <div className="px-4 py-2">
