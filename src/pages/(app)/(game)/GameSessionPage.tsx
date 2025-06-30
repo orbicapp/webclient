@@ -49,7 +49,7 @@ export function GameSessionPage() {
   // ✅ NEW: Question queue management
   const [questionQueue, setQuestionQueue] = useState<QuestionQueueItem[]>([]);
   const [currentQueuePosition, setCurrentQueuePosition] = useState(0);
-  
+
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [gameError, setGameError] = useState<string | null>(null);
   const [startTime] = useState(Date.now());
@@ -68,17 +68,21 @@ export function GameSessionPage() {
   // ✅ NEW: Initialize question queue
   useEffect(() => {
     if (level?.questions && questionQueue.length === 0) {
-      const initialQueue: QuestionQueueItem[] = level.questions.map((_, index) => ({
-        originalIndex: index,
-        currentPosition: index,
-        attempts: 0,
-        isCompleted: false
-      }));
+      const initialQueue: QuestionQueueItem[] = level.questions.map(
+        (_, index) => ({
+          originalIndex: index,
+          currentPosition: index,
+          attempts: 0,
+          isCompleted: false,
+        })
+      );
 
       // Mark already answered questions as completed
       if (currentSession?.answeredQuestions) {
-        currentSession.answeredQuestions.forEach(answered => {
-          const queueItem = initialQueue.find(item => item.originalIndex === answered.questionIndex);
+        currentSession.answeredQuestions.forEach((answered) => {
+          const queueItem = initialQueue.find(
+            (item) => item.originalIndex === answered.questionIndex
+          );
           if (queueItem && answered.isCorrect) {
             queueItem.isCompleted = true;
           }
@@ -86,9 +90,11 @@ export function GameSessionPage() {
       }
 
       setQuestionQueue(initialQueue);
-      
+
       // Find first incomplete question
-      const firstIncomplete = initialQueue.findIndex(item => !item.isCompleted);
+      const firstIncomplete = initialQueue.findIndex(
+        (item) => !item.isCompleted
+      );
       setCurrentQueuePosition(firstIncomplete >= 0 ? firstIncomplete : 0);
     }
   }, [level, currentSession, questionQueue.length]);
@@ -135,10 +141,17 @@ export function GameSessionPage() {
 
   // ✅ NEW: Handle answer submission
   const handleSubmitAnswer = async () => {
-    if (!currentSession || !level || !level.questions || isSubmitting || selectedAnswer === null) return;
+    if (
+      !currentSession ||
+      !level ||
+      !level.questions ||
+      isSubmitting ||
+      selectedAnswer === null
+    )
+      return;
 
     const currentQuestionIndex = getCurrentQuestionIndex();
-    
+
     setIsSubmitting(true);
     setGameError(null);
 
@@ -182,20 +195,20 @@ export function GameSessionPage() {
       setQuestionResult(result);
 
       // ✅ NEW: Update question queue based on result
-      setQuestionQueue(prevQueue => {
+      setQuestionQueue((prevQueue) => {
         const newQueue = [...prevQueue];
         const currentItem = newQueue[currentQueuePosition];
-        
+
         if (currentItem) {
           currentItem.attempts += 1;
-          
+
           if (result.isCorrect) {
             // ✅ Mark as completed, stays in current position
             currentItem.isCompleted = true;
           }
           // ✅ NEW: Don't move incorrect answers until user clicks "Next Question"
         }
-        
+
         return newQueue;
       });
 
@@ -235,19 +248,19 @@ export function GameSessionPage() {
 
     // ✅ NEW: If current question was answered incorrectly, move it to end
     if (questionResult && !questionResult.isCorrect) {
-      setQuestionQueue(prevQueue => {
+      setQuestionQueue((prevQueue) => {
         const newQueue = [...prevQueue];
         const itemToMove = newQueue.splice(currentQueuePosition, 1)[0];
         newQueue.push(itemToMove);
-        
+
         // Update positions
         newQueue.forEach((item, index) => {
           item.currentPosition = index;
         });
-        
+
         return newQueue;
       });
-      
+
       // Stay at same position (which now has a different question)
       setQuestionResult(null);
       setSelectedAnswer(null);
@@ -272,14 +285,6 @@ export function GameSessionPage() {
   const handlePreviousQuestion = () => {
     if (currentQueuePosition > 0) {
       setCurrentQueuePosition(currentQueuePosition - 1);
-      setQuestionResult(null);
-      setSelectedAnswer(null);
-    }
-  };
-
-  const handleJumpToQuestion = (queuePosition: number) => {
-    if (queuePosition >= 0 && queuePosition < questionQueue.length) {
-      setCurrentQueuePosition(queuePosition);
       setQuestionResult(null);
       setSelectedAnswer(null);
     }
@@ -430,7 +435,7 @@ export function GameSessionPage() {
   }
 
   // ✅ NEW: Check if all questions are completed
-  const allQuestionsCompleted = questionQueue.every(item => item.isCompleted);
+  const allQuestionsCompleted = questionQueue.every((item) => item.isCompleted);
   if (allQuestionsCompleted && questionQueue.length > 0) {
     return (
       <LevelCompleteScreen
@@ -458,12 +463,16 @@ export function GameSessionPage() {
   }
 
   // ✅ NEW: Calculate progress based on completed questions
-  const completedCount = questionQueue.filter(item => item.isCompleted).length;
+  const completedCount = questionQueue.filter(
+    (item) => item.isCompleted
+  ).length;
   const totalQuestions = questionQueue.length;
-  const progressTotal = totalQuestions > 0 ? (completedCount / totalQuestions) * 100 : 0;
+  const progressTotal =
+    totalQuestions > 0 ? (completedCount / totalQuestions) * 100 : 0;
 
   // ✅ NEW: Check if current question is already answered correctly (not just attempted)
-  const isCurrentQuestionCompleted = questionQueue[currentQueuePosition]?.isCompleted || false;
+  const isCurrentQuestionCompleted =
+    questionQueue[currentQueuePosition]?.isCompleted || false;
 
   // ✅ NEW: Check if there are more incomplete questions
   const hasMoreIncompleteQuestions = questionQueue.some(
@@ -471,10 +480,18 @@ export function GameSessionPage() {
   );
 
   // ✅ Determine if submit button should be enabled
-  const canSubmit = selectedAnswer !== null && selectedAnswer !== undefined && !questionResult && !isCurrentQuestionCompleted;
+  const canSubmit =
+    selectedAnswer !== null &&
+    selectedAnswer !== undefined &&
+    !questionResult &&
+    !isCurrentQuestionCompleted;
 
   return (
-    <div className={`min-h-screen bg-gradient-to-br from-indigo-900 via-purple-900 to-pink-900 ${isMobile ? 'flex flex-col' : ''}`}>
+    <div
+      className={`min-h-screen bg-gradient-to-br from-indigo-900 via-purple-900 to-pink-900 ${
+        isMobile ? "flex flex-col" : ""
+      }`}
+    >
       {/* ✅ Game Over Screen */}
       {showGameOver && (
         <GameOverScreen
@@ -496,7 +513,11 @@ export function GameSessionPage() {
       )}
 
       {/* Game Content - ✅ Mobile fullscreen layout */}
-      <div className={`${isMobile ? 'flex-1 flex flex-col' : 'max-w-4xl mx-auto px-4 py-8'}`}>
+      <div
+        className={`${
+          isMobile ? "flex-1 flex flex-col" : "max-w-4xl mx-auto px-4 py-8"
+        }`}
+      >
         <AnimatePresence mode="wait">
           <motion.div
             key={`${currentQueuePosition}-${currentQuestionIndex}`}
@@ -504,7 +525,7 @@ export function GameSessionPage() {
             animate={{ opacity: 1, x: 0 }}
             exit={{ opacity: 0, x: -50 }}
             transition={{ duration: 0.3 }}
-            className={`${isMobile ? 'flex-1 flex flex-col' : ''}`}
+            className={`${isMobile ? "flex-1 flex flex-col" : ""}`}
           >
             {/* ✅ Mobile: Remove card wrapper for fullscreen */}
             {isMobile ? (
@@ -512,7 +533,7 @@ export function GameSessionPage() {
                 {/* Error Display - Mobile */}
                 {gameError && (
                   <motion.div
-                    className="flex-shrink-0 mx-4 mt-4 p-4 bg-red-50 dark:bg-red-900/20 rounded-xl border border-red-200 dark:border-red-800"
+                    className="flex-shrink-0 mx-4 my-4 p-4 bg-red-50 dark:bg-red-900/20 rounded-xl border border-red-200 dark:border-red-800"
                     initial={{ opacity: 0, y: -10 }}
                     animate={{ opacity: 1, y: 0 }}
                   >
@@ -535,17 +556,23 @@ export function GameSessionPage() {
                     >
                       <X className="w-5 h-5 text-white" />
                     </button>
-                    
+
                     <div className="text-center">
-                      <Badge variant="primary" size="sm" className="bg-white/20 text-white border-white/30">
+                      <Badge
+                        variant="primary"
+                        size="sm"
+                        className="bg-white/20 text-white border-white/30"
+                      >
                         Question {currentQueuePosition + 1} of {totalQuestions}
                       </Badge>
                     </div>
-                    
+
                     <div className="flex items-center space-x-3 text-white">
                       <div className="flex items-center space-x-1">
                         <Heart className="w-4 h-4 text-red-400" />
-                        <span className="text-sm font-bold">{currentSession.lives}</span>
+                        <span className="text-sm font-bold">
+                          {currentSession.lives}
+                        </span>
                       </div>
                     </div>
                   </div>
@@ -699,9 +726,6 @@ export function GameSessionPage() {
           </Button>
         </div>
       </div>
-
-      {/* ✅ Add bottom padding to prevent content overlap with fixed button */}
-      <div className="h-20"></div>
     </div>
   );
 }
