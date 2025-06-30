@@ -78,13 +78,13 @@ async function deleteFile(fileId: string) {
 
 async function getUserFiles() {
   const { data, errors } = await apolloClient.query<{
-    userFiles: FileUpload[];
+    getUserFiles: FileUpload[];
   }>({
     query: GET_USER_FILES_QUERY,
     fetchPolicy: "network-only",
   });
 
-  return formatResult<FileUpload[]>(data?.userFiles, errors);
+  return formatResult<FileUpload[]>(data?.getUserFiles, errors);
 }
 
 async function getFileById(fileId: string) {
@@ -99,13 +99,13 @@ async function getFileById(fileId: string) {
 
 async function getUserStorageStats() {
   const { data, errors } = await apolloClient.query<{
-    userStorageStats: UserStorageStats;
+    getUserStorageStats: UserStorageStats;
   }>({
     query: GET_USER_STORAGE_STATS_QUERY,
     fetchPolicy: "network-only",
   });
 
-  return formatResult<UserStorageStats>(data?.userStorageStats, errors);
+  return formatResult<UserStorageStats>(data?.getUserStorageStats, errors);
 }
 
 export const StorageService = {

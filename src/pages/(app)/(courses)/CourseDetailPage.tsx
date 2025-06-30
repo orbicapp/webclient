@@ -1,6 +1,6 @@
 import { motion, useScroll, useTransform } from "framer-motion";
 import { useParams } from "react-router-dom";
-import { 
+import {
   BookOpen,
   Clock,
   Users,
@@ -16,7 +16,7 @@ import {
   Play,
   UserPlus,
   Eye,
-  Lock
+  Lock,
 } from "lucide-react";
 import { useState } from "react";
 
@@ -41,50 +41,57 @@ export function CourseDetailPage() {
   const [loading, course, error] = useCourse(courseId!);
   const [levelsLoading, levels] = useCourseLevels(courseId!);
   const [chaptersLoading, chapters] = useCourseChapters(courseId!);
-  
+
   // ✅ NEW: Use the enhanced hook with refetch capability
-  const [progressLoading, progress, progressError, refetchCourseProgress] = useCourseProgress(courseId!);
-  
+  const [progressLoading, progress, progressError, refetchCourseProgress] =
+    useCourseProgress(courseId!);
+
   // State for joining course
   const [isJoining, setIsJoining] = useState(false);
   const [joinError, setJoinError] = useState<string | null>(null);
 
   // State for level modal
-  const [selectedLevel, setSelectedLevel] = useState<LevelWithChapter | null>(null);
+  const [selectedLevel, setSelectedLevel] = useState<LevelWithChapter | null>(
+    null
+  );
   const [isLevelModalOpen, setIsLevelModalOpen] = useState(false);
 
   const { scrollY } = useScroll();
   const headerOpacity = useTransform(scrollY, [0, 300], [1, 0]);
   const headerScale = useTransform(scrollY, [0, 300], [1, 0.8]);
-  
+
   // Sticky panel transforms - More dramatic scaling
   const panelScale = useTransform(scrollY, [300, 600], [1, 0.7]);
   const panelHeight = useTransform(scrollY, [300, 600], [1, 0.6]);
   const panelWidth = useTransform(scrollY, [300, 600], [1, 0.8]);
 
   // Use the custom hook to calculate the level path
-  const levelPath = useCoursePath({ 
-    chapters: chapters || [], 
-    levels: levels || [], 
-    progress 
+  const levelPath = useCoursePath({
+    chapters: chapters || [],
+    levels: levels || [],
+    progress,
   });
 
   // Get course statistics
   const courseStats = useCourseStats(levelPath);
 
   // Check if user is enrolled (has progress)
-  const isEnrolled = progress && progress._id && !progress._id.startsWith('temp-');
-  const hasStartedCourse = isEnrolled && (progress.totalScore > 0 || progress.completedLevels > 0);
+  const isEnrolled =
+    progress && progress._id && !progress._id.startsWith("temp-");
+  const hasStartedCourse =
+    isEnrolled && (progress.totalScore > 0 || progress.completedLevels > 0);
 
   const handleJoinCourse = async () => {
     if (!courseId) return;
-    
+
     setIsJoining(true);
     setJoinError(null);
 
     try {
-      const [result, error] = await ProgressService.initializeCourseProgress(courseId);
-      
+      const [result, error] = await ProgressService.initializeCourseProgress(
+        courseId
+      );
+
       if (error || !result) {
         setJoinError(error || "Failed to join course");
         return;
@@ -93,9 +100,10 @@ export function CourseDetailPage() {
       // ✅ Use the refetch function instead of page reload
       console.log("Course joined successfully! Refreshing progress...");
       await refetchCourseProgress();
-      
     } catch (err) {
-      setJoinError(err instanceof Error ? err.message : "Failed to join course");
+      setJoinError(
+        err instanceof Error ? err.message : "Failed to join course"
+      );
     } finally {
       setIsJoining(false);
     }
@@ -135,7 +143,7 @@ export function CourseDetailPage() {
             >
               <Rocket className="w-16 h-16 text-white" />
             </motion.div>
-            
+
             <motion.h1
               className="text-4xl font-bold text-white mb-4"
               animate={{ opacity: [0.5, 1, 0.5] }}
@@ -143,7 +151,7 @@ export function CourseDetailPage() {
             >
               Loading Adventure...
             </motion.h1>
-            
+
             <motion.div
               className="flex justify-center space-x-2"
               initial={{ opacity: 0 }}
@@ -200,7 +208,7 @@ export function CourseDetailPage() {
     );
   }
 
-  const thumbnailUrl = course.thumbnailId 
+  const thumbnailUrl = course.thumbnailId
     ? `https://images.pexels.com/photos/${course.thumbnailId}/pexels-photo-${course.thumbnailId}.jpeg?auto=compress&cs=tinysrgb&w=1200&h=400&fit=crop`
     : `https://images.pexels.com/photos/4144923/pexels-photo-4144923.jpeg?auto=compress&cs=tinysrgb&w=1200&h=400&fit=crop`;
 
@@ -229,10 +237,16 @@ export function CourseDetailPage() {
               delay: Math.random() * 2,
             }}
           >
-            <div className={cn(
-              "w-4 h-4 rounded-full",
-              i % 3 === 0 ? "bg-blue-400/20" : i % 3 === 1 ? "bg-purple-400/20" : "bg-pink-400/20"
-            )} />
+            <div
+              className={cn(
+                "w-4 h-4 rounded-full",
+                i % 3 === 0
+                  ? "bg-blue-400/20"
+                  : i % 3 === 1
+                  ? "bg-purple-400/20"
+                  : "bg-pink-400/20"
+              )}
+            />
           </motion.div>
         ))}
       </div>
@@ -253,7 +267,7 @@ export function CourseDetailPage() {
             <div className="absolute inset-0 bg-gradient-to-t from-black via-black/50 to-transparent" />
             <div className="absolute inset-0 bg-gradient-to-r from-indigo-900/80 via-purple-900/60 to-pink-900/80" />
           </div>
-          
+
           {/* Animated particles overlay */}
           <div className="absolute inset-0">
             {[...Array(30)].map((_, i) => (
@@ -297,11 +311,19 @@ export function CourseDetailPage() {
                       <Shield className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" />
                       {course.category}
                     </Badge>
-                    <Badge variant="outline" size="md" className="text-white border-white/50 bg-white/10 backdrop-blur-sm">
+                    <Badge
+                      variant="outline"
+                      size="md"
+                      className="text-white border-white/50 bg-white/10 backdrop-blur-sm"
+                    >
                       <Crown className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" />
                       {courseStats.totalChapters} Chapters
                     </Badge>
-                    <Badge variant="outline" size="md" className="text-white border-white/50 bg-white/10 backdrop-blur-sm">
+                    <Badge
+                      variant="outline"
+                      size="md"
+                      className="text-white border-white/50 bg-white/10 backdrop-blur-sm"
+                    >
                       <Target className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" />
                       {courseStats.totalLevels} Levels
                     </Badge>
@@ -313,7 +335,7 @@ export function CourseDetailPage() {
                       </Badge>
                     )}
                   </motion.div>
-                  
+
                   {/* Title */}
                   <motion.h1
                     className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold text-white mb-4 sm:mb-6 leading-tight"
@@ -321,12 +343,13 @@ export function CourseDetailPage() {
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.3 }}
                     style={{
-                      textShadow: "0 0 30px rgba(255,255,255,0.5), 0 0 60px rgba(139,92,246,0.3)",
+                      textShadow:
+                        "0 0 30px rgba(255,255,255,0.5), 0 0 60px rgba(139,92,246,0.3)",
                     }}
                   >
                     {course.title}
                   </motion.h1>
-                  
+
                   {/* Description */}
                   <motion.p
                     className="text-lg sm:text-xl text-gray-200 mb-6 sm:mb-8 max-w-3xl leading-relaxed"
@@ -336,7 +359,7 @@ export function CourseDetailPage() {
                   >
                     {course.description}
                   </motion.p>
-                  
+
                   {/* Meta info */}
                   <motion.div
                     className="flex flex-col sm:flex-row sm:items-center sm:space-x-8 space-y-2 sm:space-y-0 text-sm text-gray-300"
@@ -371,11 +394,21 @@ export function CourseDetailPage() {
                         disabled={isJoining}
                         size="lg"
                         className="px-8 py-4 bg-gradient-to-r from-emerald-500 via-teal-500 to-cyan-500 hover:from-emerald-600 hover:via-teal-600 hover:to-cyan-600 text-white font-bold text-lg rounded-2xl shadow-2xl shadow-emerald-500/25 hover:shadow-emerald-500/40 transition-all duration-300"
-                        leftIcon={isJoining ? <motion.div
-                          className="w-5 h-5 border-2 border-white border-t-transparent rounded-full"
-                          animate={{ rotate: 360 }}
-                          transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
-                        /> : <UserPlus className="w-5 h-5" />}
+                        leftIcon={
+                          isJoining ? (
+                            <motion.div
+                              className="w-5 h-5 border-2 border-white border-t-transparent rounded-full"
+                              animate={{ rotate: 360 }}
+                              transition={{
+                                duration: 1,
+                                repeat: Infinity,
+                                ease: "linear",
+                              }}
+                            />
+                          ) : (
+                            <UserPlus className="w-5 h-5" />
+                          )
+                        }
                       >
                         {isJoining ? "Joining..." : "Join Course"}
                       </Button>
@@ -402,18 +435,24 @@ export function CourseDetailPage() {
                     transition={{ delay: 0.6, type: "spring" }}
                   >
                     <div className="relative">
-                      <ProgressRing 
-                        progress={courseStats.progressPercentage} 
-                        size={120} 
+                      <ProgressRing
+                        progress={courseStats.progressPercentage}
+                        size={120}
                         strokeWidth={10}
                         glow={courseStats.progressPercentage > 50}
-                        variant={courseStats.progressPercentage > 75 ? "rainbow" : "neon"}
+                        variant={
+                          courseStats.progressPercentage > 75
+                            ? "rainbow"
+                            : "neon"
+                        }
                       >
                         <div className="text-center">
                           <div className="text-2xl sm:text-3xl font-bold text-white mb-1">
                             {courseStats.progressPercentage}%
                           </div>
-                          <div className="text-xs sm:text-sm text-gray-300">Complete</div>
+                          <div className="text-xs sm:text-sm text-gray-300">
+                            Complete
+                          </div>
                           <div className="flex items-center justify-center mt-2">
                             <Star className="w-3 h-3 sm:w-4 sm:h-4 text-yellow-400 mr-1" />
                             <span className="text-xs sm:text-sm text-yellow-400 font-semibold">
@@ -422,30 +461,30 @@ export function CourseDetailPage() {
                           </div>
                         </div>
                       </ProgressRing>
-                      
+
                       {/* Floating achievement icons */}
                       {courseStats.progressPercentage > 25 && (
                         <motion.div
                           className="absolute -top-4 -right-4 w-6 h-6 sm:w-8 sm:h-8 bg-gradient-to-r from-yellow-400 to-orange-500 rounded-full flex items-center justify-center"
-                          animate={{ 
+                          animate={{
                             rotate: [0, 360],
-                            scale: [1, 1.2, 1]
+                            scale: [1, 1.2, 1],
                           }}
-                          transition={{ 
+                          transition={{
                             rotate: { duration: 3, repeat: Infinity },
-                            scale: { duration: 2, repeat: Infinity }
+                            scale: { duration: 2, repeat: Infinity },
                           }}
                         >
                           <Flame className="w-3 h-3 sm:w-4 sm:h-4 text-white" />
                         </motion.div>
                       )}
-                      
+
                       {courseStats.progressPercentage > 75 && (
                         <motion.div
                           className="absolute -bottom-4 -left-4 w-6 h-6 sm:w-8 sm:h-8 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full flex items-center justify-center"
-                          animate={{ 
+                          animate={{
                             scale: [1, 1.3, 1],
-                            opacity: [0.8, 1, 0.8]
+                            opacity: [0.8, 1, 0.8],
                           }}
                           transition={{ duration: 1.5, repeat: Infinity }}
                         >
@@ -465,16 +504,19 @@ export function CourseDetailPage() {
       {isEnrolled && hasStartedCourse && levelPath.length > 0 && (
         <motion.div
           className="sticky top-4 z-40 flex justify-center px-4"
-          style={{ 
+          style={{
             scale: panelScale,
             scaleY: panelHeight,
-            scaleX: panelWidth
+            scaleX: panelWidth,
           }}
           initial={{ opacity: 0, y: 50 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.7 }}
         >
-          <Card variant="glass" className="bg-black/50 backdrop-blur-xl border-white/20 shadow-2xl rounded-2xl overflow-hidden">
+          <Card
+            variant="glass"
+            className="bg-black/50 backdrop-blur-xl border-white/20 shadow-2xl rounded-2xl overflow-hidden"
+          >
             <div className="grid grid-cols-4 gap-1 sm:gap-3 text-center p-2 sm:p-4">
               <motion.div
                 whileHover={{ scale: 1.05 }}
@@ -482,17 +524,19 @@ export function CourseDetailPage() {
               >
                 <div className="text-sm sm:text-2xl font-bold text-blue-400 mb-1 flex items-center justify-center">
                   <Target className="w-3 h-3 sm:w-5 sm:h-5 mr-1" />
-                  <span className="hidden sm:inline">{courseStats.completedLevels}</span>
-                  <span className="sm:hidden">{courseStats.completedLevels}</span>
+                  <span className="hidden sm:inline">
+                    {courseStats.completedLevels}
+                  </span>
+                  <span className="sm:hidden">
+                    {courseStats.completedLevels}
+                  </span>
                 </div>
                 <div className="text-xs text-gray-300 hidden sm:block">
                   of {courseStats.totalLevels} Levels
                 </div>
-                <div className="text-xs text-gray-300 sm:hidden">
-                  Levels
-                </div>
+                <div className="text-xs text-gray-300 sm:hidden">Levels</div>
               </motion.div>
-              
+
               <motion.div
                 whileHover={{ scale: 1.05 }}
                 className="p-1 sm:p-3 rounded-lg bg-gradient-to-br from-purple-500/20 to-pink-500/20 border border-purple-500/30"
@@ -504,11 +548,9 @@ export function CourseDetailPage() {
                 <div className="text-xs text-gray-300 hidden sm:block">
                   of {courseStats.totalChapters} Chapters
                 </div>
-                <div className="text-xs text-gray-300 sm:hidden">
-                  Chapters
-                </div>
+                <div className="text-xs text-gray-300 sm:hidden">Chapters</div>
               </motion.div>
-              
+
               <motion.div
                 whileHover={{ scale: 1.05 }}
                 className="p-1 sm:p-3 rounded-lg bg-gradient-to-br from-yellow-500/20 to-orange-500/20 border border-yellow-500/30"
@@ -520,11 +562,9 @@ export function CourseDetailPage() {
                 <div className="text-xs text-gray-300 hidden sm:block">
                   of {courseStats.maxPossibleStars} Stars
                 </div>
-                <div className="text-xs text-gray-300 sm:hidden">
-                  Stars
-                </div>
+                <div className="text-xs text-gray-300 sm:hidden">Stars</div>
               </motion.div>
-              
+
               <motion.div
                 whileHover={{ scale: 1.05 }}
                 className="p-1 sm:p-3 rounded-lg bg-gradient-to-br from-green-500/20 to-emerald-500/20 border border-green-500/30"
@@ -536,9 +576,7 @@ export function CourseDetailPage() {
                 <div className="text-xs text-gray-300 hidden sm:block">
                   Complete
                 </div>
-                <div className="text-xs text-gray-300 sm:hidden">
-                  Done
-                </div>
+                <div className="text-xs text-gray-300 sm:hidden">Done</div>
               </motion.div>
             </div>
           </Card>
@@ -553,7 +591,10 @@ export function CourseDetailPage() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.7 }}
         >
-          <Card variant="glass" className="bg-orange-500/20 backdrop-blur-xl border-orange-400/30 shadow-2xl rounded-2xl overflow-hidden">
+          <Card
+            variant="glass"
+            className="bg-orange-500/20 backdrop-blur-xl border-orange-400/30 shadow-2xl rounded-2xl overflow-hidden"
+          >
             <div className="flex items-center justify-center space-x-3 px-6 py-3">
               <Eye className="w-5 h-5 text-orange-300" />
               <span className="text-orange-100 font-medium">
@@ -564,11 +605,21 @@ export function CourseDetailPage() {
                 disabled={isJoining}
                 size="sm"
                 className="bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 text-white font-medium rounded-lg shadow-lg"
-                leftIcon={isJoining ? <motion.div
-                  className="w-4 h-4 border-2 border-white border-t-transparent rounded-full"
-                  animate={{ rotate: 360 }}
-                  transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
-                /> : <UserPlus className="w-4 h-4" />}
+                leftIcon={
+                  isJoining ? (
+                    <motion.div
+                      className="w-4 h-4 border-2 border-white border-t-transparent rounded-full"
+                      animate={{ rotate: 360 }}
+                      transition={{
+                        duration: 1,
+                        repeat: Infinity,
+                        ease: "linear",
+                      }}
+                    />
+                  ) : (
+                    <UserPlus className="w-4 h-4" />
+                  )
+                }
               >
                 {isJoining ? "Joining..." : "Join Now"}
               </Button>
@@ -587,12 +638,15 @@ export function CourseDetailPage() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.8 }}
           >
-            <Card variant="glass" className="text-center py-12 sm:py-16 bg-black/40 backdrop-blur-xl border-white/20">
+            <Card
+              variant="glass"
+              className="text-center py-12 sm:py-16 bg-black/40 backdrop-blur-xl border-white/20"
+            >
               <motion.div
                 className="w-16 h-16 sm:w-24 sm:h-24 bg-gradient-to-br from-gray-500 to-gray-700 rounded-full flex items-center justify-center mx-auto mb-4 sm:mb-6"
-                animate={{ 
+                animate={{
                   scale: [1, 1.1, 1],
-                  opacity: [0.7, 1, 0.7]
+                  opacity: [0.7, 1, 0.7],
                 }}
                 transition={{ duration: 2, repeat: Infinity }}
               >
@@ -602,7 +656,8 @@ export function CourseDetailPage() {
                 Adventure Coming Soon
               </h3>
               <p className="text-gray-300 mb-6 max-w-md mx-auto text-sm sm:text-base">
-                This quest doesn't have any chapters or levels yet. The adventure is being prepared!
+                This quest doesn't have any chapters or levels yet. The
+                adventure is being prepared!
               </p>
               <Button variant="primary" glow>
                 <Target className="w-4 h-4 mr-2" />
@@ -612,8 +667,8 @@ export function CourseDetailPage() {
           </motion.div>
         ) : (
           // Show game path - with preview mode for non-enrolled users
-          <GamePath 
-            levelPath={levelPath} 
+          <GamePath
+            levelPath={levelPath}
             onLevelClick={handleLevelClick}
             previewMode={!isEnrolled}
           />
@@ -656,14 +711,14 @@ export function CourseDetailPage() {
             >
               <Trophy className="w-12 h-12 sm:w-16 sm:h-16 text-white" />
             </motion.div>
-            
+
             <h2 className="text-4xl sm:text-6xl font-bold text-white mb-4">
               QUEST COMPLETED!
             </h2>
             <p className="text-lg sm:text-2xl text-gray-300 mb-6 sm:mb-8">
               You are now a master of {course.title}!
             </p>
-            
+
             <div className="flex flex-col sm:flex-row items-center justify-center space-y-3 sm:space-y-0 sm:space-x-6">
               <Badge variant="neon" size="lg" glow>
                 <Crown className="w-4 h-4 sm:w-5 sm:h-5 mr-2" />
