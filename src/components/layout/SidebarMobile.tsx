@@ -156,9 +156,6 @@ export function SidebarMobile({ isOpen, onClose }: SidebarMobileProps) {
   const location = useLocation();
   const { isMobile } = useResponsive();
 
-  // Only show on mobile
-  if (!isMobile) return null;
-
   // ✅ Check feature flags (same as desktop sidebar)
   const isSocialEnabled = import.meta.env.VITE_ENABLE_FEATURE_SOCIAL === 'true';
   const isAchievementsEnabled = import.meta.env.VITE_ENABLE_FEATURE_ACHIEVEMENTS === 'true';
@@ -198,6 +195,9 @@ export function SidebarMobile({ isOpen, onClose }: SidebarMobileProps) {
   }, [isSocialEnabled, isAchievementsEnabled, isLeaderboardEnabled]);
 
   const currentPath = useMemo(() => location.pathname, [location.pathname]);
+
+  // Only show on mobile - moved after all hooks
+  if (!isMobile) return null;
 
   return (
     <AnimatePresence>
