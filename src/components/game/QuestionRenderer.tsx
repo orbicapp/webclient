@@ -1,8 +1,9 @@
-import { useState, useEffect } from "react";
-import { Clock, CheckCircle, X, Heart } from "lucide-react";
+import { useState } from "react";
+import { Clock, CheckCircle, X, Heart, Loader2 } from "lucide-react";
 
 import { AnsweredQuestion, QuestionResult } from "@/services/game-service";
 import Badge from "@/components/ui/Badge";
+import Button from "@/components/ui/Button";
 import { QuestionUnion } from "@/services/level-service";
 import { useResponsive } from "@/hooks/use-responsive";
 
@@ -22,6 +23,8 @@ interface QuestionRendererProps {
   isAnswered: boolean;
   answeredQuestion?: AnsweredQuestion;
   questionResult?: QuestionResult | null;
+  selectedAnswer?: unknown;
+  onSubmitAnswer?: () => void;
 }
 
 export function QuestionRenderer({
@@ -32,6 +35,8 @@ export function QuestionRenderer({
   isAnswered,
   answeredQuestion,
   questionResult,
+  selectedAnswer,
+  onSubmitAnswer,
 }: QuestionRendererProps) {
   const [startTime] = useState(Date.now());
   const { isMobile } = useResponsive();
@@ -99,11 +104,38 @@ export function QuestionRenderer({
   };
 
   return (
-    <div className={`space-y-6 ${isMobile ? 'h-full flex flex-col' : ''}`}>
-      {/* Question Content - ✅ Mobile: Take full available space */}
+    <div className={`${isMobile ? 'h-full flex flex-col' : 'space-y-6'}`}>
+      {/* Question Content - ✅ Mobile: Take most of the space */}
       <div className={isMobile ? 'flex-1' : ''}>
         {renderQuestionContent()}
       </div>
+
+      {/* ✅ Submit Button - Inside modal, positioned based on device */}
+      {selectedAnswer !== null && !questionResult && !isAnswered && onSubmitAnswer && (
+        <div className={`${
+          isMobile 
+            ? 'flex-shrink-0 pt-4 border-t border-gray-200 dark:border-gray-700' 
+            : 'mt-8 flex justify-end'
+        }`}>
+          <Button
+            onClick={onSubmitAnswer}
+            disabled={isSubmitting}
+            variant="primary"
+            size={isMobile ? "md" : "lg"}
+            leftIcon={
+              isSubmitting ? (
+                <Loader2 className="w-5 h-5 animate-spin" />
+              ) : (
+                <CheckCircle className="w-5 h-5" />
+              )
+            }
+            className="shadow-lg"
+            fullWidth={isMobile}
+          >
+            {isSubmitting ? "Submitting..." : "Submit Answer"}
+          </Button>
+        </div>
+      )}
     </div>
   );
 }

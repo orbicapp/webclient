@@ -493,7 +493,7 @@ export function GameSessionPage() {
       )}
 
       {/* Game Content - ✅ Mobile fullscreen layout */}
-      <div className={`${isMobile ? 'h-screen flex flex-col' : 'max-w-4xl mx-auto px-4 py-8 pb-32'}`}>
+      <div className={`${isMobile ? 'h-screen flex flex-col' : 'max-w-4xl mx-auto px-4 py-8'}`}>
         {/* ✅ Mobile header - compact version */}
         {isMobile && (
           <div className="flex-shrink-0 bg-black/20 backdrop-blur-xl border-b border-white/10 px-4 py-3">
@@ -575,6 +575,8 @@ export function GameSessionPage() {
                     isAnswered={isCurrentQuestionCompleted}
                     answeredQuestion={undefined}
                     questionResult={questionResult}
+                    selectedAnswer={selectedAnswer}
+                    onSubmitAnswer={handleSubmitAnswer}
                   />
                 </div>
 
@@ -642,6 +644,8 @@ export function GameSessionPage() {
                     isAnswered={isCurrentQuestionCompleted}
                     answeredQuestion={undefined}
                     questionResult={questionResult}
+                    selectedAnswer={selectedAnswer}
+                    onSubmitAnswer={handleSubmitAnswer}
                   />
 
                   {/* ✅ Enhanced Navigation Controls */}
@@ -674,34 +678,6 @@ export function GameSessionPage() {
             )}
           </motion.div>
         </AnimatePresence>
-      </div>
-
-      {/* ✅ Fixed Footer with Submit Button - Responsive */}
-      <div className={`fixed bottom-0 left-0 right-0 z-40 bg-white/95 dark:bg-gray-800/95 backdrop-blur-xl border-t border-white/20 shadow-2xl ${isMobile ? 'pb-safe' : ''}`}>
-        <div className={`${isMobile ? 'px-4 py-3' : 'max-w-4xl mx-auto px-4 py-4'}`}>
-          <div className="flex items-center justify-end">
-            {/* Submit Answer Button - Only show when answer is selected and not yet submitted */}
-            {selectedAnswer !== null && !questionResult && !isCurrentQuestionCompleted && (
-              <Button
-                onClick={handleSubmitAnswer}
-                disabled={isSubmitting}
-                variant="primary"
-                size={isMobile ? "md" : "lg"}
-                leftIcon={
-                  isSubmitting ? (
-                    <Loader2 className="w-5 h-5 animate-spin" />
-                  ) : (
-                    <CheckCircle className="w-5 h-5" />
-                  )
-                }
-                className="shadow-lg"
-                fullWidth={isMobile}
-              >
-                {isSubmitting ? "Submitting..." : "Submit Answer"}
-              </Button>
-            )}
-          </div>
-        </div>
       </div>
 
       {/* Floating Action Button - Only on desktop */}
