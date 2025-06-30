@@ -5,6 +5,7 @@ import { useEffect } from "react";
 
 import { useAuth } from "./hooks/use-auth";
 import { useCurrentGameSession } from "./hooks/use-game";
+import { useEmailVerification } from "./hooks/use-email-verification";
 import { AuthLayout } from "./layouts/AuthLayout";
 import { MainLayout } from "./layouts/MainLayout";
 import { DashboardPage } from "./pages/(app)/DashboardPage";
@@ -18,12 +19,16 @@ import CourseDetailPage from "./pages/(app)/(courses)/CourseDetailPage";
 import { CourseListPage } from "./pages/(app)/(courses)/CourseListPage.tsx";
 import { CreateCoursePage } from "./pages/(app)/(courses)/CreateCoursePage";
 import { GameSessionPage } from "./pages/(app)/(game)/GameSessionPage";
+import { EmailVerificationModal } from "./components/modals/EmailVerificationModal";
 import Button from "./components/ui/Button";
 
 function App() {
   const location = useLocation();
   const navigate = useNavigate();
-  const { initialized, isLoading, error, isConnectionError, retryConnection, isAuthenticated } = useAuth();
+  const { initialized, isLoading, error, isConnectionError, retryConnection, isAuthenticated, user } = useAuth();
+  
+  // ✅ Email verification modal
+  const { shouldShowModal, hideModal, handleVerified } = useEmailVerification();
   
   // ✅ Fetch game session on app initialization
   const [sessionLoading, currentSession] = useCurrentGameSession();
@@ -116,32 +121,42 @@ function App() {
   }
 
   return (
-    <AnimatePresence mode="wait">
-      <Routes location={location} key={location.pathname}>
-        {/* Auth Routes */}
-        <Route element={<AuthLayout />}>
-          <Route path="/login" element={<LoginPage />} />
-          <Route path="/register" element={<RegisterPage />} />
-        </Route>
+    <>
+      <AnimatePresence mode="wait">
+        <Routes location={location} key={location.pathname}>
+          {/* Auth Routes */}
+          <Route element={<AuthLayout />}>
+            <Route path="/login" element={<LoginPage />} />
+            <Route path="/register" element={<RegisterPage />} />
+          </Route>
 
-        {/* Main App Routes */}
-        <Route element={<MainLayout />}>
-          <Route path="/" element={<DashboardPage />} />
-          <Route path="/my-courses" element={<MyCoursesPage />} />
-          <Route path="/profile" element={<ProfilePage />} />
-          <Route path="/courses" element={<CourseListPage />} />
-          <Route path="/courses/create" element={<CreateCoursePage />} />
-          <Route path="/course/:courseId" element={<CourseDetailPage />} />
-          <Route path="/settings" element={<SettingsPage />} />
-        </Route>
+          {/* Main App Routes */}
+          <Route element={<MainLayout />}>
+            <Route path="/" element={<DashboardPage />} />
+            <Route path="/my-courses" element={<MyCoursesPage />} />
+            <Route path="/profile" element={<ProfilePage />} />
+            <Route path="/courses" element={<CourseListPage />} />
+            <Route path="/courses/create" element={<CreateCoursePage />} />
+            <Route path="/course/:courseId" element={<CourseDetailPage />} />
+            <Route path="/settings" element={<SettingsPage />} />
+          </Route>
 
-        {/* Game Session Route (Full Screen) */}
-        <Route path="/game" element={<GameSessionPage />} />
+          {/* Game Session Route (Full Screen) */}
+          <Route path="/game" element={<GameSessionPage />} />
 
-        {/* Catch-all Not Found Route */}
-        <Route path="*" element={<NotFoundPage />} />
-      </Routes>
-    </AnimatePresence>
+          {/* Catch-all Not Found Route */}
+          <Route path="*" element={<NotFoundPage />} />
+        </Routes>
+      </AnimatePresence>
+
+      {/* Email Verification Modal */}
+      <EmailVerificationModal
+        isOpen={shouldShowModal}
+        onClose={hideModal}
+        onVerified={handleVerified}
+        userEmail={user?.email || ""}
+      />
+    </>
   );
 }
 
