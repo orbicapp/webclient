@@ -153,13 +153,13 @@ const GenerationProgress: React.FC<{
   const getStatusText = () => {
     switch (status.status) {
       case "pending":
-        return t("createCourse.generation.status.preparing");
+        return t("createCourse.generate.status.preparing");
       case "completed":
-        return t("createCourse.generation.status.completed");
+        return t("createCourse.generate.status.completed");
       case "failed":
-        return t("createCourse.generation.status.failed");
+        return t("createCourse.generate.status.failed");
       default:
-        return t("createCourse.generation.status.processing");
+        return t("createCourse.generate.status.processing");
     }
   };
 
@@ -231,7 +231,7 @@ const GenerationProgress: React.FC<{
       {(status.status === "pending" || status.status === "processing") && (
         <div className="w-full max-w-md mx-auto">
           <div className="flex justify-between text-sm text-gray-600 dark:text-gray-400 mb-2">
-            <span>{t("createCourse.generation.status.progress")}</span>
+            <span>{t("createCourse.generate.status.progress")}</span>
             <span>{Math.round(status.progress)}%</span>
           </div>
           <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-3">
@@ -294,7 +294,7 @@ const GenerationProgress: React.FC<{
             leftIcon={<ExternalLink className="w-5 h-5" />}
             className="bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700"
           >
-            {t("createCourse.generation.status.goToCourse")}
+            {t("createCourse.generate.status.goToCourse")}
           </Button>
         )}
 
@@ -306,7 +306,7 @@ const GenerationProgress: React.FC<{
             leftIcon={<RefreshCw className="w-5 h-5" />}
             className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
           >
-            {t("createCourse.generation.status.retry")}
+            {t("createCourse.generate.status.retry")}
           </Button>
         )}
       </div>
@@ -563,7 +563,7 @@ export function CreateCoursePage() {
                     <AlertCircle className="w-5 h-5 text-red-600 dark:text-red-400" />
                     <div>
                       <p className="text-red-800 dark:text-red-200 font-medium">
-                        {t("createCourse.generation.error")}
+                        {t("createCourse.generate.error")}
                       </p>
                       <p className="text-red-600 dark:text-red-400 text-sm">
                         {generationError}
