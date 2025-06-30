@@ -7,7 +7,6 @@ import { useCurrentGameSession } from "@/hooks/use-game";
 import { useLevel } from "@/hooks/use-level";
 import { useCourse } from "@/hooks/use-course";
 import { useCourseProgress } from "@/hooks/use-progress";
-import { useResponsive } from "@/hooks/use-responsive";
 import {
   GameService,
   AnsweredQuestion,
@@ -34,7 +33,6 @@ interface QuestionQueueItem {
 
 export function GameSessionPage() {
   const navigate = useNavigate();
-  const { isMobile } = useResponsive();
   const [sessionLoading, currentSession, sessionError] =
     useCurrentGameSession();
   const [levelLoading, level] = useLevel(currentSession?.levelId || "");
@@ -470,178 +468,6 @@ export function GameSessionPage() {
     (item, index) => index > currentQueuePosition && !item.isCompleted
   );
 
-  // ✅ MOBILE: Full screen modal experience - NO PADDING/MARGINS
-  if (isMobile) {
-    return (
-      <div className="fixed inset-0 z-50 bg-gradient-to-br from-indigo-900 via-purple-900 to-pink-900 flex flex-col">
-        {/* ✅ Game Over Screen */}
-        {showGameOver && (
-          <GameOverScreen
-            course={course}
-            level={level}
-            onRetryLevel={handleRetryLevel}
-            onReturnToCourse={handleReturnToCourse}
-          />
-        )}
-
-        {/* ✅ Mobile Header - Integrated in modal, NO PADDING */}
-        <div className="bg-black/20 backdrop-blur-xl border-b border-white/10 flex-shrink-0">
-          <div className="px-4 py-4">
-            <div className="flex items-center justify-between">
-              {/* Course Info */}
-              <div className="flex items-center space-x-3">
-                <button
-                  onClick={handleAbandonSession}
-                  className="p-2 hover:bg-white/10 rounded-lg transition-colors"
-                >
-                  <X className="w-5 h-5 text-white" />
-                </button>
-                <div>
-                  <h1 className="text-lg font-bold text-white">{level.title}</h1>
-                  <p className="text-sm text-gray-300">{course.title}</p>
-                </div>
-              </div>
-
-              {/* Game Stats */}
-              <div className="flex items-center space-x-4">
-                <div className="text-center">
-                  <div className="text-sm font-bold text-white">
-                    {currentSession.lives}
-                  </div>
-                  <div className="text-xs text-gray-300">Lives</div>
-                </div>
-                <div className="text-center">
-                  <div className="text-sm font-bold text-white">
-                    {completedCount}/{totalQuestions}
-                  </div>
-                  <div className="text-xs text-gray-300">Progress</div>
-                </div>
-              </div>
-            </div>
-
-            {/* Progress Bar */}
-            <div className="mt-3">
-              <div className="w-full bg-white/20 rounded-full h-2">
-                <motion.div
-                  className="bg-gradient-to-r from-blue-400 to-purple-500 h-2 rounded-full"
-                  initial={{ width: 0 }}
-                  animate={{ width: `${progressTotal}%` }}
-                  transition={{ duration: 0.5 }}
-                />
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* ✅ Mobile Question Content - Full screen, NO PADDING */}
-        <div className="flex-1 flex flex-col overflow-hidden">
-          <div className="flex-1 overflow-y-auto">
-            <div className="p-4">
-              <AnimatePresence mode="wait">
-                <motion.div
-                  key={`${currentQueuePosition}-${currentQuestionIndex}`}
-                  initial={{ opacity: 0, x: 50 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  exit={{ opacity: 0, x: -50 }}
-                  transition={{ duration: 0.3 }}
-                >
-                  {/* Question Header */}
-                  <div className="text-center mb-6">
-                    <Badge variant="primary" size="lg">
-                      Question {currentQueuePosition + 1} of {totalQuestions}
-                    </Badge>
-                  </div>
-
-                  {/* Error Display */}
-                  {gameError && (
-                    <motion.div
-                      className="mb-6 p-4 bg-red-50 dark:bg-red-900/20 rounded-xl border border-red-200 dark:border-red-800"
-                      initial={{ opacity: 0, y: -10 }}
-                      animate={{ opacity: 1, y: 0 }}
-                    >
-                      <div className="flex items-center space-x-3">
-                        <AlertTriangle className="w-5 h-5 text-red-600 dark:text-red-400" />
-                        <p className="text-red-800 dark:text-red-200">
-                          {gameError}
-                        </p>
-                      </div>
-                    </motion.div>
-                  )}
-
-                  {/* Question Component */}
-                  <div className="bg-white/95 dark:bg-gray-800/95 backdrop-blur-lg border border-white/20 rounded-2xl p-6">
-                    <QuestionRenderer
-                      question={currentQuestion}
-                      questionIndex={currentQuestionIndex}
-                      onAnswer={handleAnswerSelection}
-                      isSubmitting={isSubmitting}
-                      isAnswered={isCurrentQuestionCompleted}
-                      answeredQuestion={undefined}
-                      questionResult={questionResult}
-                    />
-                  </div>
-
-                  {/* ✅ Mobile Navigation */}
-                  <div className="mt-6">
-                    <GameNavigation
-                      currentQuestionIndex={currentQueuePosition}
-                      totalQuestions={totalQuestions}
-                      isCurrentQuestionAnswered={isCurrentQuestionCompleted}
-                      questionResult={questionResult}
-                      hasMoreUnansweredQuestions={hasMoreIncompleteQuestions}
-                      allQuestionsAnswered={allQuestionsCompleted}
-                      answeredCount={completedCount}
-                      onPreviousQuestion={handlePreviousQuestion}
-                      onNextQuestion={() => {
-                        if (currentQueuePosition < totalQuestions - 1) {
-                          setCurrentQueuePosition(currentQueuePosition + 1);
-                          setQuestionResult(null);
-                          setSelectedAnswer(null);
-                        }
-                      }}
-                      onNextUnansweredQuestion={handleNextQuestion}
-                      onFinishLevel={handleFinishLevel}
-                      onReviewMode={() => {
-                        setCurrentQueuePosition(0);
-                        setQuestionResult(null);
-                        setSelectedAnswer(null);
-                      }}
-                    />
-                  </div>
-                </motion.div>
-              </AnimatePresence>
-            </div>
-          </div>
-
-          {/* ✅ Mobile Footer with Submit Button - NO PADDING/MARGINS */}
-          <div className="bg-white/95 dark:bg-gray-800/95 backdrop-blur-xl border-t border-white/20 p-4 flex-shrink-0">
-            <div className="flex justify-end">
-              {selectedAnswer !== null && !questionResult && !isCurrentQuestionCompleted && (
-                <Button
-                  onClick={handleSubmitAnswer}
-                  disabled={isSubmitting}
-                  variant="primary"
-                  size="lg"
-                  leftIcon={
-                    isSubmitting ? (
-                      <Loader2 className="w-5 h-5 animate-spin" />
-                    ) : (
-                      <CheckCircle className="w-5 h-5" />
-                    )
-                  }
-                  className="shadow-lg w-full"
-                >
-                  {isSubmitting ? "Submitting..." : "Submit Answer"}
-                </Button>
-              )}
-            </div>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  // ✅ DESKTOP: Original layout
   return (
     <div className="min-h-screen bg-gradient-to-br from-indigo-900 via-purple-900 to-pink-900">
       {/* ✅ Game Over Screen */}
@@ -704,11 +530,11 @@ export function GameSessionPage() {
                   onAnswer={handleAnswerSelection}
                   isSubmitting={isSubmitting}
                   isAnswered={isCurrentQuestionCompleted}
-                  answeredQuestion={undefined}
+                  answeredQuestion={undefined} // ✅ Don't pass answered question for retry logic
                   questionResult={questionResult}
                 />
 
-                {/* ✅ Desktop Navigation Controls */}
+                {/* ✅ NEW: Enhanced Navigation Controls */}
                 <GameNavigation
                   currentQuestionIndex={currentQueuePosition}
                   totalQuestions={totalQuestions}
@@ -739,7 +565,7 @@ export function GameSessionPage() {
         </AnimatePresence>
       </div>
 
-      {/* ✅ Desktop: Fixed Footer with Submit Button */}
+      {/* ✅ NEW: Fixed Footer with Submit Button */}
       <div className="fixed bottom-0 left-0 right-0 z-40 bg-white/95 dark:bg-gray-800/95 backdrop-blur-xl border-t border-white/20 shadow-2xl">
         <div className="max-w-4xl mx-auto px-4 py-4">
           <div className="flex items-center justify-end">
