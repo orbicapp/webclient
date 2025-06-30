@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { 
   Upload, 
@@ -12,8 +12,12 @@ import {
   X,
   Check,
   AlertCircle,
-  Loader2
+  Loader2,
+  CheckCircle,
+  ExternalLink,
+  RefreshCw
 } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 import { ViewContainer } from "@/components/layout/ViewContainer";
 import { Card, CardContent } from "@/components/ui/Card";
@@ -22,7 +26,7 @@ import Input from "@/components/ui/Input";
 import Button from "@/components/ui/Button";
 import Dropdown, { DropdownOption } from "@/components/ui/Dropdown";
 import { CourseCategory } from "@/services/course-service";
-import { AIService, GenerateCourseFromFileInput, GenerateCourseFromTextInput } from "@/services/ai-service";
+import { AIService, GenerateCourseFromFileInput, GenerateCourseFromTextInput, CourseGenerationStatus } from "@/services/ai-service";
 import { FileUploadClient } from "@/lib/utils/file-upload.utils";
 
 // Course categories with icons and descriptions
@@ -56,7 +60,216 @@ interface CourseFormData {
   language: string;
 }
 
+// Progress component for generation status
+const GenerationProgress: React.FC<{
+  status: CourseGenerationStatus;
+  onGoToCourse: (courseId: string) => void;
+  onRetry: () => void;
+}> = ({ status, onGoToCourse, onRetry }) => {
+  const getStatusIcon = () => {
+    switch (status.status) {
+      case "pending":
+        return <Loader2 className="w-8 h-8 animate-spin text-blue-500" />;
+      case "processing":
+        return <Loader2 className="w-8 h-8 animate-spin text-purple-500" />;
+      case "completed":
+        return <CheckCircle className="w-8 h-8 text-green-500" />;
+      case "failed":
+        return <AlertCircle className="w-8 h-8 text-red-500" />;
+      default:
+        return <Loader2 className="w-8 h-8 animate-spin text-gray-500" />;
+    }
+  };
+
+  const getStatusColor = () => {
+    switch (status.status) {
+      case "pending":
+        return "from-blue-500 to-indigo-600";
+      case "processing":
+        return "from-purple-500 to-pink-600";
+      case "completed":
+        return "from-green-500 to-emerald-600";
+      case "failed":
+        return "from-red-500 to-pink-600";
+      default:
+        return "from-gray-500 to-gray-600";
+    }
+  };
+
+  const getStatusText = () => {
+    switch (status.status) {
+      case "pending":
+        return "Preparando generación...";
+      case "processing":
+        return "Generando curso con IA...";
+      case "completed":
+        return "¡Curso generado exitosamente!";
+      case "failed":
+        return "Error en la generación";
+      default:
+        return "Procesando...";
+    }
+  };
+
+  return (
+    <motion.div
+      className="text-center space-y-6"
+      initial={{ opacity: 0, scale: 0.9 }}
+      animate={{ opacity: 1, scale: 1 }}
+      transition={{ duration: 0.5 }}
+    >
+      {/* Status Icon */}
+      <motion.div
+        className="relative mx-auto"
+        animate={status.status === "processing" ? {
+          scale: [1, 1.1, 1],
+          rotate: [0, 5, -5, 0]
+        } : {}}
+        transition={{ duration: 2, repeat: Infinity }}
+      >
+        <div className={`w-24 h-24 bg-gradient-to-br ${getStatusColor()} rounded-3xl flex items-center justify-center mx-auto shadow-2xl`}>
+          {getStatusIcon()}
+        </div>
+        
+        {/* Floating sparkles for processing */}
+        {status.status === "processing" && (
+          <>
+            {[...Array(6)].map((_, i) => (
+              <motion.div
+                key={i}
+                className="absolute w-2 h-2 bg-yellow-400 rounded-full"
+                style={{
+                  left: `${20 + Math.cos(i * 60 * Math.PI / 180) * 50}px`,
+                  top: `${20 + Math.sin(i * 60 * Math.PI / 180) * 50}px`,
+                }}
+                animate={{
+                  scale: [0, 1, 0],
+                  opacity: [0, 1, 0],
+                }}
+                transition={{
+                  duration: 2,
+                  repeat: Infinity,
+                  delay: i * 0.3,
+                }}
+              />
+            ))}
+          </>
+        )}
+      </motion.div>
+
+      {/* Status Text */}
+      <div>
+        <h3 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-2">
+          {getStatusText()}
+        </h3>
+        {status.message && (
+          <p className="text-gray-600 dark:text-gray-400 mb-4">
+            {status.message}
+          </p>
+        )}
+      </div>
+
+      {/* Progress Bar */}
+      {(status.status === "pending" || status.status === "processing") && (
+        <div className="w-full max-w-md mx-auto">
+          <div className="flex justify-between text-sm text-gray-600 dark:text-gray-400 mb-2">
+            <span>Progreso</span>
+            <span>{Math.round(status.progress)}%</span>
+          </div>
+          <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-3">
+            <motion.div
+              className={`bg-gradient-to-r ${getStatusColor()} h-3 rounded-full transition-all duration-500`}
+              initial={{ width: 0 }}
+              animate={{ width: `${status.progress}%` }}
+            />
+          </div>
+        </div>
+      )}
+
+      {/* Course Info */}
+      {status.title && (
+        <div className="p-4 bg-gray-50 dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 max-w-md mx-auto">
+          <h4 className="font-semibold text-gray-900 dark:text-gray-100 mb-2">
+            {status.title}
+          </h4>
+          {status.description && (
+            <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">
+              {status.description}
+            </p>
+          )}
+          <div className="flex items-center justify-center space-x-4 text-xs text-gray-500 dark:text-gray-400">
+            <span className="capitalize">{status.category}</span>
+            <span>•</span>
+            <span>{status.lang.toUpperCase()}</span>
+          </div>
+        </div>
+      )}
+
+      {/* Error Message */}
+      {status.status === "failed" && status.error && (
+        <motion.div
+          className="p-4 bg-red-50 dark:bg-red-900/20 rounded-xl border border-red-200 dark:border-red-800 max-w-md mx-auto"
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+        >
+          <div className="flex items-center space-x-3">
+            <AlertCircle className="w-5 h-5 text-red-600 dark:text-red-400" />
+            <div>
+              <p className="text-red-800 dark:text-red-200 font-medium mb-1">
+                Error en la generación
+              </p>
+              <p className="text-red-600 dark:text-red-400 text-sm">
+                {status.error}
+              </p>
+            </div>
+          </div>
+        </motion.div>
+      )}
+
+      {/* Action Buttons */}
+      <div className="flex flex-col sm:flex-row gap-3 justify-center max-w-md mx-auto">
+        {status.status === "completed" && status.courseId && (
+          <Button
+            onClick={() => onGoToCourse(status.courseId!)}
+            variant="primary"
+            size="lg"
+            leftIcon={<ExternalLink className="w-5 h-5" />}
+            className="bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700"
+          >
+            Ver Curso Generado
+          </Button>
+        )}
+
+        {status.status === "failed" && (
+          <Button
+            onClick={onRetry}
+            variant="primary"
+            size="lg"
+            leftIcon={<RefreshCw className="w-5 h-5" />}
+            className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
+          >
+            Intentar de Nuevo
+          </Button>
+        )}
+      </div>
+
+      {/* Timestamps */}
+      {(status.createdAt || status.completedAt) && (
+        <div className="text-xs text-gray-500 dark:text-gray-400 space-y-1">
+          {status.createdAt && (
+            <div>Iniciado: {new Date(status.createdAt).toLocaleString()}</div>
+          )}
+          {status.completedAt && (
+            <div>Completado: {new Date(status.completedAt).toLocaleString()}</div>
+          )}
+        </div>
+      )}
+    </motion.div>
+  );
+};
+
 export function CreateCoursePage() {
+  const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState("document");
   const [formData, setFormData] = useState<CourseFormData>({
     title: "",
@@ -66,11 +279,68 @@ export function CreateCoursePage() {
   const [textContent, setTextContent] = useState("");
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [isGenerating, setIsGenerating] = useState(false);
-  const [generationStatus, setGenerationStatus] = useState<string>("");
+  const [generationJobId, setGenerationJobId] = useState<string | null>(null);
+  const [generationStatus, setGenerationStatus] = useState<CourseGenerationStatus | null>(null);
+  const [generationError, setGenerationError] = useState<string | null>(null);
   
   const fileInputRef = useRef<HTMLInputElement>(null);
   const cameraInputRef = useRef<HTMLInputElement>(null);
   const uploadClient = new FileUploadClient();
+  const pollingIntervalRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Polling function to check generation status
+  const pollGenerationStatus = async (jobId: string) => {
+    try {
+      const [status, error] = await AIService.getCourseGenerationStatus(jobId);
+      
+      if (error) {
+        console.error("Error polling generation status:", error);
+        setGenerationError(error);
+        stopPolling();
+        return;
+      }
+
+      if (status) {
+        setGenerationStatus(status);
+        
+        // Stop polling if generation is complete or failed
+        if (status.status === "completed" || status.status === "failed") {
+          stopPolling();
+          setIsGenerating(false);
+        }
+      }
+    } catch (err) {
+      console.error("Error in polling:", err);
+      setGenerationError(err instanceof Error ? err.message : "Error checking status");
+      stopPolling();
+    }
+  };
+
+  // Start polling
+  const startPolling = (jobId: string) => {
+    // Initial call
+    pollGenerationStatus(jobId);
+    
+    // Set up interval for every 3 seconds
+    pollingIntervalRef.current = setInterval(() => {
+      pollGenerationStatus(jobId);
+    }, 3000);
+  };
+
+  // Stop polling
+  const stopPolling = () => {
+    if (pollingIntervalRef.current) {
+      clearInterval(pollingIntervalRef.current);
+      pollingIntervalRef.current = null;
+    }
+  };
+
+  // Cleanup on unmount
+  useEffect(() => {
+    return () => {
+      stopPolling();
+    };
+  }, []);
 
   const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -87,16 +357,25 @@ export function CreateCoursePage() {
     }
   };
 
+  const resetGenerationState = () => {
+    setGenerationJobId(null);
+    setGenerationStatus(null);
+    setGenerationError(null);
+    setIsGenerating(false);
+    stopPolling();
+  };
+
   const handleGenerate = async () => {
     setIsGenerating(true);
-    setGenerationStatus("Preparing your course...");
+    setGenerationError(null);
+    resetGenerationState();
 
     try {
       let jobId: string;
 
       if (activeTab === "text") {
         if (!textContent.trim()) {
-          throw new Error("Please enter some content to generate a course from");
+          throw new Error("Por favor ingresa contenido para generar un curso");
         }
 
         const input: GenerateCourseFromTextInput = {
@@ -108,25 +387,21 @@ export function CreateCoursePage() {
 
         const [result, error] = await AIService.generateCourseFromText(input);
         if (error || !result) {
-          throw new Error(error || "Failed to start course generation");
+          throw new Error(error || "Error al iniciar la generación del curso");
         }
         jobId = result;
       } else {
         // Document or camera
         if (!selectedFile) {
-          throw new Error("Please select a file or take a photo");
+          throw new Error("Por favor selecciona un archivo o toma una foto");
         }
 
-        setGenerationStatus("Uploading file...");
-        
         // Upload file first
         const uploadedFile = await uploadClient.upload(selectedFile, {
           onProgress: (progress) => {
-            setGenerationStatus(`Uploading... ${progress.percentage}%`);
+            console.log(`Uploading... ${progress.percentage}%`);
           },
         });
-
-        setGenerationStatus("Processing with AI...");
 
         const input: GenerateCourseFromFileInput = {
           fileId: uploadedFile._id,
@@ -137,23 +412,28 @@ export function CreateCoursePage() {
 
         const [result, error] = await AIService.generateCourseFromfile(input);
         if (error || !result) {
-          throw new Error(error || "Failed to start course generation");
+          throw new Error(error || "Error al iniciar la generación del curso");
         }
         jobId = result;
       }
 
-      setGenerationStatus("AI is creating your course...");
-      
-      // TODO: Navigate to generation status page or show progress
-      console.log("Course generation started with job ID:", jobId);
+      // Start polling for status updates
+      setGenerationJobId(jobId);
+      startPolling(jobId);
       
     } catch (error) {
       console.error("Generation failed:", error);
-      setGenerationStatus("");
-      // TODO: Show error message
-    } finally {
+      setGenerationError(error instanceof Error ? error.message : "Error desconocido");
       setIsGenerating(false);
     }
+  };
+
+  const handleGoToCourse = (courseId: string) => {
+    navigate(`/course/${courseId}`);
+  };
+
+  const handleRetry = () => {
+    resetGenerationState();
   };
 
   const canGenerate = () => {
@@ -162,6 +442,73 @@ export function CreateCoursePage() {
     }
     return selectedFile !== null;
   };
+
+  // Show generation progress if we have a job ID or status
+  if (generationJobId || generationStatus) {
+    return (
+      <ViewContainer className="py-8">
+        <div className="max-w-2xl mx-auto">
+          <Card variant="glass" className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-xl border-2 border-gray-200/50 dark:border-gray-700/50">
+            <CardContent>
+              {generationStatus ? (
+                <GenerationProgress
+                  status={generationStatus}
+                  onGoToCourse={handleGoToCourse}
+                  onRetry={handleRetry}
+                />
+              ) : (
+                <div className="text-center py-12">
+                  <motion.div
+                    className="w-16 h-16 bg-gradient-to-br from-purple-500 to-pink-500 rounded-2xl flex items-center justify-center mx-auto mb-6"
+                    animate={{ rotate: 360 }}
+                    transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
+                  >
+                    <Loader2 className="w-8 h-8 text-white" />
+                  </motion.div>
+                  <h3 className="text-xl font-bold text-gray-900 dark:text-gray-100 mb-2">
+                    Iniciando generación...
+                  </h3>
+                  <p className="text-gray-600 dark:text-gray-400">
+                    Preparando tu curso con IA
+                  </p>
+                </div>
+              )}
+
+              {generationError && (
+                <motion.div
+                  className="mt-6 p-4 bg-red-50 dark:bg-red-900/20 rounded-xl border border-red-200 dark:border-red-800"
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                >
+                  <div className="flex items-center space-x-3">
+                    <AlertCircle className="w-5 h-5 text-red-600 dark:text-red-400" />
+                    <div>
+                      <p className="text-red-800 dark:text-red-200 font-medium">
+                        Error en la generación
+                      </p>
+                      <p className="text-red-600 dark:text-red-400 text-sm">
+                        {generationError}
+                      </p>
+                    </div>
+                  </div>
+                  <div className="mt-4">
+                    <Button
+                      onClick={handleRetry}
+                      variant="outline"
+                      size="sm"
+                      leftIcon={<RefreshCw className="w-4 h-4" />}
+                    >
+                      Intentar de Nuevo
+                    </Button>
+                  </div>
+                </motion.div>
+              )}
+            </CardContent>
+          </Card>
+        </div>
+      </ViewContainer>
+    );
+  }
 
   return (
     <ViewContainer className="py-8">
@@ -211,10 +558,10 @@ export function CreateCoursePage() {
         </div>
 
         <h1 className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-purple-600 via-pink-600 to-orange-600 bg-clip-text text-transparent mb-4">
-          Create with AI
+          Crear con IA
         </h1>
         <p className="text-xl text-gray-600 dark:text-gray-300 max-w-2xl mx-auto leading-relaxed">
-          Transform your knowledge into an interactive course. Upload a document, capture content, or write your ideas.
+          Transforma tu conocimiento en un curso interactivo. Sube un documento, captura contenido o escribe tus ideas.
         </p>
       </motion.div>
 
@@ -231,8 +578,8 @@ export function CreateCoursePage() {
                 {/* Course Title */}
                 <div className="md:col-span-1">
                   <Input
-                    label="Course Title"
-                    placeholder="Auto-generated if empty"
+                    label="Título del Curso"
+                    placeholder="Se genera automáticamente si está vacío"
                     value={formData.title}
                     onChange={(e) => setFormData(prev => ({ ...prev, title: e.target.value }))}
                     leftIcon={<BookOpen className="w-5 h-5" />}
@@ -243,23 +590,23 @@ export function CreateCoursePage() {
                 {/* Category Dropdown */}
                 <div>
                   <Dropdown
-                    label="Category"
-                    placeholder="Auto-generated if empty"
+                    label="Categoría"
+                    placeholder="Se genera automáticamente si está vacío"
                     value={formData.category}
                     options={courseCategories}
                     onChange={(value) => setFormData(prev => ({ ...prev, category: value as CourseCategory }))}
                     variant="glass"
                     showClearOption
-                    clearOptionLabel="Auto-generate"
+                    clearOptionLabel="Auto-generar"
                     clearOptionIcon="✨"
-                    clearOptionDescription="Let AI choose the best category"
+                    clearOptionDescription="Deja que la IA elija la mejor categoría"
                   />
                 </div>
 
                 {/* Language Dropdown */}
                 <div>
                   <Dropdown
-                    label="Language"
+                    label="Idioma"
                     value={formData.language}
                     options={languages}
                     onChange={(value) => setFormData(prev => ({ ...prev, language: value }))}
@@ -283,15 +630,15 @@ export function CreateCoursePage() {
                 <TabsListGrid columns={3} className="mb-8">
                   <TabsTrigger value="document">
                     <Upload className="w-4 h-4" />
-                    <span>Document</span>
+                    <span>Documento</span>
                   </TabsTrigger>
                   <TabsTrigger value="camera">
                     <Camera className="w-4 h-4" />
-                    <span>Photo</span>
+                    <span>Foto</span>
                   </TabsTrigger>
                   <TabsTrigger value="text">
                     <FileText className="w-4 h-4" />
-                    <span>Text</span>
+                    <span>Texto</span>
                   </TabsTrigger>
                 </TabsListGrid>
 
@@ -316,10 +663,10 @@ export function CreateCoursePage() {
                       >
                         <Upload className="w-16 h-16 text-purple-500 mx-auto mb-4" />
                         <h3 className="text-xl font-bold text-gray-900 dark:text-gray-100 mb-2">
-                          Upload Document
+                          Subir Documento
                         </h3>
                         <p className="text-gray-600 dark:text-gray-400">
-                          PDF, Word, Text, or Markdown files
+                          Archivos PDF, Word, Texto o Markdown
                         </p>
                       </button>
                     </motion.div>
@@ -376,10 +723,10 @@ export function CreateCoursePage() {
                       >
                         <Camera className="w-16 h-16 text-blue-500 mx-auto mb-4" />
                         <h3 className="text-xl font-bold text-gray-900 dark:text-gray-100 mb-2">
-                          Take Photo
+                          Tomar Foto
                         </h3>
                         <p className="text-gray-600 dark:text-gray-400">
-                          Capture notes, whiteboards, or documents
+                          Captura notas, pizarras o documentos
                         </p>
                       </button>
                     </motion.div>
@@ -396,7 +743,7 @@ export function CreateCoursePage() {
                               <Camera className="w-5 h-5 text-white" />
                             </div>
                             <div>
-                              <div className="font-medium text-blue-900 dark:text-blue-100">Photo captured</div>
+                              <div className="font-medium text-blue-900 dark:text-blue-100">Foto capturada</div>
                               <div className="text-sm text-blue-600 dark:text-blue-400">
                                 {(selectedFile.size / 1024 / 1024).toFixed(2)} MB
                               </div>
@@ -418,22 +765,22 @@ export function CreateCoursePage() {
                 <TabsContent value="text" className="space-y-6">
                   <div>
                     <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">
-                      Course Content
+                      Contenido del Curso
                     </label>
                     <textarea
                       value={textContent}
                       onChange={(e) => setTextContent(e.target.value)}
-                      placeholder="Write your course content here... Share your knowledge, explain concepts, provide examples, and create engaging learning material."
+                      placeholder="Escribe el contenido de tu curso aquí... Comparte tu conocimiento, explica conceptos, proporciona ejemplos y crea material de aprendizaje atractivo."
                       className="w-full h-64 px-4 py-3 bg-white/80 dark:bg-gray-800/80 backdrop-blur-lg border-2 border-gray-200/50 dark:border-gray-700/50 rounded-2xl focus:border-purple-400 dark:focus:border-purple-500 focus:outline-none focus:ring-0 transition-all duration-200 resize-none text-gray-900 dark:text-gray-100 placeholder:text-gray-500 dark:placeholder:text-gray-400"
                     />
                     <div className="flex justify-between items-center mt-2">
                       <div className="text-sm text-gray-500 dark:text-gray-400">
-                        {textContent.length} characters
+                        {textContent.length} caracteres
                       </div>
                       {textContent.length > 100 && (
                         <div className="flex items-center space-x-1 text-green-600 dark:text-green-400">
                           <Check className="w-4 h-4" />
-                          <span className="text-sm">Good length for AI processing</span>
+                          <span className="text-sm">Buena longitud para procesamiento con IA</span>
                         </div>
                       )}
                     </div>
@@ -450,31 +797,16 @@ export function CreateCoursePage() {
                   className="px-12 py-4 bg-gradient-to-r from-purple-600 via-pink-600 to-orange-600 hover:from-purple-700 hover:via-pink-700 hover:to-orange-700 text-white font-bold text-lg rounded-2xl shadow-2xl shadow-purple-500/25 hover:shadow-purple-500/40 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
                   leftIcon={isGenerating ? <Loader2 className="w-6 h-6 animate-spin" /> : <Sparkles className="w-6 h-6" />}
                 >
-                  {isGenerating ? "Creating Course..." : "Generate Course with AI"}
+                  {isGenerating ? "Generando Curso..." : "Generar Curso con IA"}
                 </Button>
-
-                {generationStatus && (
-                  <motion.div
-                    className="mt-4 p-4 bg-purple-50 dark:bg-purple-900/20 rounded-2xl border border-purple-200 dark:border-purple-800"
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                  >
-                    <div className="flex items-center justify-center space-x-2">
-                      <Loader2 className="w-5 h-5 text-purple-600 animate-spin" />
-                      <span className="text-purple-900 dark:text-purple-100 font-medium">
-                        {generationStatus}
-                      </span>
-                    </div>
-                  </motion.div>
-                )}
 
                 {!canGenerate() && !isGenerating && (
                   <div className="mt-4 flex items-center justify-center space-x-2 text-gray-500 dark:text-gray-400">
                     <AlertCircle className="w-4 h-4" />
                     <span className="text-sm">
                       {activeTab === "text" 
-                        ? "Please enter some content to generate a course" 
-                        : "Please upload a file or take a photo"}
+                        ? "Por favor ingresa contenido para generar un curso" 
+                        : "Por favor sube un archivo o toma una foto"}
                     </span>
                   </div>
                 )}
@@ -493,18 +825,18 @@ export function CreateCoursePage() {
           {[
             {
               icon: <Zap className="w-8 h-8" />,
-              title: "Smart Processing",
-              description: "AI analyzes your content and creates structured lessons automatically"
+              title: "Procesamiento Inteligente",
+              description: "La IA analiza tu contenido y crea lecciones estructuradas automáticamente"
             },
             {
               icon: <BookOpen className="w-8 h-8" />,
-              title: "Interactive Content",
-              description: "Generates quizzes, exercises, and engaging learning activities"
+              title: "Contenido Interactivo",
+              description: "Genera cuestionarios, ejercicios y actividades de aprendizaje atractivas"
             },
             {
               icon: <Globe className="w-8 h-8" />,
-              title: "Multi-language",
-              description: "Create courses in multiple languages with automatic translation"
+              title: "Multi-idioma",
+              description: "Crea cursos en múltiples idiomas con traducción automática"
             }
           ].map((feature, index) => (
             <motion.div
