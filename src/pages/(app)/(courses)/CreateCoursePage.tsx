@@ -39,6 +39,7 @@ import {
 } from "@/services/ai-service";
 import { FileUploadClient } from "@/lib/utils/file-upload.utils";
 import { useI18n } from "@/hooks/use-i18n";
+import { useAuth } from "@/hooks/use-auth";
 
 // Course categories with icons and descriptions
 const courseCategories: DropdownOption[] = [
@@ -338,6 +339,7 @@ const GenerationProgress: React.FC<{
 
 export function CreateCoursePage() {
   const { t } = useI18n();
+  const { user } = useAuth();
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState("document");
   const [formData, setFormData] = useState<CourseFormData>({
@@ -510,6 +512,8 @@ export function CreateCoursePage() {
   };
 
   const canGenerate = () => {
+    if (!user?.isEmailVerified) return false;
+
     if (activeTab === "text") {
       return textContent.trim().length > 0;
     }
@@ -641,7 +645,7 @@ export function CreateCoursePage() {
           {t("createCourse.title")}
         </h1>
         <p className="text-xl text-gray-600 dark:text-gray-300 max-w-2xl mx-auto leading-relaxed">
-          {t("createCourse.description")}
+          {t("createCourse.subtitle")}
         </p>
       </motion.div>
 
@@ -923,7 +927,9 @@ export function CreateCoursePage() {
                     )
                   }
                 >
-                  {isGenerating
+                  {!user?.isEmailVerified
+                    ? t("createCourse.generate.verify")
+                    : isGenerating
                     ? t("createCourse.generate.generating")
                     : t("createCourse.generate.button")}
                 </Button>

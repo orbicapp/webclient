@@ -7,17 +7,17 @@ import { SearchInput } from "@/components/layout/SearchInput";
 import { useCourseSearch } from "@/hooks/use-course";
 import { useSearchParamsState } from "@/hooks/use-search-params";
 import { Course } from "@/services/course-service";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/Card";
+import { Card, CardContent } from "@/components/ui/Card";
 import Button from "@/components/ui/Button";
 import CourseCard from "@/components/ui/CourseCard";
 
 export function CourseListPage() {
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
   const { getParam } = useSearchParamsState();
-  
+
   // ✅ Get search from URL params directly
-  const searchQuery = getParam('search');
-  
+  const searchQuery = getParam("search");
+
   // ✅ Use the search hook with URL search
   const [loading, results, error] = useCourseSearch("courses", {
     enabled: true,
@@ -47,7 +47,10 @@ export function CourseListPage() {
               <div className="h-12 bg-gray-200 dark:bg-gray-700 rounded-xl mb-4"></div>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {[1, 2, 3, 4, 5, 6].map((i) => (
-                  <div key={i} className="h-64 bg-gray-200 dark:bg-gray-700 rounded-2xl"></div>
+                  <div
+                    key={i}
+                    className="h-64 bg-gray-200 dark:bg-gray-700 rounded-2xl"
+                  ></div>
                 ))}
               </div>
             </div>
@@ -66,9 +69,7 @@ export function CourseListPage() {
               <h1 className="text-2xl font-bold text-error-600 dark:text-error-400 mb-4">
                 Error Loading Courses
               </h1>
-              <p className="text-gray-600 dark:text-gray-400">
-                {error}
-              </p>
+              <p className="text-gray-600 dark:text-gray-400">{error}</p>
             </div>
           </CardContent>
         </Card>
@@ -106,13 +107,13 @@ export function CourseListPage() {
                 className="w-full"
               />
             </div>
-            
+
             <div className="flex items-center space-x-2">
               <Button variant="outline" size="sm">
                 <Filter className="w-4 h-4 mr-2" />
                 Filters
               </Button>
-              
+
               <div className="flex bg-gray-100 dark:bg-gray-800 rounded-lg p-1">
                 <button
                   onClick={() => setViewMode("grid")}
@@ -156,18 +157,17 @@ export function CourseListPage() {
           {results ? (
             <>
               Showing {courses.length} of {results.total} courses
-              {searchQuery && (
-                <span> for "{searchQuery}"</span>
-              )}
+              {searchQuery && <span> for "{searchQuery}"</span>}
             </>
           ) : (
             "Loading courses..."
           )}
         </div>
-        
+
         {results?.hasMore && (
           <div className="text-sm text-gray-500 dark:text-gray-400">
-            {results.limit} per page • {results.offset + courses.length} of {results.total}
+            {results.limit} per page • {results.offset + courses.length} of{" "}
+            {results.total}
           </div>
         )}
       </div>
@@ -184,20 +184,21 @@ export function CourseListPage() {
                 No courses found
               </h3>
               <p className="text-gray-500 dark:text-gray-400">
-                {searchQuery 
+                {searchQuery
                   ? `No courses match "${searchQuery}". Try adjusting your search.`
-                  : "No courses available at the moment."
-                }
+                  : "No courses available at the moment."}
               </p>
             </div>
           </CardContent>
         </Card>
       ) : (
-        <div className={`grid gap-6 ${
-          viewMode === "grid" 
-            ? "grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4" 
-            : "grid-cols-1"
-        }`}>
+        <div
+          className={`grid gap-6 ${
+            viewMode === "grid"
+              ? "grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"
+              : "grid-cols-1"
+          }`}
+        >
           {courses.map((course: Course, index) => (
             <motion.div
               key={course._id}
@@ -205,8 +206,8 @@ export function CourseListPage() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: index * 0.1 }}
             >
-              <CourseCard 
-                course={course} 
+              <CourseCard
+                course={course}
                 variant={viewMode === "list" ? "compact" : "default"}
               />
             </motion.div>

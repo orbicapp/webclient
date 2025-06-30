@@ -49,7 +49,8 @@
       "requirements": {
         "text": "Por favor ingresa contenido para generar un curso",
         "file": "Por favor selecciona un archivo o toma una foto"
-      }
+      },
+      "verify": "Verifica tu correo para generar tu curso"
     },
     "generation": {
       "status": {
