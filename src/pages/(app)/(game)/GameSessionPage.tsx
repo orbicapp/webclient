@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { X, AlertTriangle, Loader2 } from "lucide-react";
+import { X, AlertTriangle, Loader2, CheckCircle } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
 import { useCurrentGameSession } from "@/hooks/use-game";
@@ -55,6 +55,9 @@ export function GameSessionPage() {
     null
   );
 
+  // ✅ NEW: Selected answer state for submit button
+  const [selectedAnswer, setSelectedAnswer] = useState<unknown>(null);
+
   // ✅ NEW: Game Over state
   const [showGameOver, setShowGameOver] = useState(false);
 
@@ -91,6 +94,7 @@ export function GameSessionPage() {
   // Clear question result when changing questions
   useEffect(() => {
     setQuestionResult(null);
+    setSelectedAnswer(null);
   }, [currentQueuePosition]);
 
   // ✅ NEW: Check for game over when lives reach 0
@@ -122,8 +126,14 @@ export function GameSessionPage() {
     return currentItem?.originalIndex || 0;
   };
 
-  const handleAnswer = async (answer: unknown) => {
-    if (!currentSession || !level || !level.questions || isSubmitting) return;
+  // ✅ NEW: Handle answer selection (not submission)
+  const handleAnswerSelection = (answer: unknown) => {
+    setSelectedAnswer(answer);
+  };
+
+  // ✅ NEW: Handle answer submission
+  const handleSubmitAnswer = async () => {
+    if (!currentSession || !level || !level.questions || isSubmitting || selectedAnswer === null) return;
 
     const currentQuestionIndex = getCurrentQuestionIndex();
     
@@ -143,19 +153,19 @@ export function GameSessionPage() {
 
       switch (question.type) {
         case "MULTIPLE_CHOICE":
-          answerPayload.selectedOptionIndex = answer as number;
+          answerPayload.selectedOptionIndex = selectedAnswer as number;
           break;
         case "TRUE_FALSE":
-          answerPayload.booleanAnswer = answer as boolean;
+          answerPayload.booleanAnswer = selectedAnswer as boolean;
           break;
         case "FREE_CHOICE":
-          answerPayload.freeAnswer = answer as string;
+          answerPayload.freeAnswer = selectedAnswer as string;
           break;
         case "SEQUENCE":
-          answerPayload.sequenceOrder = answer as string[];
+          answerPayload.sequenceOrder = selectedAnswer as string[];
           break;
         case "PAIRS":
-          answerPayload.pairMatches = answer as string[];
+          answerPayload.pairMatches = selectedAnswer as string[];
           break;
       }
 
@@ -191,7 +201,7 @@ export function GameSessionPage() {
       const newAnsweredQuestion: AnsweredQuestion = {
         questionIndex: currentQuestionIndex,
         isCorrect: result.isCorrect,
-        userAnswer: answer,
+        userAnswer: selectedAnswer,
         timeSpent,
       };
 
@@ -238,6 +248,7 @@ export function GameSessionPage() {
       
       // Stay at same position (which now has a different question)
       setQuestionResult(null);
+      setSelectedAnswer(null);
       return;
     }
 
@@ -249,6 +260,7 @@ export function GameSessionPage() {
     if (nextIncompleteIndex >= 0) {
       setCurrentQueuePosition(nextIncompleteIndex);
       setQuestionResult(null);
+      setSelectedAnswer(null);
     } else {
       // ✅ All questions completed - finish level
       handleFinishLevel();
@@ -259,6 +271,7 @@ export function GameSessionPage() {
     if (currentQueuePosition > 0) {
       setCurrentQueuePosition(currentQueuePosition - 1);
       setQuestionResult(null);
+      setSelectedAnswer(null);
     }
   };
 
@@ -266,6 +279,7 @@ export function GameSessionPage() {
     if (queuePosition >= 0 && queuePosition < questionQueue.length) {
       setCurrentQueuePosition(queuePosition);
       setQuestionResult(null);
+      setSelectedAnswer(null);
     }
   };
 
@@ -326,6 +340,7 @@ export function GameSessionPage() {
       setCurrentQueuePosition(0);
       setQuestionQueue([]);
       setQuestionResult(null);
+      setSelectedAnswer(null);
       setGameError(null);
     } catch (err) {
       setGameError(
@@ -474,7 +489,7 @@ export function GameSessionPage() {
       />
 
       {/* Game Content */}
-      <div className="max-w-4xl mx-auto px-4 py-8">
+      <div className="max-w-4xl mx-auto px-4 py-8 pb-32">
         <AnimatePresence mode="wait">
           <motion.div
             key={`${currentQueuePosition}-${currentQuestionIndex}`}
@@ -485,7 +500,7 @@ export function GameSessionPage() {
           >
             <Card className="bg-white/95 dark:bg-gray-800/95 backdrop-blur-lg border border-white/20">
               <CardContent>
-                {/* Question Header - ✅ REMOVED badges */}
+                {/* Question Header */}
                 <div className="text-center mb-6">
                   <Badge variant="primary" size="lg">
                     Question {currentQueuePosition + 1} of {totalQuestions}
@@ -512,7 +527,7 @@ export function GameSessionPage() {
                 <QuestionRenderer
                   question={currentQuestion}
                   questionIndex={currentQuestionIndex}
-                  onAnswer={handleAnswer}
+                  onAnswer={handleAnswerSelection}
                   isSubmitting={isSubmitting}
                   isAnswered={isCurrentQuestionCompleted}
                   answeredQuestion={undefined} // ✅ Don't pass answered question for retry logic
@@ -533,6 +548,7 @@ export function GameSessionPage() {
                     if (currentQueuePosition < totalQuestions - 1) {
                       setCurrentQueuePosition(currentQueuePosition + 1);
                       setQuestionResult(null);
+                      setSelectedAnswer(null);
                     }
                   }}
                   onNextUnansweredQuestion={handleNextQuestion}
@@ -540,6 +556,7 @@ export function GameSessionPage() {
                   onReviewMode={() => {
                     setCurrentQueuePosition(0);
                     setQuestionResult(null);
+                    setSelectedAnswer(null);
                   }}
                 />
               </CardContent>
@@ -548,10 +565,37 @@ export function GameSessionPage() {
         </AnimatePresence>
       </div>
 
+      {/* ✅ NEW: Fixed Footer with Submit Button */}
+      <div className="fixed bottom-0 left-0 right-0 z-40 bg-white/95 dark:bg-gray-800/95 backdrop-blur-xl border-t border-white/20 shadow-2xl">
+        <div className="max-w-4xl mx-auto px-4 py-4">
+          <div className="flex items-center justify-end">
+            {/* Submit Answer Button - Only show when answer is selected and not yet submitted */}
+            {selectedAnswer !== null && !questionResult && !isCurrentQuestionCompleted && (
+              <Button
+                onClick={handleSubmitAnswer}
+                disabled={isSubmitting}
+                variant="primary"
+                size="lg"
+                leftIcon={
+                  isSubmitting ? (
+                    <Loader2 className="w-5 h-5 animate-spin" />
+                  ) : (
+                    <CheckCircle className="w-5 h-5" />
+                  )
+                }
+                className="shadow-lg"
+              >
+                {isSubmitting ? "Submitting..." : "Submit Answer"}
+              </Button>
+            )}
+          </div>
+        </div>
+      </div>
+
       {/* Floating Action Button */}
       <motion.button
         onClick={handleAbandonSession}
-        className="fixed bottom-8 right-8 p-4 bg-red-500 hover:bg-red-600 text-white rounded-full shadow-2xl transition-colors z-50"
+        className="fixed bottom-8 left-8 p-4 bg-red-500 hover:bg-red-600 text-white rounded-full shadow-2xl transition-colors z-50"
         whileHover={{ scale: 1.05 }}
         whileTap={{ scale: 0.95 }}
       >

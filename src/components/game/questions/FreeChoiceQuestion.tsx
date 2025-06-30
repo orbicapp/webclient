@@ -37,19 +37,17 @@ export function FreeChoiceQuestion({
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (!isAnswered && !isSubmitting) {
-      setSelectedAnswer(e.target.value);
+      const value = e.target.value;
+      setSelectedAnswer(value);
+      // ✅ Call onAnswer immediately to update parent state
+      onAnswer(value);
     }
   };
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'Enter' && selectedAnswer.trim() && !isSubmitting && !isAnswered) {
-      onAnswer(selectedAnswer.trim());
-    }
-  };
-
-  const handleSubmit = () => {
-    if (selectedAnswer.trim() && !isSubmitting && !isAnswered) {
-      onAnswer(selectedAnswer.trim());
+      // ✅ Don't submit here, let the footer button handle it
+      e.preventDefault();
     }
   };
 
@@ -79,7 +77,7 @@ export function FreeChoiceQuestion({
         </h2>
       </div>
 
-      {/* Text Input - Single line with Enter to submit */}
+      {/* Text Input - Single line */}
       <div>
         <input
           type="text"
@@ -87,7 +85,7 @@ export function FreeChoiceQuestion({
           onChange={handleInputChange}
           onKeyDown={handleKeyDown}
           disabled={isSubmitting || isAnswered}
-          placeholder={isAnswered ? "Your answer" : "Type your answer here and press Enter..."}
+          placeholder={isAnswered ? "Your answer" : "Type your answer here..."}
           className={cn(
             "w-full p-4 border-2 rounded-xl focus:border-primary-500 focus:outline-none text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-800",
             getInputBackgroundColor(),
@@ -100,12 +98,6 @@ export function FreeChoiceQuestion({
           <div className="text-sm text-gray-500 dark:text-gray-400">
             {selectedAnswer.length} characters
           </div>
-          {selectedAnswer.length > 2 && !isAnswered && (
-            <div className="flex items-center space-x-1 text-green-600 dark:text-green-400">
-              <CheckCircle className="w-4 h-4" />
-              <span className="text-sm">Press Enter to submit</span>
-            </div>
-          )}
         </div>
 
         {/* Show correct answers for free choice */}
@@ -141,24 +133,6 @@ export function FreeChoiceQuestion({
           </div>
         )}
       </div>
-
-      {/* Submit Button */}
-      {!isAnswered && !questionResult && (
-        <div className="text-center">
-          <button
-            onClick={handleSubmit}
-            disabled={!selectedAnswer.trim() || isSubmitting}
-            className={cn(
-              "px-8 py-3 rounded-xl font-semibold transition-all duration-200",
-              selectedAnswer.trim() && !isSubmitting
-                ? "bg-primary-600 hover:bg-primary-700 text-white shadow-lg"
-                : "bg-gray-300 dark:bg-gray-600 text-gray-500 dark:text-gray-400 cursor-not-allowed"
-            )}
-          >
-            {isSubmitting ? "Submitting..." : "Submit Answer"}
-          </button>
-        </div>
-      )}
     </div>
   );
 }

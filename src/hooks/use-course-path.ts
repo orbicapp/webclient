@@ -11,6 +11,8 @@ export interface LevelWithChapter extends Level {
   isCompleted: boolean;
   isUnlocked: boolean;
   stars: number;
+  chapterNumber: number;
+  levelNumber: number;
 }
 
 interface UseCoursePathOptions {
@@ -82,7 +84,7 @@ export const useCoursePath = ({
     const sortedChapters = [...chapters].sort((a, b) => a.order - b.order);
     console.log("useCoursePath - Sorted chapters:", sortedChapters.map(c => ({ id: c._id, title: c.title, order: c.order })));
 
-    sortedChapters.forEach((chapter) => {
+    sortedChapters.forEach((chapter, chapterIndex) => {
       // Get levels for this chapter and sort by order
       const chapterLevels = levelsByChapter.get(chapter._id) || [];
       const sortedChapterLevels = chapterLevels.sort((a, b) => a.order - b.order);
@@ -94,24 +96,28 @@ export const useCoursePath = ({
       sortedChapterLevels.forEach((level, index) => {
         const isChapterEnd = index === sortedChapterLevels.length - 1;
         
-        // Check if level is completed
-        const isCompleted = progress?.levelProgress?.some(
-          (lp) => lp.levelId === level._id && lp.completed
-        ) || false;
+        // ✅ Check if level is completed - look for level progress
+        const levelProgress = progress?.levelProgress?.find(
+          (lp) => lp.levelId === level._id
+        );
+        const isCompleted = levelProgress?.completed || false;
         
         // Check if level is unlocked (first level or previous level completed)
         const isUnlocked = levelIndex === 0 || 
           (levelPath[levelIndex - 1]?.isCompleted) || false;
         
-        // Get level progress for stars calculation
-        const levelProgress = progress?.levelProgress?.find(
-          (lp) => lp.levelId === level._id
-        );
-        
-        // Calculate stars (0-3 based on score)
-        const stars = levelProgress?.score 
-          ? Math.min(3, Math.floor(levelProgress.score / 33.33)) 
-          : 0;
+        // ✅ Calculate stars based on level progress (0-3 based on score percentage)
+        let stars = 0;
+        if (levelProgress && levelProgress.completed) {
+          const scorePercentage = levelProgress.maxScore > 0 
+            ? (levelProgress.score / levelProgress.maxScore) * 100 
+            : 0;
+          
+          // Award stars based on score percentage
+          if (scorePercentage >= 90) stars = 3;
+          else if (scorePercentage >= 70) stars = 2;
+          else if (scorePercentage >= 50) stars = 1;
+        }
 
         const levelWithChapter: LevelWithChapter = {
           ...level,
@@ -121,6 +127,8 @@ export const useCoursePath = ({
           isCompleted,
           isUnlocked,
           stars,
+          chapterNumber: chapterIndex + 1,
+          levelNumber: index + 1,
         };
 
         levelPath.push(levelWithChapter);

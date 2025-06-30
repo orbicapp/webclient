@@ -38,12 +38,8 @@ export function MultipleChoiceQuestion({
   const handleOptionClick = (optionIndex: number) => {
     if (!isAnswered && !isSubmitting) {
       setSelectedAnswer(optionIndex);
-    }
-  };
-
-  const handleSubmit = () => {
-    if (selectedAnswer !== null && !isSubmitting && !isAnswered) {
-      onAnswer(selectedAnswer);
+      // ✅ Call onAnswer immediately to update parent state
+      onAnswer(optionIndex);
     }
   };
 
@@ -137,24 +133,6 @@ export function MultipleChoiceQuestion({
           );
         })}
       </div>
-
-      {/* Submit Button */}
-      {!isAnswered && !questionResult && (
-        <div className="text-center">
-          <button
-            onClick={handleSubmit}
-            disabled={selectedAnswer === null || isSubmitting}
-            className={cn(
-              "px-8 py-3 rounded-xl font-semibold transition-all duration-200",
-              selectedAnswer !== null && !isSubmitting
-                ? "bg-primary-600 hover:bg-primary-700 text-white shadow-lg"
-                : "bg-gray-300 dark:bg-gray-600 text-gray-500 dark:text-gray-400 cursor-not-allowed"
-            )}
-          >
-            {isSubmitting ? "Submitting..." : "Submit Answer"}
-          </button>
-        </div>
-      )}
     </div>
   );
 }
