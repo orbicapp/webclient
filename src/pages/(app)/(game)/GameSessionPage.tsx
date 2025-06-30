@@ -545,7 +545,7 @@ export function GameSessionPage() {
                 </div>
 
                 {/* ✅ NEW: Mobile Footer with compact header info */}
-                <div className="flex-shrink-0 bg-black/20 backdrop-blur-xl border-t border-white/10">
+                <div className="flex-col bg-black/20 backdrop-blur-xl border-t border-white/10">
                   {/* Compact Header Row */}
                   <div className="flex items-center justify-between px-4 py-3 border-b border-white/10">
                     <button
