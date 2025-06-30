@@ -465,6 +465,8 @@ export function GameSessionPage() {
       if (result.livesRemaining <= 0) {
         // Game over - navigate back to course after a delay
         setTimeout(() => {
+          // ✅ Clear session before navigating
+          clearCurrentSession();
           navigate(`/course/${currentSession.courseId}`);
         }, 3000);
       }
@@ -493,9 +495,19 @@ export function GameSessionPage() {
       setCurrentQuestionIndex(nextQuestionIndex);
       setQuestionResult(null); // Clear previous result
     } else {
-      // All questions answered - navigate to completion
-      navigate(`/course/${currentSession.courseId}/completion/${currentSession._id}`);
+      // All questions answered - clear session and navigate to course
+      clearCurrentSession();
+      navigate(`/course/${currentSession.courseId}`);
     }
+  };
+
+  // ✅ Handle finish level - clear session and navigate
+  const handleFinishLevel = () => {
+    if (!currentSession) return;
+    
+    // Clear the current session since level is completed
+    clearCurrentSession();
+    navigate(`/course/${currentSession.courseId}`);
   };
 
   const handleAbandonSession = async () => {
@@ -507,7 +519,8 @@ export function GameSessionPage() {
       navigate(`/course/${currentSession.courseId}`);
     } catch (err) {
       console.error("Failed to abandon session:", err);
-      // Navigate anyway
+      // Navigate anyway and clear session
+      clearCurrentSession();
       navigate(`/course/${currentSession.courseId}`);
     }
   };
@@ -561,7 +574,10 @@ export function GameSessionPage() {
               This level doesn't have any questions configured. Please return to the course and try again.
             </p>
             <Button 
-              onClick={() => navigate(`/course/${currentSession.courseId}`)} 
+              onClick={() => {
+                clearCurrentSession();
+                navigate(`/course/${currentSession.courseId}`);
+              }} 
               variant="primary"
             >
               Return to Course
@@ -584,7 +600,10 @@ export function GameSessionPage() {
               You have answered all questions in this level. Redirecting to results...
             </p>
             <Button 
-              onClick={() => navigate(`/course/${currentSession.courseId}`)} 
+              onClick={() => {
+                clearCurrentSession();
+                navigate(`/course/${currentSession.courseId}`);
+              }} 
               variant="primary"
             >
               Return to Course
@@ -758,7 +777,7 @@ export function GameSessionPage() {
                       {/* ✅ Finish Level Button - Only show if there's a result and all questions are answered */}
                       {questionResult && allQuestionsAnswered && (
                         <Button
-                          onClick={() => navigate(`/course/${currentSession.courseId}/completion/${currentSession._id}`)}
+                          onClick={handleFinishLevel}
                           variant="success"
                           size="lg"
                           rightIcon={<Trophy className="w-5 h-5" />}
