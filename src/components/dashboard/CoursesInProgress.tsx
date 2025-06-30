@@ -10,7 +10,8 @@ import { useCoursesWithProgress } from "@/hooks/use-progress";
 import { formatCompact } from "@/lib/utils/class.utils";
 
 export function CoursesInProgress() {
-  const [loading, coursesWithProgress, error] = useCoursesWithProgress();
+  // ✅ NEW: Use the enhanced hook with refetch capability
+  const [loading, coursesWithProgress, error, refetchCoursesWithProgress] = useCoursesWithProgress();
 
   if (loading) {
     return (
@@ -51,6 +52,13 @@ export function CoursesInProgress() {
             <p className="text-error-600 dark:text-error-400">
               Failed to load courses: {error}
             </p>
+            {/* ✅ NEW: Add retry button */}
+            <button
+              onClick={refetchCoursesWithProgress}
+              className="mt-4 px-4 py-2 bg-primary-500 text-white rounded-lg hover:bg-primary-600 transition-colors"
+            >
+              Try Again
+            </button>
           </div>
         </CardContent>
       </Card>

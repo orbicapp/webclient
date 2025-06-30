@@ -41,7 +41,9 @@ export function CourseDetailPage() {
   const [loading, course, error] = useCourse(courseId!);
   const [levelsLoading, levels] = useCourseLevels(courseId!);
   const [chaptersLoading, chapters] = useCourseChapters(courseId!);
-  const [progressLoading, progress] = useCourseProgress(courseId!);
+  
+  // ✅ NEW: Use the enhanced hook with refetch capability
+  const [progressLoading, progress, progressError, refetchCourseProgress] = useCourseProgress(courseId!);
   
   // State for joining course
   const [isJoining, setIsJoining] = useState(false);
@@ -88,8 +90,10 @@ export function CourseDetailPage() {
         return;
       }
 
-      // Refresh the page to show the updated progress
-      window.location.reload();
+      // ✅ Use the refetch function instead of page reload
+      console.log("Course joined successfully! Refreshing progress...");
+      await refetchCourseProgress();
+      
     } catch (err) {
       setJoinError(err instanceof Error ? err.message : "Failed to join course");
     } finally {

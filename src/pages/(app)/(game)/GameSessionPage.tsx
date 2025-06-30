@@ -24,6 +24,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import { useCurrentGameSession } from "@/hooks/use-game";
 import { useLevel } from "@/hooks/use-level";
 import { useCourse } from "@/hooks/use-course";
+import { useCourseProgress } from "@/hooks/use-progress";
 import { GameService, AnsweredQuestion, QuestionResult } from "@/services/game-service";
 import { useGameStore } from "@/stores/game-store";
 import { Card, CardContent } from "@/components/ui/Card";
@@ -520,6 +521,9 @@ export function GameSessionPage() {
   const [levelLoading, level] = useLevel(currentSession?.levelId || "");
   const [courseLoading, course] = useCourse(currentSession?.courseId || "");
   
+  // ✅ NEW: Get course progress with refetch capability
+  const [progressLoading, progress, progressError, refetchCourseProgress] = useCourseProgress(currentSession?.courseId || "");
+  
   // Initialize currentQuestionIndex based on answered questions
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -623,6 +627,8 @@ export function GameSessionPage() {
         lives: result.livesRemaining
       });
 
+      // ✅ COMPLETELY MANUAL - User must click "Next Question" to continue
+
       // ✅ Check if lives are depleted - show game over screen instead of auto-navigation
       if (result.livesRemaining <= 0) {
         // Game over will be handled by useEffect above
@@ -653,19 +659,30 @@ export function GameSessionPage() {
       setCurrentQuestionIndex(nextQuestionIndex);
       setQuestionResult(null); // Clear previous result
     } else {
-      // All questions answered - clear session and navigate to course
-      clearCurrentSession();
-      navigate(`/course/${currentSession.courseId}`);
+      // All questions answered - finish level
+      handleFinishLevel();
     }
   };
 
-  // ✅ Handle finish level - clear session and navigate
-  const handleFinishLevel = () => {
+  // ✅ Handle finish level - clear session, refresh progress, and navigate
+  const handleFinishLevel = async () => {
     if (!currentSession) return;
     
-    // Clear the current session since level is completed
-    clearCurrentSession();
-    navigate(`/course/${currentSession.courseId}`);
+    try {
+      // Clear the current session since level is completed
+      clearCurrentSession();
+      
+      // ✅ Refresh course progress to get updated data
+      console.log("Level completed! Refreshing course progress...");
+      await refetchCourseProgress();
+      
+      // Navigate to course
+      navigate(`/course/${currentSession.courseId}`);
+    } catch (err) {
+      console.error("Error refreshing progress after level completion:", err);
+      // Navigate anyway
+      navigate(`/course/${currentSession.courseId}`);
+    }
   };
 
   const handleAbandonSession = async () => {

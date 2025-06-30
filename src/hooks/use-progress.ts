@@ -9,11 +9,11 @@ import { useProgressStore } from "@/stores/progress-store";
 import { useCourseStore } from "@/stores/course-store";
 
 /**
- * Hook to fetch and cache course progress
+ * Hook to fetch and cache course progress with manual refetch capability
  */
 export const useCourseProgress = (
   courseId: string
-): [boolean, CourseProgress | null, string | null] => {
+): [boolean, CourseProgress | null, string | null, () => Promise<void>] => {
   const { 
     getCourseProgress, 
     setCourseProgress, 
@@ -25,6 +25,28 @@ export const useCourseProgress = (
 
   const progress = getCourseProgress(courseId);
   const initialized = isCourseProgressInitialized(courseId);
+
+  // ✅ Manual refetch function
+  const refetchCourseProgress = async () => {
+    if (!courseId) return;
+
+    setLoading(true);
+    setError(null);
+
+    try {
+      const [freshProgress, fetchError] = await ProgressService.getCourseProgress(courseId);
+      if (freshProgress) {
+        setCourseProgress(freshProgress);
+        console.log("Course progress refreshed:", freshProgress);
+      } else {
+        setError(fetchError || "Failed to refresh course progress");
+      }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to refresh course progress");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
     // ✅ If already initialized or no courseId, don't fetch
@@ -67,8 +89,8 @@ export const useCourseProgress = (
     fetchProgress();
   }, [courseId, initialized, loading, setCourseProgress]);
 
-  // ✅ Return data immediately if available
-  return [loading && !initialized, progress || null, error];
+  // ✅ Return data immediately if available + refetch function
+  return [loading && !initialized, progress || null, error, refetchCourseProgress];
 };
 
 /**
@@ -77,7 +99,8 @@ export const useCourseProgress = (
 export const useCoursesWithProgress = (): [
   boolean,
   CourseWithProgress[],
-  string | null
+  string | null,
+  () => Promise<void>
 ] => {
   const { 
     getPlayingCourses, 
@@ -91,6 +114,32 @@ export const useCoursesWithProgress = (): [
 
   const playingCourses = getPlayingCourses();
   const initialized = isPlayingCoursesInitialized();
+
+  // ✅ Manual refetch function
+  const refetchCoursesWithProgress = async () => {
+    setLoading(true);
+    setError(null);
+
+    try {
+      const [coursesWithProgress, fetchError] = await ProgressService.getMyCoursesWithProgress();
+      if (coursesWithProgress) {
+        // Cache courses in course store
+        const courses = coursesWithProgress.map(item => item.course);
+        setCourses(courses);
+
+        // Cache progress in progress store
+        const progressList = coursesWithProgress.map(item => item.progress);
+        setPlayingCourses(progressList);
+        console.log("Courses with progress refreshed:", coursesWithProgress.length);
+      } else {
+        setError(fetchError || "Failed to refresh courses with progress");
+      }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to refresh courses with progress");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
     // ✅ If already initialized, don't fetch
@@ -137,8 +186,8 @@ export const useCoursesWithProgress = (): [
     };
   }).filter(item => item.course); // Filter out any missing courses
 
-  // ✅ Return data immediately if available
-  return [loading && !initialized, coursesWithProgress, error];
+  // ✅ Return data immediately if available + refetch function
+  return [loading && !initialized, coursesWithProgress, error, refetchCoursesWithProgress];
 };
 
 /**
