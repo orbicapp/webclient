@@ -826,7 +826,7 @@ export function GameSessionPage() {
   
   // Calculate progress based on answered questions, not current index
   const answeredCount = currentSession.answeredQuestions?.length || 0;
-  const progress = (answeredCount / level.questions.length) * 100;
+  const progressTotal = (answeredCount / level.questions.length) * 100;
   
   // Check if current question is already answered and get the answer data
   const answeredQuestion = currentSession.answeredQuestions?.find(aq => aq.questionIndex === currentQuestionIndex);
@@ -896,7 +896,7 @@ export function GameSessionPage() {
               <motion.div
                 className="bg-gradient-to-r from-blue-400 to-purple-500 h-2 rounded-full"
                 initial={{ width: 0 }}
-                animate={{ width: `${progress}%` }}
+                animate={{ width: `${progressTotal}%` }}
                 transition={{ duration: 0.5 }}
               />
             </div>
