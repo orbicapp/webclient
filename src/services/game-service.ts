@@ -23,7 +23,7 @@ export interface SubmitAnswerInput {
   sessionId: string;
   questionIndex: number;
   booleanAnswer?: boolean;
-  selectedOptionIndex?: boolean;
+  selectedOptionIndex?: number;
   pairMatches?: string[];
   sequenceOrder?: string[];
   freeAnswer?: string;
@@ -34,7 +34,7 @@ export interface SubmitAnswerInput {
 export interface AnsweredQuestion {
   questionIndex: number;
   isCorrect: boolean;
-  userAnswer?: any;
+  userAnswer?: unknown;
   timeSpent: number; // in seconds
 }
 
