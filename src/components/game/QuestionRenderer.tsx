@@ -24,7 +24,7 @@ interface QuestionRendererProps {
   answeredQuestion?: AnsweredQuestion;
   questionResult?: QuestionResult | null;
   selectedAnswer?: unknown;
-  onSubmitAnswer?: () => void;
+  // ✅ Remove onSubmitAnswer - now handled at page level
 }
 
 export function QuestionRenderer({
@@ -35,8 +35,6 @@ export function QuestionRenderer({
   isAnswered,
   answeredQuestion,
   questionResult,
-  selectedAnswer,
-  onSubmitAnswer,
 }: QuestionRendererProps) {
   const [startTime] = useState(Date.now());
   const { isMobile } = useResponsive();
@@ -103,42 +101,14 @@ export function QuestionRenderer({
     }
   };
 
-  // ✅ Determine if submit button should be enabled
-  const canSubmit = selectedAnswer !== null && selectedAnswer !== undefined && !questionResult && !isAnswered;
-
   return (
-    <div className={`${isMobile ? 'h-full flex flex-col justify-between' : 'space-y-6'}`}>
-      {/* Question Content - ✅ Mobile: Take most of the space */}
+    <div className={`${isMobile ? 'h-full flex flex-col' : 'space-y-6'}`}>
+      {/* Question Content */}
       <div className={isMobile ? 'flex-1' : ''}>
         {renderQuestionContent()}
       </div>
-
-      {/* ✅ Submit Button - ALWAYS VISIBLE, disabled when no answer */}
-      {onSubmitAnswer && (
-        <div className={`${
-          isMobile 
-            ? 'flex-shrink-0 pt-4 border-t border-gray-200 dark:border-gray-700' 
-            : 'mt-8 flex justify-end'
-        }`}>
-          <Button
-            onClick={onSubmitAnswer}
-            disabled={!canSubmit || isSubmitting}
-            variant="primary"
-            size={isMobile ? "md" : "lg"}
-            leftIcon={
-              isSubmitting ? (
-                <Loader2 className="w-5 h-5 animate-spin" />
-              ) : (
-                <CheckCircle className="w-5 h-5" />
-              )
-            }
-            className="shadow-lg"
-            fullWidth={isMobile}
-          >
-            {isSubmitting ? "Submitting..." : "Submit Answer"}
-          </Button>
-        </div>
-      )}
+      
+      {/* ✅ Remove submit button from here - now handled at page level */}
     </div>
   );
 }

@@ -470,8 +470,11 @@ export function GameSessionPage() {
     (item, index) => index > currentQueuePosition && !item.isCompleted
   );
 
+  // ✅ Determine if submit button should be enabled
+  const canSubmit = selectedAnswer !== null && selectedAnswer !== undefined && !questionResult && !isCurrentQuestionCompleted;
+
   return (
-    <div className={`min-h-screen bg-gradient-to-br from-indigo-900 via-purple-900 to-pink-900 ${isMobile ? '' : ''}`}>
+    <div className={`min-h-screen bg-gradient-to-br from-indigo-900 via-purple-900 to-pink-900 ${isMobile ? 'flex flex-col' : ''}`}>
       {/* ✅ Game Over Screen */}
       {showGameOver && (
         <GameOverScreen
@@ -493,7 +496,7 @@ export function GameSessionPage() {
       )}
 
       {/* Game Content - ✅ Mobile fullscreen layout */}
-      <div className={`${isMobile ? 'h-screen flex flex-col' : 'max-w-4xl mx-auto px-4 py-8'}`}>
+      <div className={`${isMobile ? 'flex-1 flex flex-col' : 'max-w-4xl mx-auto px-4 py-8'}`}>
         <AnimatePresence mode="wait">
           <motion.div
             key={`${currentQueuePosition}-${currentQuestionIndex}`}
@@ -547,20 +550,20 @@ export function GameSessionPage() {
                     </div>
                   </div>
 
-                                  {/* Question Content - Mobile fullscreen */}
-                <div className="flex-1 overflow-y-auto px-4 py-6">
-                  <QuestionRenderer
-                    question={currentQuestion}
-                    questionIndex={currentQuestionIndex}
-                    onAnswer={handleAnswerSelection}
-                    isSubmitting={isSubmitting}
-                    isAnswered={isCurrentQuestionCompleted}
-                    answeredQuestion={undefined}
-                    questionResult={questionResult}
-                    selectedAnswer={selectedAnswer}
-                    onSubmitAnswer={handleSubmitAnswer}
-                  />
-                </div>
+                  {/* Question Content - Mobile fullscreen */}
+                  <div className="flex-1 overflow-y-auto px-4 py-6">
+                    <QuestionRenderer
+                      question={currentQuestion}
+                      questionIndex={currentQuestionIndex}
+                      onAnswer={handleAnswerSelection}
+                      isSubmitting={isSubmitting}
+                      isAnswered={isCurrentQuestionCompleted}
+                      answeredQuestion={undefined}
+                      questionResult={questionResult}
+                      selectedAnswer={selectedAnswer}
+                      // ✅ Remove onSubmitAnswer from here - will be handled at bottom
+                    />
+                  </div>
 
                   {/* Progress bar */}
                   <div className="px-4 py-2">
@@ -640,7 +643,7 @@ export function GameSessionPage() {
                     answeredQuestion={undefined}
                     questionResult={questionResult}
                     selectedAnswer={selectedAnswer}
-                    onSubmitAnswer={handleSubmitAnswer}
+                    // ✅ Remove onSubmitAnswer from here - will be handled at bottom
                   />
 
                   {/* ✅ Enhanced Navigation Controls */}
@@ -674,6 +677,31 @@ export function GameSessionPage() {
           </motion.div>
         </AnimatePresence>
       </div>
+
+      {/* ✅ NEW: Fixed Submit Button at Bottom - ALWAYS VISIBLE */}
+      <div className="fixed bottom-0 left-0 right-0 z-50 bg-white/95 dark:bg-gray-800/95 backdrop-blur-xl border-t border-gray-200 dark:border-gray-700 shadow-2xl">
+        <div className="max-w-4xl mx-auto px-4 py-4">
+          <Button
+            onClick={handleSubmitAnswer}
+            disabled={!canSubmit || isSubmitting}
+            variant="primary"
+            size="lg"
+            leftIcon={
+              isSubmitting ? (
+                <Loader2 className="w-5 h-5 animate-spin" />
+              ) : (
+                <CheckCircle className="w-5 h-5" />
+              )
+            }
+            className="shadow-lg w-full"
+          >
+            {isSubmitting ? "Submitting..." : "Submit Answer"}
+          </Button>
+        </div>
+      </div>
+
+      {/* ✅ Add bottom padding to prevent content overlap with fixed button */}
+      <div className="h-20"></div>
     </div>
   );
 }
