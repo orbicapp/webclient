@@ -35,9 +35,15 @@ export function FreeChoiceQuestion({
     }
   }, [isAnswered, answeredQuestion]);
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (!isAnswered && !isSubmitting) {
       setSelectedAnswer(e.target.value);
+    }
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter' && selectedAnswer.trim() && !isSubmitting && !isAnswered) {
+      onAnswer(selectedAnswer.trim());
     }
   };
 
@@ -49,6 +55,21 @@ export function FreeChoiceQuestion({
 
   const showCorrectAnswer = questionResult && !questionResult.isCorrect;
 
+  // Determine input background color based on result
+  const getInputBackgroundColor = () => {
+    if (questionResult) {
+      return questionResult.isCorrect 
+        ? "bg-green-50 dark:bg-green-900/20 border-green-500" 
+        : "bg-red-50 dark:bg-red-900/20 border-red-500";
+    }
+    if (isAnswered && answeredQuestion) {
+      return answeredQuestion.isCorrect
+        ? "bg-green-50 dark:bg-green-900/20 border-green-500"
+        : "bg-red-50 dark:bg-red-900/20 border-red-500";
+    }
+    return "border-gray-200 dark:border-gray-700";
+  };
+
   return (
     <div className="space-y-6">
       {/* Question Title */}
@@ -58,20 +79,18 @@ export function FreeChoiceQuestion({
         </h2>
       </div>
 
-      {/* Text Input */}
+      {/* Text Input - Single line with Enter to submit */}
       <div>
-        <textarea
+        <input
+          type="text"
           value={selectedAnswer}
           onChange={handleInputChange}
+          onKeyDown={handleKeyDown}
           disabled={isSubmitting || isAnswered}
-          placeholder={isAnswered ? "Your answer" : "Type your answer here..."}
+          placeholder={isAnswered ? "Your answer" : "Type your answer here and press Enter..."}
           className={cn(
-            "w-full p-4 border-2 rounded-xl focus:border-primary-500 focus:outline-none resize-none h-32 text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-800",
-            isAnswered && answeredQuestion
-              ? answeredQuestion.isCorrect
-                ? "border-green-500 bg-green-50 dark:bg-green-900/20"
-                : "border-red-500 bg-red-50 dark:bg-red-900/20"
-              : "border-gray-200 dark:border-gray-700",
+            "w-full p-4 border-2 rounded-xl focus:border-primary-500 focus:outline-none text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-800",
+            getInputBackgroundColor(),
             (isSubmitting || isAnswered) && "cursor-not-allowed"
           )}
         />
@@ -81,10 +100,10 @@ export function FreeChoiceQuestion({
           <div className="text-sm text-gray-500 dark:text-gray-400">
             {selectedAnswer.length} characters
           </div>
-          {selectedAnswer.length > 10 && !isAnswered && (
+          {selectedAnswer.length > 2 && !isAnswered && (
             <div className="flex items-center space-x-1 text-green-600 dark:text-green-400">
               <CheckCircle className="w-4 h-4" />
-              <span className="text-sm">Good length</span>
+              <span className="text-sm">Press Enter to submit</span>
             </div>
           )}
         </div>

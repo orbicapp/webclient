@@ -101,15 +101,6 @@ export function GameNavigation({
           )}
         </div>
       </div>
-
-      {/* Progress Summary */}
-      <div className="mt-4 text-center">
-        <p className="text-sm text-gray-500 dark:text-gray-400">
-          {answeredCount} of {totalQuestions} questions answered
-          {hasMoreUnansweredQuestions && " • Continue to complete the level"}
-          {allQuestionsAnswered && " • All questions completed!"}
-        </p>
-      </div>
     </div>
   );
 }

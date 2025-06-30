@@ -485,22 +485,11 @@ export function GameSessionPage() {
           >
             <Card className="bg-white/95 dark:bg-gray-800/95 backdrop-blur-lg border border-white/20">
               <CardContent>
-                {/* Question Header */}
+                {/* Question Header - ✅ REMOVED badges */}
                 <div className="text-center mb-6">
-                  <div className="flex items-center justify-center space-x-4 mb-4">
-                    <Badge variant="primary" size="lg">
-                      Question {currentQueuePosition + 1} of {totalQuestions}
-                    </Badge>
-                    <Badge variant="secondary" size="lg">
-                      Progress: {progressTotal.toFixed(0)}%
-                    </Badge>
-                    {/* ✅ NEW: Show retry indicator */}
-                    {questionQueue[currentQueuePosition]?.attempts > 0 && (
-                      <Badge variant="warning" size="lg">
-                        Retry #{questionQueue[currentQueuePosition].attempts + 1}
-                      </Badge>
-                    )}
-                  </div>
+                  <Badge variant="primary" size="lg">
+                    Question {currentQueuePosition + 1} of {totalQuestions}
+                  </Badge>
                 </div>
 
                 {/* Error Display */}
@@ -553,55 +542,6 @@ export function GameSessionPage() {
                     setQuestionResult(null);
                   }}
                 />
-
-                {/* ✅ NEW: Question Queue Status */}
-                <div className="mt-6 p-4 bg-gray-50 dark:bg-gray-800 rounded-xl">
-                  <div className="text-center">
-                    <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
-                      Question Status
-                    </h4>
-                    <div className="flex flex-wrap justify-center gap-2">
-                      {questionQueue.map((item, index) => (
-                        <button
-                          key={item.originalIndex}
-                          onClick={() => handleJumpToQuestion(index)}
-                          className={`w-8 h-8 rounded-full text-xs font-bold transition-all duration-200 ${
-                            index === currentQueuePosition
-                              ? "bg-primary-500 text-white ring-2 ring-primary-300"
-                              : item.isCompleted
-                              ? "bg-green-500 text-white hover:bg-green-600"
-                              : item.attempts > 0
-                              ? "bg-yellow-500 text-white hover:bg-yellow-600"
-                              : "bg-gray-300 dark:bg-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-400 dark:hover:bg-gray-500"
-                          }`}
-                          title={`Question ${item.originalIndex + 1} - ${
-                            item.isCompleted 
-                              ? "Completed" 
-                              : item.attempts > 0 
-                                ? `${item.attempts} attempts` 
-                                : "Not attempted"
-                          }`}
-                        >
-                          {item.originalIndex + 1}
-                        </button>
-                      ))}
-                    </div>
-                    <div className="flex justify-center space-x-4 mt-3 text-xs text-gray-500 dark:text-gray-400">
-                      <div className="flex items-center space-x-1">
-                        <div className="w-3 h-3 bg-green-500 rounded-full"></div>
-                        <span>Completed</span>
-                      </div>
-                      <div className="flex items-center space-x-1">
-                        <div className="w-3 h-3 bg-yellow-500 rounded-full"></div>
-                        <span>Retry</span>
-                      </div>
-                      <div className="flex items-center space-x-1">
-                        <div className="w-3 h-3 bg-gray-400 rounded-full"></div>
-                        <span>Pending</span>
-                      </div>
-                    </div>
-                  </div>
-                </div>
               </CardContent>
             </Card>
           </motion.div>

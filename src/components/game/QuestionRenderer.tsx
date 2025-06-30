@@ -40,55 +40,7 @@ export function QuestionRenderer({
     }
   };
 
-  // Show answered status with more details
-  const renderAnswerStatus = () => {
-    if (isAnswered && answeredQuestion) {
-      return (
-        <div className="flex justify-center space-x-2 mb-6">
-          <Badge
-            variant={answeredQuestion.isCorrect ? "success" : "error"}
-            size="lg"
-          >
-            {answeredQuestion.isCorrect ? (
-              <CheckCircle className="w-4 h-4 mr-2" />
-            ) : (
-              <X className="w-4 h-4 mr-2" />
-            )}
-            {answeredQuestion.isCorrect ? "Correct" : "Incorrect"}
-          </Badge>
-          <Badge variant="secondary" size="lg">
-            <Clock className="w-4 h-4 mr-2" />
-            {answeredQuestion.timeSpent}s
-          </Badge>
-        </div>
-      );
-    }
-
-    // Show result feedback after submission
-    if (questionResult && !isAnswered) {
-      return (
-        <div className="flex justify-center space-x-2 mb-6">
-          <Badge
-            variant={questionResult.isCorrect ? "success" : "error"}
-            size="lg"
-          >
-            {questionResult.isCorrect ? (
-              <CheckCircle className="w-4 h-4 mr-2" />
-            ) : (
-              <X className="w-4 h-4 mr-2" />
-            )}
-            {questionResult.isCorrect ? "Correct!" : "Incorrect"}
-          </Badge>
-          <Badge variant="secondary" size="lg">
-            <Heart className="w-4 h-4 mr-2" />
-            {questionResult.livesRemaining} lives left
-          </Badge>
-        </div>
-      );
-    }
-
-    return null;
-  };
+  // ✅ REMOVED: Answer status badges - feedback is now handled by input colors
 
   const renderQuestionContent = () => {
     const commonProps = {
@@ -148,24 +100,8 @@ export function QuestionRenderer({
 
   return (
     <div className="space-y-6">
-      {/* Answer Status */}
-      {renderAnswerStatus()}
-
       {/* Question Content */}
       {renderQuestionContent()}
-
-      {/* ✅ REMOVED: "This question has already been answered in this session." message */}
-      
-      {questionResult && !isAnswered && (
-        <div className="text-center">
-          <p className="text-gray-500 dark:text-gray-400 text-sm">
-            {questionResult.isCorrect 
-              ? "Great job! Click 'Next Question' to continue." 
-              : "Try again or click 'Next Question' to retry this question later."
-            }
-          </p>
-        </div>
-      )}
     </div>
   );
 }
