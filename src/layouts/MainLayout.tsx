@@ -3,7 +3,6 @@ import { Navigate, Outlet, useLocation } from "react-router-dom";
 
 import { Header } from "@/components/layout/Header";
 import { Sidebar } from "@/components/layout/Sidebar";
-import { SidebarMobile } from "@/components/layout/SidebarMobile";
 import { useSettingsStore } from "@/stores/settings-store";
 import { useResponsive } from "@/hooks/use-responsive";
 import { useAuth } from "../hooks/use-auth";
@@ -39,7 +38,7 @@ export function MainLayout() {
         <Header />
 
         {/* Page content - ✅ ONLY animate the page content, not the layout */}
-        <main className={`${isMobile ? "pb-24" : ""}`}>
+        <main className={`${isMobile ? "pb-6" : ""}`}>
           <AnimatePresence mode="wait">
             <motion.div
               key={location.pathname}
@@ -53,9 +52,6 @@ export function MainLayout() {
             </motion.div>
           </AnimatePresence>
         </main>
-
-        {/* Mobile Navigation - ✅ STATIC - No AnimatePresence here */}
-        <SidebarMobile />
       </div>
     </div>
   );

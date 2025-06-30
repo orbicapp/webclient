@@ -16,6 +16,7 @@ import { useState, memo, useMemo } from "react";
 import { useLocation } from "react-router-dom";
 import ProgressRing from "../ui/ProgressRing";
 import { SearchInput } from "./SearchInput";
+import { SidebarMobile } from "./SidebarMobile";
 
 // Memoized User Stats Component
 const UserStatsDisplay = memo(() => {
@@ -291,43 +292,11 @@ export const Header = memo(() => {
         {headerContent}
       </header>
 
-      {/* Mobile Menu Overlay */}
-      <AnimatePresence>
-        {isMobile && showMobileMenu && (
-          <motion.div
-            className="fixed inset-0 z-40 bg-black/50 backdrop-blur-sm"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            onClick={() => setShowMobileMenu(false)}
-          >
-            <motion.div
-              className="absolute top-0 left-0 w-80 h-full bg-white dark:bg-gray-900 shadow-2xl"
-              initial={{ x: -320 }}
-              animate={{ x: 0 }}
-              exit={{ x: -320 }}
-              transition={{ type: "spring", damping: 25, stiffness: 200 }}
-              onClick={(e) => e.stopPropagation()}
-            >
-              <div className="p-6">
-                {/* Mobile search - Only show if not on explore page */}
-                {showSearchInput && (
-                  <div className="mb-6">
-                    <SearchInput 
-                      variant="header"
-                      placeholder="Search..."
-                      autoFocus
-                    />
-                  </div>
-                )}
-
-                {/* Mobile user stats */}
-                <MobileStatsDisplay />
-              </div>
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+      {/* Mobile Sidebar */}
+      <SidebarMobile 
+        isOpen={showMobileMenu} 
+        onClose={() => setShowMobileMenu(false)} 
+      />
     </>
   );
 });
