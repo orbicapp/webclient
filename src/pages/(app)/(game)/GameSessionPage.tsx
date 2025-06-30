@@ -470,10 +470,10 @@ export function GameSessionPage() {
     (item, index) => index > currentQueuePosition && !item.isCompleted
   );
 
-  // ✅ MOBILE: Full screen modal experience
+  // ✅ MOBILE: Full screen modal experience - NO PADDING/MARGINS
   if (isMobile) {
     return (
-      <div className="fixed inset-0 z-50 bg-gradient-to-br from-indigo-900 via-purple-900 to-pink-900">
+      <div className="fixed inset-0 z-50 bg-gradient-to-br from-indigo-900 via-purple-900 to-pink-900 flex flex-col">
         {/* ✅ Game Over Screen */}
         {showGameOver && (
           <GameOverScreen
@@ -484,8 +484,8 @@ export function GameSessionPage() {
           />
         )}
 
-        {/* ✅ Mobile Header - Integrated in modal */}
-        <div className="bg-black/20 backdrop-blur-xl border-b border-white/10">
+        {/* ✅ Mobile Header - Integrated in modal, NO PADDING */}
+        <div className="bg-black/20 backdrop-blur-xl border-b border-white/10 flex-shrink-0">
           <div className="px-4 py-4">
             <div className="flex items-center justify-between">
               {/* Course Info */}
@@ -533,7 +533,7 @@ export function GameSessionPage() {
           </div>
         </div>
 
-        {/* ✅ Mobile Question Content - Full screen */}
+        {/* ✅ Mobile Question Content - Full screen, NO PADDING */}
         <div className="flex-1 flex flex-col overflow-hidden">
           <div className="flex-1 overflow-y-auto">
             <div className="p-4">
@@ -613,8 +613,8 @@ export function GameSessionPage() {
             </div>
           </div>
 
-          {/* ✅ Mobile Footer with Submit Button */}
-          <div className="bg-white/95 dark:bg-gray-800/95 backdrop-blur-xl border-t border-white/20 p-4">
+          {/* ✅ Mobile Footer with Submit Button - NO PADDING/MARGINS */}
+          <div className="bg-white/95 dark:bg-gray-800/95 backdrop-blur-xl border-t border-white/20 p-4 flex-shrink-0">
             <div className="flex justify-end">
               {selectedAnswer !== null && !questionResult && !isCurrentQuestionCompleted && (
                 <Button
