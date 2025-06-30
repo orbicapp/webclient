@@ -681,18 +681,6 @@ export function GameSessionPage() {
           </motion.div>
         </AnimatePresence>
       </div>
-
-      {/* Floating Action Button - Only on desktop */}
-      {!isMobile && (
-        <motion.button
-          onClick={handleAbandonSession}
-          className="fixed bottom-8 left-8 p-4 bg-red-500 hover:bg-red-600 text-white rounded-full shadow-2xl transition-colors z-50"
-          whileHover={{ scale: 1.05 }}
-          whileTap={{ scale: 0.95 }}
-        >
-          <X className="w-6 h-6" />
-        </motion.button>
-      )}
     </div>
   );
 }
