@@ -107,8 +107,6 @@ export function QuestionRenderer({
       <div className={isMobile ? 'flex-1' : ''}>
         {renderQuestionContent()}
       </div>
-      
-      {/* ✅ Remove submit button from here - now handled at page level */}
     </div>
   );
 }
