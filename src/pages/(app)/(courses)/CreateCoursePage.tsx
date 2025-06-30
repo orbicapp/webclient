@@ -21,12 +21,7 @@ import { useNavigate } from "react-router-dom";
 
 import { ViewContainer } from "@/components/layout/ViewContainer";
 import { Card, CardContent } from "@/components/ui/Card";
-import {
-  Tabs,
-  TabsListGrid,
-  TabsTrigger,
-  TabsContent,
-} from "@/components/ui/Tabs";
+import { Tabs, TabsTrigger, TabsContent, TabsList } from "@/components/ui/Tabs";
 import Input from "@/components/ui/Input";
 import Button from "@/components/ui/Button";
 import Dropdown, { DropdownOption } from "@/components/ui/Dropdown";
@@ -742,7 +737,7 @@ export function CreateCoursePage() {
                 defaultValue="document"
                 variant="fancy"
               >
-                <TabsListGrid columns={3} className="mb-8">
+                <TabsList className="mb-8 justify-center">
                   <TabsTrigger value="document">
                     <Upload className="w-4 h-4" />
                     <span>{t("createCourse.tabs.document")}</span>
@@ -755,7 +750,7 @@ export function CreateCoursePage() {
                     <FileText className="w-4 h-4" />
                     <span>{t("createCourse.tabs.text")}</span>
                   </TabsTrigger>
-                </TabsListGrid>
+                </TabsList>
 
                 {/* Document Upload Tab */}
                 <TabsContent value="document" className="space-y-6">
