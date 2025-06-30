@@ -189,6 +189,20 @@ export function Sidebar() {
   // Memoize current path to prevent unnecessary re-renders
   const currentPath = useMemo(() => location.pathname, [location.pathname]);
 
+  // ✅ Check feature flag for social features
+  const isSocialEnabled = import.meta.env.VITE_ENABLE_FEATURE_SOCIAL === 'true';
+
+  // ✅ Filter navigation categories based on feature flags
+  const filteredNavCategories = useMemo(() => {
+    return navCategories.filter(category => {
+      // Hide social category if feature is disabled
+      if (category.title === "Social" && !isSocialEnabled) {
+        return false;
+      }
+      return true;
+    });
+  }, [isSocialEnabled]);
+
   // ✅ Save scroll position before route changes
   useEffect(() => {
     const nav = navRef.current;
@@ -271,7 +285,7 @@ export function Sidebar() {
           className="flex-1 py-6 overflow-y-auto"
           style={{ scrollBehavior: 'auto' }} // ✅ Disable smooth scrolling for position restoration
         >
-          {navCategories.map((category, categoryIndex) => (
+          {filteredNavCategories.map((category, categoryIndex) => (
             <NavigationCategory
               key={category.title}
               category={category}
