@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { X, AlertTriangle, Loader2, CheckCircle } from "lucide-react";
+import { X, AlertTriangle, Loader2, CheckCircle, Heart } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
 import { useCurrentGameSession } from "@/hooks/use-game";
@@ -494,42 +494,6 @@ export function GameSessionPage() {
 
       {/* Game Content - ✅ Mobile fullscreen layout */}
       <div className={`${isMobile ? 'h-screen flex flex-col' : 'max-w-4xl mx-auto px-4 py-8'}`}>
-        {/* ✅ Mobile header - compact version */}
-        {isMobile && (
-          <div className="flex-shrink-0 bg-black/20 backdrop-blur-xl border-b border-white/10 px-4 py-3">
-            <div className="flex items-center justify-between">
-              <button
-                onClick={handleAbandonSession}
-                className="p-2 hover:bg-white/10 rounded-lg transition-colors"
-              >
-                <X className="w-5 h-5 text-white" />
-              </button>
-              
-              <div className="text-center">
-                <div className="text-white font-bold text-sm">{level.title}</div>
-                <div className="text-gray-300 text-xs">{course.title}</div>
-              </div>
-              
-              <div className="flex items-center space-x-2 text-xs text-white">
-                <span>{currentSession.lives}❤️</span>
-                <span>{completedCount}/{totalQuestions}</span>
-              </div>
-            </div>
-            
-            {/* Mobile progress bar */}
-            <div className="mt-2">
-              <div className="w-full bg-white/20 rounded-full h-1">
-                <motion.div
-                  className="bg-gradient-to-r from-blue-400 to-purple-500 h-1 rounded-full"
-                  initial={{ width: 0 }}
-                  animate={{ width: `${progressTotal}%` }}
-                  transition={{ duration: 0.5 }}
-                />
-              </div>
-            </div>
-          </div>
-        )}
-
         <AnimatePresence mode="wait">
           <motion.div
             key={`${currentQueuePosition}-${currentQuestionIndex}`}
@@ -542,13 +506,6 @@ export function GameSessionPage() {
             {/* ✅ Mobile: Remove card wrapper for fullscreen */}
             {isMobile ? (
               <div className="flex-1 flex flex-col bg-white dark:bg-gray-900 overflow-hidden">
-                {/* Question Header - Mobile */}
-                <div className="flex-shrink-0 text-center py-4 px-4 border-b border-gray-200 dark:border-gray-700">
-                  <Badge variant="primary" size="lg">
-                    Question {currentQueuePosition + 1} of {totalQuestions}
-                  </Badge>
-                </div>
-
                 {/* Error Display - Mobile */}
                 {gameError && (
                   <motion.div
@@ -580,32 +537,70 @@ export function GameSessionPage() {
                   />
                 </div>
 
-                {/* Navigation - Mobile */}
-                <div className="flex-shrink-0 border-t border-gray-200 dark:border-gray-700 p-4">
-                  <GameNavigation
-                    currentQuestionIndex={currentQueuePosition}
-                    totalQuestions={totalQuestions}
-                    isCurrentQuestionAnswered={isCurrentQuestionCompleted}
-                    questionResult={questionResult}
-                    hasMoreUnansweredQuestions={hasMoreIncompleteQuestions}
-                    allQuestionsAnswered={allQuestionsCompleted}
-                    answeredCount={completedCount}
-                    onPreviousQuestion={handlePreviousQuestion}
-                    onNextQuestion={() => {
-                      if (currentQueuePosition < totalQuestions - 1) {
-                        setCurrentQueuePosition(currentQueuePosition + 1);
+                {/* ✅ NEW: Mobile Footer with compact header info */}
+                <div className="flex-shrink-0 bg-black/20 backdrop-blur-xl border-t border-white/10">
+                  {/* Compact Header Row */}
+                  <div className="flex items-center justify-between px-4 py-3 border-b border-white/10">
+                    <button
+                      onClick={handleAbandonSession}
+                      className="p-2 hover:bg-white/10 rounded-lg transition-colors"
+                    >
+                      <X className="w-5 h-5 text-white" />
+                    </button>
+                    
+                    <div className="text-center">
+                      <Badge variant="primary" size="sm" className="bg-white/20 text-white border-white/30">
+                        Question {currentQueuePosition + 1} of {totalQuestions}
+                      </Badge>
+                    </div>
+                    
+                    <div className="flex items-center space-x-3 text-white">
+                      <div className="flex items-center space-x-1">
+                        <Heart className="w-4 h-4 text-red-400" />
+                        <span className="text-sm font-bold">{currentSession.lives}</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Progress bar */}
+                  <div className="px-4 py-2">
+                    <div className="w-full bg-white/20 rounded-full h-1">
+                      <motion.div
+                        className="bg-gradient-to-r from-blue-400 to-purple-500 h-1 rounded-full"
+                        initial={{ width: 0 }}
+                        animate={{ width: `${progressTotal}%` }}
+                        transition={{ duration: 0.5 }}
+                      />
+                    </div>
+                  </div>
+
+                  {/* Navigation */}
+                  <div className="p-4">
+                    <GameNavigation
+                      currentQuestionIndex={currentQueuePosition}
+                      totalQuestions={totalQuestions}
+                      isCurrentQuestionAnswered={isCurrentQuestionCompleted}
+                      questionResult={questionResult}
+                      hasMoreUnansweredQuestions={hasMoreIncompleteQuestions}
+                      allQuestionsAnswered={allQuestionsCompleted}
+                      answeredCount={completedCount}
+                      onPreviousQuestion={handlePreviousQuestion}
+                      onNextQuestion={() => {
+                        if (currentQueuePosition < totalQuestions - 1) {
+                          setCurrentQueuePosition(currentQueuePosition + 1);
+                          setQuestionResult(null);
+                          setSelectedAnswer(null);
+                        }
+                      }}
+                      onNextUnansweredQuestion={handleNextQuestion}
+                      onFinishLevel={handleFinishLevel}
+                      onReviewMode={() => {
+                        setCurrentQueuePosition(0);
                         setQuestionResult(null);
                         setSelectedAnswer(null);
-                      }
-                    }}
-                    onNextUnansweredQuestion={handleNextQuestion}
-                    onFinishLevel={handleFinishLevel}
-                    onReviewMode={() => {
-                      setCurrentQueuePosition(0);
-                      setQuestionResult(null);
-                      setSelectedAnswer(null);
-                    }}
-                  />
+                      }}
+                    />
+                  </div>
                 </div>
               </div>
             ) : (
