@@ -1,19 +1,11 @@
-import { useAuth } from "@/hooks/use-auth";
+import { MoonIcon, SunIcon, MenuIcon, XIcon, Flame, Gem } from "lucide-react";
+import { motion } from "framer-motion";
+import { useState, memo, useMemo } from "react";
+import { useLocation } from "react-router-dom";
+
 import { useSettingsStore } from "@/stores/settings-store";
 import { useUserStats } from "@/hooks/use-stats";
 import { useResponsive } from "@/hooks/use-responsive";
-import {
-  MoonIcon,
-  SunIcon,
-  BellIcon,
-  MenuIcon,
-  XIcon,
-  Flame,
-  Gem,
-} from "lucide-react";
-import { motion, AnimatePresence } from "framer-motion";
-import { useState, memo, useMemo } from "react";
-import { useLocation } from "react-router-dom";
 import ProgressRing from "../ui/ProgressRing";
 import { SearchInput } from "./SearchInput";
 import { SidebarMobile } from "./SidebarMobile";
@@ -33,7 +25,9 @@ const UserStatsDisplay = memo(() => {
           <Flame className="w-4 h-4 text-white" />
         </div>
         <div className="text-sm">
-          <div className="font-bold text-gray-900 dark:text-white">{stats.currentStreak}</div>
+          <div className="font-bold text-gray-900 dark:text-white">
+            {stats.currentStreak}
+          </div>
           <div className="text-xs text-gray-500 dark:text-gray-400">streak</div>
         </div>
       </div>
@@ -44,7 +38,9 @@ const UserStatsDisplay = memo(() => {
           <Gem className="w-4 h-4 text-white" />
         </div>
         <div className="text-sm">
-          <div className="font-bold text-gray-900 dark:text-white">{stats.totalScore}</div>
+          <div className="font-bold text-gray-900 dark:text-white">
+            {stats.totalScore}
+          </div>
           <div className="text-xs text-gray-500 dark:text-gray-400">XP</div>
         </div>
       </div>
@@ -68,8 +64,12 @@ const MobileStatsDisplay = memo(() => {
             <Flame className="w-5 h-5 text-white" />
           </div>
           <div>
-            <div className="font-bold text-gray-900 dark:text-white">{stats.currentStreak}</div>
-            <div className="text-xs text-gray-500 dark:text-gray-400">day streak</div>
+            <div className="font-bold text-gray-900 dark:text-white">
+              {stats.currentStreak}
+            </div>
+            <div className="text-xs text-gray-500 dark:text-gray-400">
+              day streak
+            </div>
           </div>
         </div>
       </div>
@@ -80,8 +80,12 @@ const MobileStatsDisplay = memo(() => {
             <Gem className="w-5 h-5 text-white" />
           </div>
           <div>
-            <div className="font-bold text-gray-900 dark:text-white">{stats.totalScore}</div>
-            <div className="text-xs text-gray-500 dark:text-gray-400">total XP</div>
+            <div className="font-bold text-gray-900 dark:text-white">
+              {stats.totalScore}
+            </div>
+            <div className="text-xs text-gray-500 dark:text-gray-400">
+              total XP
+            </div>
           </div>
         </div>
       </div>
@@ -93,78 +97,28 @@ MobileStatsDisplay.displayName = "MobileStatsDisplay";
 
 // Memoized Level Progress Ring
 const LevelProgressRing = memo(() => {
-  const [statsLoading, stats] = useUserStats();
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const [_, stats] = useUserStats();
 
   // Calculate user level from total score (simple formula)
   const userLevel = stats ? Math.floor(stats.totalScore / 1000) + 1 : 1;
   const levelProgress = stats ? ((stats.totalScore % 1000) / 1000) * 100 : 0;
 
   return (
-    <ProgressRing 
-      progress={levelProgress} 
-      size={44} 
-      strokeWidth={3} 
+    <ProgressRing
+      progress={levelProgress}
+      size={44}
+      strokeWidth={3}
       variant="neon"
     >
-      <span className="text-xs font-bold text-gray-900 dark:text-white">{userLevel}</span>
+      <span className="text-xs font-bold text-gray-900 dark:text-white">
+        {userLevel}
+      </span>
     </ProgressRing>
   );
 });
 
 LevelProgressRing.displayName = "LevelProgressRing";
-
-// Memoized Notifications Button
-const NotificationsButton = memo(() => {
-  const [showNotifications, setShowNotifications] = useState(false);
-
-  return (
-    <div className="relative">
-      <motion.button
-        onClick={() => setShowNotifications(!showNotifications)}
-        className="p-3 rounded-2xl bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors relative"
-        whileHover={{ scale: 1.05 }}
-        whileTap={{ scale: 0.95 }}
-      >
-        <BellIcon className="w-5 h-5" />
-        {/* Notification badge */}
-        <div className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 rounded-full flex items-center justify-center">
-          <span className="text-xs font-bold text-white">3</span>
-        </div>
-      </motion.button>
-
-      {/* Notifications dropdown */}
-      <AnimatePresence>
-        {showNotifications && (
-          <motion.div
-            className="absolute right-0 top-full mt-2 w-80 bg-white dark:bg-gray-800 rounded-2xl shadow-2xl border border-gray-200 dark:border-gray-700 z-50"
-            initial={{ opacity: 0, y: -10, scale: 0.95 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: -10, scale: 0.95 }}
-            transition={{ duration: 0.2 }}
-          >
-            <div className="p-4">
-              <h3 className="font-bold text-gray-900 dark:text-white mb-3">Notifications</h3>
-              <div className="space-y-3">
-                {[1, 2, 3].map((i) => (
-                  <div key={i} className="p-3 bg-gray-50 dark:bg-gray-700 rounded-xl">
-                    <div className="text-sm font-medium text-gray-900 dark:text-white">
-                      New achievement unlocked!
-                    </div>
-                    <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                      2 minutes ago
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-    </div>
-  );
-});
-
-NotificationsButton.displayName = "NotificationsButton";
 
 // Memoized Theme Toggle Button
 const ThemeToggleButton = memo(() => {
@@ -189,25 +143,30 @@ const ThemeToggleButton = memo(() => {
 ThemeToggleButton.displayName = "ThemeToggleButton";
 
 // Memoized Mobile Menu Button
-const MobileMenuButton = memo(({ showMobileMenu, setShowMobileMenu }: { 
-  showMobileMenu: boolean; 
-  setShowMobileMenu: (show: boolean) => void; 
-}) => {
-  return (
-    <motion.button
-      onClick={() => setShowMobileMenu(!showMobileMenu)}
-      className="p-2 rounded-xl bg-primary-100 dark:bg-gray-800 text-primary-600 dark:text-primary-400 hover:bg-primary-200 dark:hover:bg-gray-700 transition-colors"
-      whileHover={{ scale: 1.05 }}
-      whileTap={{ scale: 0.95 }}
-    >
-      {showMobileMenu ? (
-        <XIcon className="w-6 h-6" />
-      ) : (
-        <MenuIcon className="w-6 h-6" />
-      )}
-    </motion.button>
-  );
-});
+const MobileMenuButton = memo(
+  ({
+    showMobileMenu,
+    setShowMobileMenu,
+  }: {
+    showMobileMenu: boolean;
+    setShowMobileMenu: (show: boolean) => void;
+  }) => {
+    return (
+      <motion.button
+        onClick={() => setShowMobileMenu(!showMobileMenu)}
+        className="p-2 rounded-xl bg-primary-100 dark:bg-gray-800 text-primary-600 dark:text-primary-400 hover:bg-primary-200 dark:hover:bg-gray-700 transition-colors"
+        whileHover={{ scale: 1.05 }}
+        whileTap={{ scale: 0.95 }}
+      >
+        {showMobileMenu ? (
+          <XIcon className="w-6 h-6" />
+        ) : (
+          <MenuIcon className="w-6 h-6" />
+        )}
+      </motion.button>
+    );
+  }
+);
 
 MobileMenuButton.displayName = "MobileMenuButton";
 
@@ -231,59 +190,58 @@ DesktopSidebarToggle.displayName = "DesktopSidebarToggle";
 
 // Main Header Component - Now memoized and optimized
 export const Header = memo(() => {
-  const { user } = useAuth();
   const { isMobile } = useResponsive();
   const [showMobileMenu, setShowMobileMenu] = useState(false);
   const location = useLocation();
 
   // ✅ Hide search input when on explore page to avoid conflicts
-  const showSearchInput = !location.pathname.startsWith('/courses');
+  const showSearchInput = !location.pathname.startsWith("/courses");
 
   // Memoize the header content to prevent unnecessary re-renders
-  const headerContent = useMemo(() => (
-    <div className="px-4 sm:px-6 lg:px-8">
-      <div className="flex h-16 sm:h-18 items-center justify-between">
-        {/* Left Section */}
-        <div className="flex items-center space-x-4">
-          {/* Mobile menu button */}
-          {isMobile && (
-            <MobileMenuButton 
-              showMobileMenu={showMobileMenu} 
-              setShowMobileMenu={setShowMobileMenu} 
-            />
+  const headerContent = useMemo(
+    () => (
+      <div className="px-4 sm:px-6 lg:px-8">
+        <div className="flex h-16 sm:h-18 items-center justify-between">
+          {/* Left Section */}
+          <div className="flex items-center space-x-4">
+            {/* Mobile menu button */}
+            {isMobile && (
+              <MobileMenuButton
+                showMobileMenu={showMobileMenu}
+                setShowMobileMenu={setShowMobileMenu}
+              />
+            )}
+
+            {/* Desktop sidebar toggle */}
+            {!isMobile && <DesktopSidebarToggle />}
+          </div>
+
+          {/* Center Section - Search (Desktop only, hidden on explore page) */}
+          {!isMobile && showSearchInput && (
+            <div className="flex-1 max-w-md mx-8">
+              <SearchInput
+                variant="header"
+                placeholder="Search courses, topics..."
+              />
+            </div>
           )}
 
-          {/* Desktop sidebar toggle */}
-          {!isMobile && <DesktopSidebarToggle />}
-        </div>
+          {/* Right Section */}
+          <div className="flex items-center space-x-2 sm:space-x-4">
+            {/* User Stats (Desktop) */}
+            <UserStatsDisplay />
 
-        {/* Center Section - Search (Desktop only, hidden on explore page) */}
-        {!isMobile && showSearchInput && (
-          <div className="flex-1 max-w-md mx-8">
-            <SearchInput 
-              variant="header"
-              placeholder="Search courses, topics..."
-            />
+            {/* Theme toggle */}
+            <ThemeToggleButton />
+
+            {/* Level Progress Ring */}
+            <LevelProgressRing />
           </div>
-        )}
-
-        {/* Right Section */}
-        <div className="flex items-center space-x-2 sm:space-x-4">
-          {/* User Stats (Desktop) */}
-          <UserStatsDisplay />
-
-          {/* Theme toggle */}
-          <ThemeToggleButton />
-
-          {/* Notifications */}
-          <NotificationsButton />
-
-          {/* Level Progress Ring */}
-          <LevelProgressRing />
         </div>
       </div>
-    </div>
-  ), [isMobile, showMobileMenu, showSearchInput]);
+    ),
+    [isMobile, showMobileMenu, showSearchInput]
+  );
 
   return (
     <>
@@ -293,9 +251,9 @@ export const Header = memo(() => {
       </header>
 
       {/* Mobile Sidebar */}
-      <SidebarMobile 
-        isOpen={showMobileMenu} 
-        onClose={() => setShowMobileMenu(false)} 
+      <SidebarMobile
+        isOpen={showMobileMenu}
+        onClose={() => setShowMobileMenu(false)}
       />
     </>
   );

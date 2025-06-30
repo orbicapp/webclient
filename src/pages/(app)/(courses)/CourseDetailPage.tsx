@@ -13,10 +13,8 @@ import {
   Shield,
   Rocket,
   Gem,
-  Play,
   UserPlus,
   Eye,
-  Lock,
 } from "lucide-react";
 import { useState } from "react";
 
@@ -35,15 +33,18 @@ import { cn } from "@/lib/utils/class.utils";
 import { formatDate } from "@/lib/utils/class.utils";
 import { ProgressService } from "@/services/progress-service";
 import { LevelWithChapter } from "@/hooks/use-course-path";
+import { useResponsive } from "@/hooks/use-responsive";
 
 export function CourseDetailPage() {
   const { courseId } = useParams<{ courseId: string }>();
   const [loading, course, error] = useCourse(courseId!);
   const [levelsLoading, levels] = useCourseLevels(courseId!);
   const [chaptersLoading, chapters] = useCourseChapters(courseId!);
+  const { isMobile } = useResponsive();
 
   // ✅ NEW: Use the enhanced hook with refetch capability
-  const [progressLoading, progress, progressError, refetchCourseProgress] =
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const [progressLoading, progress, _, refetchCourseProgress] =
     useCourseProgress(courseId!);
 
   // State for joining course
@@ -57,8 +58,6 @@ export function CourseDetailPage() {
   const [isLevelModalOpen, setIsLevelModalOpen] = useState(false);
 
   const { scrollY } = useScroll();
-  const headerOpacity = useTransform(scrollY, [0, 300], [1, 0]);
-  const headerScale = useTransform(scrollY, [0, 300], [1, 0.8]);
 
   // Sticky panel transforms - More dramatic scaling
   const panelScale = useTransform(scrollY, [300, 600], [1, 0.7]);
@@ -79,7 +78,8 @@ export function CourseDetailPage() {
   const isEnrolled =
     progress && progress._id && !progress._id.startsWith("temp-");
   const hasStartedCourse =
-    isEnrolled && (progress.totalScore > 0 || progress.completedLevels > 0);
+    isEnrolled &&
+    (progress.totalScore > 0 || progress.levelProgress.length > 0);
 
   const handleJoinCourse = async () => {
     if (!courseId) return;
@@ -198,7 +198,7 @@ export function CourseDetailPage() {
             <p className="text-gray-300 mb-6">
               {error || "The adventure you're looking for doesn't exist."}
             </p>
-            <Button variant="primary" as="a" href="/courses" glow>
+            <Button variant="primary" as="a" to="/courses" glow>
               <Target className="w-4 h-4 mr-2" />
               Explore Quests
             </Button>
@@ -213,7 +213,7 @@ export function CourseDetailPage() {
     : `https://images.pexels.com/photos/4144923/pexels-photo-4144923.jpeg?auto=compress&cs=tinysrgb&w=1200&h=400&fit=crop`;
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-indigo-900 via-purple-900 to-pink-900 relative overflow-hidden">
+    <div className="min-h-screen relative overflow-hidden">
       {/* Animated background elements */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         {/* Floating geometric shapes */}
@@ -252,10 +252,7 @@ export function CourseDetailPage() {
       </div>
 
       {/* Epic Course Header - Full Width and Responsive */}
-      <motion.div
-        className="relative z-10 w-full"
-        style={{ opacity: headerOpacity, scale: headerScale }}
-      >
+      <motion.div className="relative z-10 w-full">
         <div className="relative h-96 md:h-[500px] overflow-hidden w-full">
           {/* Background image with overlay */}
           <div className="absolute inset-0">
@@ -292,7 +289,7 @@ export function CourseDetailPage() {
           </div>
 
           {/* Content - Properly centered */}
-          <div className="relative z-10 h-full flex items-center">
+          <div className="relative z-10 h-full flex items-end sm:pb-10">
             <div className="w-full px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
               <div className="flex flex-col lg:flex-row items-end justify-between">
                 <div className="flex-1 mb-8 lg:mb-0">
@@ -435,32 +432,34 @@ export function CourseDetailPage() {
                     transition={{ delay: 0.6, type: "spring" }}
                   >
                     <div className="relative">
-                      <ProgressRing
-                        progress={courseStats.progressPercentage}
-                        size={120}
-                        strokeWidth={10}
-                        glow={courseStats.progressPercentage > 50}
-                        variant={
-                          courseStats.progressPercentage > 75
-                            ? "rainbow"
-                            : "neon"
-                        }
-                      >
-                        <div className="text-center">
-                          <div className="text-2xl sm:text-3xl font-bold text-white mb-1">
-                            {courseStats.progressPercentage}%
+                      {!isMobile && (
+                        <ProgressRing
+                          progress={courseStats.progressPercentage}
+                          size={120}
+                          strokeWidth={10}
+                          glow={courseStats.progressPercentage > 50}
+                          variant={
+                            courseStats.progressPercentage > 75
+                              ? "rainbow"
+                              : "neon"
+                          }
+                        >
+                          <div className="text-center">
+                            <div className="text-2xl sm:text-3xl font-bold text-white mb-1">
+                              {courseStats.progressPercentage}%
+                            </div>
+                            <div className="text-xs sm:text-sm text-gray-300">
+                              Complete
+                            </div>
+                            <div className="flex items-center justify-center mt-2">
+                              <Star className="w-3 h-3 sm:w-4 sm:h-4 text-yellow-400 mr-1" />
+                              <span className="text-xs sm:text-sm text-yellow-400 font-semibold">
+                                {courseStats.totalStars}
+                              </span>
+                            </div>
                           </div>
-                          <div className="text-xs sm:text-sm text-gray-300">
-                            Complete
-                          </div>
-                          <div className="flex items-center justify-center mt-2">
-                            <Star className="w-3 h-3 sm:w-4 sm:h-4 text-yellow-400 mr-1" />
-                            <span className="text-xs sm:text-sm text-yellow-400 font-semibold">
-                              {courseStats.totalStars}
-                            </span>
-                          </div>
-                        </div>
-                      </ProgressRing>
+                        </ProgressRing>
+                      )}
 
                       {/* Floating achievement icons */}
                       {courseStats.progressPercentage > 25 && (
@@ -586,7 +585,7 @@ export function CourseDetailPage() {
       {/* Preview Mode Banner - Show when not enrolled */}
       {!isEnrolled && levelPath.length > 0 && (
         <motion.div
-          className="sticky top-4 z-40 flex justify-center px-4"
+          className="sticky top-4 z-40 flex justify-center px-4 mt-5"
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.7 }}

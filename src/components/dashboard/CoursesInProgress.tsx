@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { BookOpen, Clock, Star, ChevronRight, Play, Zap, Target } from "lucide-react";
+import { BookOpen, Clock, Star, Zap } from "lucide-react";
 import { Link } from "react-router-dom";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/Card";
@@ -7,11 +7,10 @@ import ProgressRing from "@/components/ui/ProgressRing";
 import Badge from "@/components/ui/Badge";
 import CourseCard from "@/components/ui/CourseCard";
 import { useCoursesWithProgress } from "@/hooks/use-progress";
-import { formatCompact } from "@/lib/utils/class.utils";
-
 export function CoursesInProgress() {
   // ✅ NEW: Use the enhanced hook with refetch capability
-  const [loading, coursesWithProgress, error, refetchCoursesWithProgress] = useCoursesWithProgress();
+  const [loading, coursesWithProgress, error, refetchCoursesWithProgress] =
+    useCoursesWithProgress();
 
   if (loading) {
     return (
@@ -116,7 +115,8 @@ export function CoursesInProgress() {
             </span>
           </div>
           <Badge variant="gradient" size="sm">
-            {coursesWithProgress.length} course{coursesWithProgress.length !== 1 ? 's' : ''}
+            {coursesWithProgress.length} course
+            {coursesWithProgress.length !== 1 ? "s" : ""}
           </Badge>
         </CardTitle>
       </CardHeader>
@@ -124,9 +124,12 @@ export function CoursesInProgress() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {coursesWithProgress.map((item, index) => {
             const { course, progress } = item;
-            const progressPercentage = progress.totalLevels > 0 
-              ? Math.round((progress.completedLevels / progress.totalLevels) * 100)
-              : 0;
+            const progressPercentage =
+              progress.totalLevels > 0
+                ? Math.round(
+                    (progress.completedLevels / progress.totalLevels) * 100
+                  )
+                : 0;
 
             return (
               <motion.div
@@ -137,12 +140,12 @@ export function CoursesInProgress() {
                 className="relative"
               >
                 <CourseCard course={course} />
-                
+
                 {/* Progress Overlay */}
                 <div className="absolute top-3 right-3">
-                  <ProgressRing 
-                    progress={progressPercentage} 
-                    size={50} 
+                  <ProgressRing
+                    progress={progressPercentage}
+                    size={50}
                     strokeWidth={4}
                     glow={progressPercentage > 75}
                     variant={progressPercentage > 50 ? "rainbow" : "default"}

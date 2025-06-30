@@ -1,18 +1,17 @@
 import React, { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { 
-  X, 
-  Play, 
-  Star, 
-  Clock, 
-  Target, 
+import {
+  X,
+  Play,
+  Star,
+  Target,
   Trophy,
   Zap,
   Heart,
   CheckCircle,
   Lock,
   Loader2,
-  AlertTriangle
+  AlertTriangle,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
@@ -37,7 +36,7 @@ export const LevelModal: React.FC<LevelModalProps> = ({
   isOpen,
   onClose,
   previewMode = false,
-  onJoinCourse
+  onJoinCourse,
 }) => {
   const navigate = useNavigate();
   const [isStarting, setIsStarting] = useState(false);
@@ -62,7 +61,7 @@ export const LevelModal: React.FC<LevelModalProps> = ({
 
     try {
       const [session, sessionError] = await GameService.startLevel({
-        levelId: level._id
+        levelId: level._id,
       });
 
       if (sessionError || !session) {
@@ -72,11 +71,10 @@ export const LevelModal: React.FC<LevelModalProps> = ({
 
       // Set the session in the store
       setCurrentSession(session);
-      
+
       // Close modal and navigate to game
       onClose();
       navigate("/game");
-      
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to start level");
     } finally {
@@ -86,8 +84,10 @@ export const LevelModal: React.FC<LevelModalProps> = ({
 
   const getDifficultyColor = () => {
     const questionCount = level.questions?.length || 0;
-    if (questionCount <= 3) return "text-green-600 bg-green-100 dark:bg-green-900/20";
-    if (questionCount <= 6) return "text-yellow-600 bg-yellow-100 dark:bg-yellow-900/20";
+    if (questionCount <= 3)
+      return "text-green-600 bg-green-100 dark:bg-green-900/20";
+    if (questionCount <= 6)
+      return "text-yellow-600 bg-yellow-100 dark:bg-yellow-900/20";
     return "text-red-600 bg-red-100 dark:bg-red-900/20";
   };
 
@@ -122,16 +122,18 @@ export const LevelModal: React.FC<LevelModalProps> = ({
                 <div className="flex items-start justify-between mb-6">
                   <div className="flex-1">
                     <div className="flex items-center space-x-3 mb-3">
-                      <div className={cn(
-                        "w-12 h-12 rounded-2xl flex items-center justify-center shadow-lg",
-                        previewMode
-                          ? "bg-gradient-to-br from-orange-400 to-amber-600"
-                          : level.isCompleted
+                      <div
+                        className={cn(
+                          "w-12 h-12 rounded-2xl flex items-center justify-center shadow-lg",
+                          previewMode
+                            ? "bg-gradient-to-br from-orange-400 to-amber-600"
+                            : level.isCompleted
                             ? "bg-gradient-to-br from-emerald-400 to-green-600"
                             : level.isUnlocked
-                              ? "bg-gradient-to-br from-blue-400 to-purple-600"
-                              : "bg-gradient-to-br from-gray-400 to-gray-600"
-                      )}>
+                            ? "bg-gradient-to-br from-blue-400 to-purple-600"
+                            : "bg-gradient-to-br from-gray-400 to-gray-600"
+                        )}
+                      >
                         {previewMode ? (
                           <Target className="w-6 h-6 text-white" />
                         ) : level.isCompleted ? (
@@ -142,7 +144,7 @@ export const LevelModal: React.FC<LevelModalProps> = ({
                           <Lock className="w-6 h-6 text-white" />
                         )}
                       </div>
-                      
+
                       <div className="flex-1">
                         <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-1">
                           {level.title}
@@ -163,7 +165,7 @@ export const LevelModal: React.FC<LevelModalProps> = ({
                       </div>
                     </div>
                   </div>
-                  
+
                   <button
                     onClick={onClose}
                     className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
@@ -194,10 +196,12 @@ export const LevelModal: React.FC<LevelModalProps> = ({
                   </div>
 
                   <div className="text-center p-4 bg-gray-50 dark:bg-gray-700 rounded-xl">
-                    <div className={cn(
-                      "w-8 h-8 rounded-lg flex items-center justify-center mx-auto mb-2",
-                      getDifficultyColor()
-                    )}>
+                    <div
+                      className={cn(
+                        "w-8 h-8 rounded-lg flex items-center justify-center mx-auto mb-2",
+                        getDifficultyColor()
+                      )}
+                    >
                       <Zap className="w-4 h-4" />
                     </div>
                     <div className="text-lg font-bold text-gray-900 dark:text-gray-100">
@@ -312,11 +316,10 @@ export const LevelModal: React.FC<LevelModalProps> = ({
                         {isStarting
                           ? "Starting Level..."
                           : level.isCompleted
-                            ? "Play Again"
-                            : level.isUnlocked
-                              ? "Start Level"
-                              : "Locked"
-                        }
+                          ? "Play Again"
+                          : level.isUnlocked
+                          ? "Start Level"
+                          : "Locked"}
                       </Button>
                       <Button
                         onClick={onClose}

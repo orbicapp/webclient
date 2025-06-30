@@ -9,13 +9,13 @@ import { useAuth } from "@/hooks/use-auth";
 import Badge from "../ui/Badge";
 
 // Memoized Navigation Item Component for Mobile
-const MobileNavigationItem = ({ 
-  item, 
-  isActive, 
-  onItemClick 
-}: { 
-  item: NavItem; 
-  isActive: boolean; 
+const MobileNavigationItem = ({
+  item,
+  isActive,
+  onItemClick,
+}: {
+  item: NavItem;
+  isActive: boolean;
   onItemClick: () => void;
 }) => {
   const { logout } = useAuth();
@@ -61,7 +61,9 @@ const MobileNavigationItem = ({
         )}
 
         {/* Icon */}
-        <span className={`relative z-10 mr-3 transition-transform group-hover:scale-110`}>
+        <span
+          className={`relative z-10 mr-3 transition-transform group-hover:scale-110`}
+        >
           {item.icon}
         </span>
 
@@ -94,23 +96,24 @@ const MobileNavigationItem = ({
 };
 
 // Memoized Category Component for Mobile
-const MobileNavigationCategory = ({ 
-  category, 
-  categoryIndex, 
+const MobileNavigationCategory = ({
+  category,
+  categoryIndex,
   currentPath,
-  onItemClick 
-}: { 
-  category: any; 
-  categoryIndex: number; 
+  onItemClick,
+}: {
+  category: any;
+  categoryIndex: number;
   currentPath: string;
   onItemClick: () => void;
 }) => {
   // Memoize items to prevent unnecessary re-renders
-  const categoryItems = useMemo(() => 
-    category.items.map((item: NavItem) => ({
-      ...item,
-      isActive: currentPath === item.path
-    })), 
+  const categoryItems = useMemo(
+    () =>
+      category.items.map((item: NavItem) => ({
+        ...item,
+        isActive: currentPath === item.path,
+      })),
     [category.items, currentPath]
   );
 
@@ -129,11 +132,14 @@ const MobileNavigationCategory = ({
       {/* Navigation items */}
       <ul className="space-y-2 px-3">
         {categoryItems.map((item, itemIndex) => (
-          <motion.li 
+          <motion.li
             key={item.path}
             initial={{ opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.2, delay: (categoryIndex * 0.1) + (itemIndex * 0.05) }}
+            transition={{
+              duration: 0.2,
+              delay: categoryIndex * 0.1 + itemIndex * 0.05,
+            }}
           >
             <MobileNavigationItem
               item={item}
@@ -157,41 +163,45 @@ export function SidebarMobile({ isOpen, onClose }: SidebarMobileProps) {
   const { isMobile } = useResponsive();
 
   // ✅ Check feature flags (same as desktop sidebar)
-  const isSocialEnabled = import.meta.env.VITE_ENABLE_FEATURE_SOCIAL === 'true';
-  const isAchievementsEnabled = import.meta.env.VITE_ENABLE_FEATURE_ACHIEVEMENTS === 'true';
-  const isLeaderboardEnabled = import.meta.env.VITE_ENABLE_FEATURE_LEADERBOARD === 'true';
+  const isSocialEnabled = import.meta.env.VITE_ENABLE_FEATURE_SOCIAL === "true";
+  const isAchievementsEnabled =
+    import.meta.env.VITE_ENABLE_FEATURE_ACHIEVEMENTS === "true";
+  const isLeaderboardEnabled =
+    import.meta.env.VITE_ENABLE_FEATURE_LEADERBOARD === "true";
 
   // ✅ Filter navigation categories based on feature flags
   const filteredNavCategories = useMemo(() => {
-    return navCategories.map(category => {
-      // Filter items within categories based on feature flags
-      const filteredItems = category.items.filter(item => {
-        // Hide social category if feature is disabled
-        if (category.title === "Social" && !isSocialEnabled) {
-          return false;
-        }
-        
-        // Hide achievements if feature is disabled
-        if (item.name === "Achievements" && !isAchievementsEnabled) {
-          return false;
-        }
-        
-        // Hide leaderboard if feature is disabled
-        if (item.name === "Leaderboard" && !isLeaderboardEnabled) {
-          return false;
-        }
-        
-        return true;
-      });
+    return navCategories
+      .map((category) => {
+        // Filter items within categories based on feature flags
+        const filteredItems = category.items.filter((item) => {
+          // Hide social category if feature is disabled
+          if (category.title === "Social" && !isSocialEnabled) {
+            return false;
+          }
 
-      return {
-        ...category,
-        items: filteredItems
-      };
-    }).filter(category => {
-      // Remove categories that have no items left after filtering
-      return category.items.length > 0;
-    });
+          // Hide achievements if feature is disabled
+          if (item.name === "Achievements" && !isAchievementsEnabled) {
+            return false;
+          }
+
+          // Hide leaderboard if feature is disabled
+          if (item.name === "Leaderboard" && !isLeaderboardEnabled) {
+            return false;
+          }
+
+          return true;
+        });
+
+        return {
+          ...category,
+          items: filteredItems,
+        };
+      })
+      .filter((category) => {
+        // Remove categories that have no items left after filtering
+        return category.items.length > 0;
+      });
   }, [isSocialEnabled, isAchievementsEnabled, isLeaderboardEnabled]);
 
   const currentPath = useMemo(() => location.pathname, [location.pathname]);
@@ -223,7 +233,7 @@ export function SidebarMobile({ isOpen, onClose }: SidebarMobileProps) {
           >
             {/* Header */}
             <div className="flex items-center px-6 py-6 border-b border-primary-100 dark:border-gray-800">
-              <motion.div 
+              <motion.div
                 className="flex items-center space-x-3"
                 whileHover={{ scale: 1.02 }}
               >
@@ -248,25 +258,6 @@ export function SidebarMobile({ isOpen, onClose }: SidebarMobileProps) {
                 />
               ))}
             </nav>
-
-            {/* Footer */}
-            <div className="p-6 border-t border-primary-100 dark:border-gray-800">
-              <motion.div
-                className="p-4 bg-gradient-to-r from-primary-50 to-accent-50 dark:from-gray-800 dark:to-gray-700 rounded-2xl border border-primary-200 dark:border-gray-700"
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.5 }}
-              >
-                <div className="text-center">
-                  <div className="text-sm font-bold text-gray-900 dark:text-white mb-1">
-                    🚀 Keep Learning!
-                  </div>
-                  <div className="text-xs text-gray-500 dark:text-gray-400">
-                    You're doing great
-                  </div>
-                </div>
-              </motion.div>
-            </div>
           </motion.div>
         </>
       )}

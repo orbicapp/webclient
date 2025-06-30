@@ -1,8 +1,6 @@
 import {
   BookOpenIcon,
   CompassIcon,
-  FileTextIcon,
-  HelpCircleIcon,
   HomeIcon,
   LogOutIcon,
   PlusCircleIcon,
@@ -70,12 +68,6 @@ export const navCategories: NavCategory[] = [
         icon: <StarIcon className="w-5 h-5" />,
         mobile: false,
       },
-      {
-        name: "Resources",
-        path: "/resources",
-        icon: <FileTextIcon className="w-5 h-5" />,
-        mobile: false,
-      },
     ],
   },
   {
@@ -109,12 +101,6 @@ export const navCategories: NavCategory[] = [
         path: "/settings",
         icon: <SettingsIcon className="w-5 h-5" />,
         mobile: true,
-      },
-      {
-        name: "Help",
-        path: "/help",
-        icon: <HelpCircleIcon className="w-5 h-5" />,
-        mobile: false,
       },
       {
         name: "Logout",
