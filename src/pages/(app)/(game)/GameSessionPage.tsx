@@ -14,7 +14,10 @@ import {
   Loader2,
   RotateCcw,
   ArrowRight,
-  Eye
+  Eye,
+  Skull,
+  RefreshCw,
+  Home
 } from "lucide-react";
 import { useParams, useNavigate } from "react-router-dom";
 
@@ -360,6 +363,157 @@ const QuestionComponent: React.FC<QuestionComponentProps> = ({
   );
 };
 
+// ✅ NEW: Game Over Screen Component
+const GameOverScreen: React.FC<{
+  course: any;
+  level: any;
+  onRetryLevel: () => void;
+  onReturnToCourse: () => void;
+}> = ({ course, level, onRetryLevel, onReturnToCourse }) => {
+  return (
+    <motion.div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.5 }}
+    >
+      <motion.div
+        className="max-w-md w-full text-center"
+        initial={{ scale: 0.8, y: 50 }}
+        animate={{ scale: 1, y: 0 }}
+        transition={{ type: "spring", duration: 0.8 }}
+      >
+        <Card className="bg-gradient-to-br from-red-900/90 via-red-800/90 to-orange-900/90 backdrop-blur-xl border-2 border-red-500/30 text-white">
+          <CardContent>
+            {/* Skull Icon with Animation */}
+            <motion.div
+              className="w-24 h-24 mx-auto mb-6 relative"
+              animate={{
+                scale: [1, 1.1, 1],
+                rotate: [0, -5, 5, 0],
+              }}
+              transition={{
+                duration: 2,
+                repeat: Infinity,
+                ease: "easeInOut"
+              }}
+            >
+              <div className="w-24 h-24 bg-gradient-to-br from-red-500 to-red-700 rounded-full flex items-center justify-center shadow-2xl shadow-red-500/50">
+                <Skull className="w-12 h-12 text-white" />
+              </div>
+              
+              {/* Floating particles */}
+              {[...Array(6)].map((_, i) => (
+                <motion.div
+                  key={i}
+                  className="absolute w-2 h-2 bg-red-400 rounded-full"
+                  style={{
+                    left: `${20 + Math.cos(i * 60 * Math.PI / 180) * 40}px`,
+                    top: `${20 + Math.sin(i * 60 * Math.PI / 180) * 40}px`,
+                  }}
+                  animate={{
+                    scale: [0, 1, 0],
+                    opacity: [0, 1, 0],
+                  }}
+                  transition={{
+                    duration: 2,
+                    repeat: Infinity,
+                    delay: i * 0.3,
+                  }}
+                />
+              ))}
+            </motion.div>
+
+            {/* Game Over Title */}
+            <motion.h1
+              className="text-4xl font-bold text-white mb-4"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.3 }}
+            >
+              GAME OVER
+            </motion.h1>
+
+            {/* Subtitle */}
+            <motion.p
+              className="text-xl text-red-200 mb-2"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.4 }}
+            >
+              You ran out of lives!
+            </motion.p>
+
+            {/* Level Info */}
+            <motion.div
+              className="mb-8 p-4 bg-black/30 rounded-xl border border-red-500/30"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.5 }}
+            >
+              <h3 className="font-bold text-white mb-1">{level.title}</h3>
+              <p className="text-sm text-red-200">{course.title}</p>
+            </motion.div>
+
+            {/* Motivational Message */}
+            <motion.p
+              className="text-red-100 mb-8 leading-relaxed"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.6 }}
+            >
+              Don't give up! Every mistake is a step closer to mastery. 
+              Try again and show this level who's boss! 💪
+            </motion.p>
+
+            {/* Action Buttons */}
+            <motion.div
+              className="flex flex-col sm:flex-row gap-3"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.7 }}
+            >
+              <Button
+                onClick={onRetryLevel}
+                variant="primary"
+                size="lg"
+                fullWidth
+                leftIcon={<RefreshCw className="w-5 h-5" />}
+                className="bg-gradient-to-r from-emerald-500 to-green-600 hover:from-emerald-600 hover:to-green-700 shadow-lg shadow-emerald-500/25"
+              >
+                Try Again
+              </Button>
+              
+              <Button
+                onClick={onReturnToCourse}
+                variant="outline"
+                size="lg"
+                fullWidth
+                leftIcon={<Home className="w-5 h-5" />}
+                className="border-red-400 text-red-200 hover:bg-red-500/20 hover:border-red-300"
+              >
+                Return to Course
+              </Button>
+            </motion.div>
+
+            {/* Encouragement Quote */}
+            <motion.div
+              className="mt-6 p-3 bg-gradient-to-r from-orange-500/20 to-red-500/20 rounded-lg border border-orange-400/30"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 1 }}
+            >
+              <p className="text-sm text-orange-200 italic">
+                "Success is not final, failure is not fatal: it is the courage to continue that counts."
+              </p>
+            </motion.div>
+          </CardContent>
+        </Card>
+      </motion.div>
+    </motion.div>
+  );
+};
+
 export function GameSessionPage() {
   const navigate = useNavigate();
   const [sessionLoading, currentSession, sessionError] = useCurrentGameSession();
@@ -372,6 +526,9 @@ export function GameSessionPage() {
   const [gameError, setGameError] = useState<string | null>(null);
   const [startTime] = useState(Date.now());
   const [questionResult, setQuestionResult] = useState<QuestionResult | null>(null);
+  
+  // ✅ NEW: Game Over state
+  const [showGameOver, setShowGameOver] = useState(false);
   
   const { clearCurrentSession, updateSession } = useGameStore();
 
@@ -395,6 +552,13 @@ export function GameSessionPage() {
   useEffect(() => {
     setQuestionResult(null);
   }, [currentQuestionIndex]);
+
+  // ✅ NEW: Check for game over when lives reach 0
+  useEffect(() => {
+    if (currentSession && currentSession.lives <= 0) {
+      setShowGameOver(true);
+    }
+  }, [currentSession?.lives]);
 
   // Redirect if no session
   useEffect(() => {
@@ -459,16 +623,10 @@ export function GameSessionPage() {
         lives: result.livesRemaining
       });
 
-      // ✅ COMPLETELY MANUAL - User must click "Next Question" to continue
-
-      // Check if lives are depleted
+      // ✅ Check if lives are depleted - show game over screen instead of auto-navigation
       if (result.livesRemaining <= 0) {
-        // Game over - navigate back to course after a delay
-        setTimeout(() => {
-          // ✅ Clear session before navigating
-          clearCurrentSession();
-          navigate(`/course/${currentSession.courseId}`);
-        }, 3000);
+        // Game over will be handled by useEffect above
+        return;
       }
 
     } catch (err) {
@@ -523,6 +681,39 @@ export function GameSessionPage() {
       clearCurrentSession();
       navigate(`/course/${currentSession.courseId}`);
     }
+  };
+
+  // ✅ NEW: Handle retry level from game over screen
+  const handleRetryLevel = async () => {
+    if (!currentSession || !level) return;
+
+    try {
+      // Start a new level session
+      const [newSession, error] = await GameService.startLevel({
+        levelId: level._id
+      });
+
+      if (error || !newSession) {
+        setGameError(error || "Failed to restart level");
+        return;
+      }
+
+      // Update the current session and reset game state
+      updateSession(newSession._id, newSession);
+      setShowGameOver(false);
+      setCurrentQuestionIndex(0);
+      setQuestionResult(null);
+      setGameError(null);
+      
+    } catch (err) {
+      setGameError(err instanceof Error ? err.message : "Failed to restart level");
+    }
+  };
+
+  // ✅ NEW: Handle return to course from game over screen
+  const handleReturnToCourse = () => {
+    clearCurrentSession();
+    navigate(`/course/${currentSession?.courseId}`);
   };
 
   if (sessionLoading || levelLoading || courseLoading) {
@@ -635,6 +826,16 @@ export function GameSessionPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-indigo-900 via-purple-900 to-pink-900">
+      {/* ✅ Game Over Screen */}
+      {showGameOver && (
+        <GameOverScreen
+          course={course}
+          level={level}
+          onRetryLevel={handleRetryLevel}
+          onReturnToCourse={handleReturnToCourse}
+        />
+      )}
+
       {/* Header */}
       <div className="sticky top-0 z-40 bg-black/20 backdrop-blur-xl border-b border-white/10">
         <div className="max-w-4xl mx-auto px-4 py-4">
