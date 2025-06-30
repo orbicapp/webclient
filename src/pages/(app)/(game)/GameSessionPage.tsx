@@ -506,6 +506,13 @@ export function GameSessionPage() {
             {/* ✅ Mobile: Remove card wrapper for fullscreen */}
             {isMobile ? (
               <div className="flex-1 flex flex-col bg-white dark:bg-gray-900 overflow-hidden">
+                {/* ✅ FIXED: Question Title at the TOP */}
+                <div className="flex-shrink-0 px-4 pt-6 pb-4 border-b border-gray-200 dark:border-gray-700">
+                  <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100 text-center">
+                    {currentQuestion.question}
+                  </h2>
+                </div>
+
                 {/* Error Display - Mobile */}
                 {gameError && (
                   <motion.div
