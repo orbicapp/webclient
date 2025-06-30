@@ -103,6 +103,9 @@ export function QuestionRenderer({
     }
   };
 
+  // ✅ Determine if submit button should be enabled
+  const canSubmit = selectedAnswer !== null && selectedAnswer !== undefined && !questionResult && !isAnswered;
+
   return (
     <div className={`${isMobile ? 'h-full flex flex-col' : 'space-y-6'}`}>
       {/* Question Content - ✅ Mobile: Take most of the space */}
@@ -110,8 +113,8 @@ export function QuestionRenderer({
         {renderQuestionContent()}
       </div>
 
-      {/* ✅ Submit Button - Inside modal, positioned based on device */}
-      {selectedAnswer !== null && !questionResult && !isAnswered && onSubmitAnswer && (
+      {/* ✅ Submit Button - ALWAYS VISIBLE, disabled when no answer */}
+      {onSubmitAnswer && (
         <div className={`${
           isMobile 
             ? 'flex-shrink-0 pt-4 border-t border-gray-200 dark:border-gray-700' 
@@ -119,7 +122,7 @@ export function QuestionRenderer({
         }`}>
           <Button
             onClick={onSubmitAnswer}
-            disabled={isSubmitting}
+            disabled={!canSubmit || isSubmitting}
             variant="primary"
             size={isMobile ? "md" : "lg"}
             leftIcon={
