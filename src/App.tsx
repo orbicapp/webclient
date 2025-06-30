@@ -12,6 +12,7 @@ import { MyCoursesPage } from "./pages/(app)/MyCoursesPage";
 import { ProfilePage } from "./pages/(app)/ProfilePage";
 import { SettingsPage } from "./pages/(app)/SettingsPage";
 import { LoginPage } from "./pages/(auth)/LoginPage";
+import { RegisterPage } from "./pages/(auth)/RegisterPage";
 import { NotFoundPage } from "./pages/(misc)/NotFoundPage";
 import CourseDetailPage from "./pages/(app)/(courses)/CourseDetailPage";
 import { CourseListPage } from "./pages/(app)/(courses)/CourseListPage.tsx";
@@ -120,6 +121,7 @@ function App() {
         {/* Auth Routes */}
         <Route element={<AuthLayout />}>
           <Route path="/login" element={<LoginPage />} />
+          <Route path="/register" element={<RegisterPage />} />
         </Route>
 
         {/* Main App Routes */}
