@@ -48,7 +48,7 @@ async function createFile(input: CreateFileInput) {
     createFile: FileUpload;
   }>({
     mutation: CREATE_FILE_MUTATION,
-    variables: { input },
+    variables: { payload: input },
     fetchPolicy: "network-only",
   });
   return formatResult<FileUpload>(data?.createFile, errors);
@@ -59,7 +59,7 @@ async function completeFileUpload(input: CompleteFileInput) {
     completeFile: FileUpload;
   }>({
     mutation: COMPLETE_FILE_MUTATION,
-    variables: { input },
+    variables: { payload: input },
     fetchPolicy: "network-only",
   });
   return formatResult<FileUpload>(data?.completeFile, errors);
