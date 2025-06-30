@@ -36,7 +36,7 @@ export function EmailVerificationModal({
 
   const handleVerify = async () => {
     if (!verificationCode.trim()) {
-      setError("Por favor ingresa el código de verificación");
+      setError("Please enter the verification code");
       return;
     }
 
@@ -47,7 +47,7 @@ export function EmailVerificationModal({
       const [result, verifyError] = await AuthService.verifyEmail(verificationCode);
       
       if (verifyError || !result) {
-        setError(verifyError || "Error al verificar el código");
+        setError(verifyError || "Failed to verify code");
         return;
       }
 
@@ -60,7 +60,7 @@ export function EmailVerificationModal({
       }, 1500);
       
     } catch (err) {
-      setError("Ocurrió un error inesperado");
+      setError("An unexpected error occurred");
     } finally {
       setIsVerifying(false);
     }
@@ -136,10 +136,10 @@ export function EmailVerificationModal({
                   </motion.div>
 
                   <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-2">
-                    ¡Correo Verificado!
+                    Email Verified!
                   </h2>
                   <p className="text-gray-600 dark:text-gray-400">
-                    Tu cuenta ha sido verificada exitosamente
+                    Your account has been successfully verified
                   </p>
                 </motion.div>
               ) : (
@@ -186,10 +186,10 @@ export function EmailVerificationModal({
                     </motion.div>
 
                     <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-2">
-                      Verifica tu Correo
+                      Verify Your Email
                     </h2>
                     <p className="text-gray-600 dark:text-gray-400 mb-4">
-                      Hemos enviado un código de verificación a:
+                      We've sent a verification code to:
                     </p>
                     <div className="inline-flex items-center px-4 py-2 bg-blue-50 dark:bg-blue-900/20 rounded-xl border border-blue-200 dark:border-blue-800">
                       <Mail className="w-4 h-4 text-blue-600 dark:text-blue-400 mr-2" />
@@ -202,8 +202,8 @@ export function EmailVerificationModal({
                   {/* Verification Form */}
                   <div className="space-y-6">
                     <Input
-                      label="Código de Verificación"
-                      placeholder="Ingresa el código de 6 dígitos"
+                      label="Verification Code"
+                      placeholder="Enter the 6-digit code"
                       value={verificationCode}
                       onChange={(e) => setVerificationCode(e.target.value)}
                       error={error || undefined}
@@ -216,9 +216,9 @@ export function EmailVerificationModal({
                     {/* Info Text */}
                     <div className="text-center">
                       <p className="text-sm text-gray-500 dark:text-gray-400">
-                        Revisa tu bandeja de entrada y carpeta de spam.
+                        Check your inbox and spam folder.
                         <br />
-                        El código expira en 10 minutos.
+                        The code expires in 10 minutes.
                       </p>
                     </div>
 
@@ -239,7 +239,7 @@ export function EmailVerificationModal({
                         }
                         className="bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 hover:from-blue-700 hover:via-purple-700 hover:to-pink-700 shadow-lg shadow-blue-500/25"
                       >
-                        {isVerifying ? "Verificando..." : "Verificar Correo"}
+                        {isVerifying ? "Verifying..." : "Verify Email"}
                       </Button>
 
                       <Button
@@ -249,7 +249,7 @@ export function EmailVerificationModal({
                         fullWidth
                         className="border-gray-300 dark:border-gray-600 text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800"
                       >
-                        Verificar Más Tarde
+                        Verify Later
                       </Button>
                     </div>
 
@@ -258,10 +258,10 @@ export function EmailVerificationModal({
                       <AlertTriangle className="w-5 h-5 text-amber-600 dark:text-amber-400 flex-shrink-0 mt-0.5" />
                       <div>
                         <p className="text-sm font-medium text-amber-800 dark:text-amber-200 mb-1">
-                          ¿Por qué verificar?
+                          Why verify?
                         </p>
                         <p className="text-xs text-amber-700 dark:text-amber-300">
-                          La verificación protege tu cuenta y te permite recuperar el acceso si olvidas tu contraseña.
+                          Verification protects your account and allows you to recover access if you forget your password.
                         </p>
                       </div>
                     </div>
