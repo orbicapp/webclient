@@ -118,8 +118,12 @@ export function GameSessionPage() {
         case "FREE_CHOICE":
           answerPayload.freeAnswer = answer as string;
           break;
-        default:
-          throw new Error("Unsupported question type");
+        case "SEQUENCE":
+          answerPayload.sequenceOrder = answer as string[];
+          break;
+        case "PAIRS":
+          answerPayload.pairMatches = answer as string[];
+          break;
       }
 
       const [result, error] = await GameService.submitAnswer(answerPayload);
