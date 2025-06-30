@@ -7,6 +7,7 @@ import { useCurrentGameSession } from "@/hooks/use-game";
 import { useLevel } from "@/hooks/use-level";
 import { useCourse } from "@/hooks/use-course";
 import { useCourseProgress } from "@/hooks/use-progress";
+import { useResponsive } from "@/hooks/use-responsive";
 import {
   GameService,
   AnsweredQuestion,
@@ -33,6 +34,7 @@ interface QuestionQueueItem {
 
 export function GameSessionPage() {
   const navigate = useNavigate();
+  const { isMobile } = useResponsive();
   const [sessionLoading, currentSession, sessionError] =
     useCurrentGameSession();
   const [levelLoading, level] = useLevel(currentSession?.levelId || "");
@@ -469,7 +471,7 @@ export function GameSessionPage() {
   );
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-indigo-900 via-purple-900 to-pink-900">
+    <div className={`min-h-screen bg-gradient-to-br from-indigo-900 via-purple-900 to-pink-900 ${isMobile ? '' : ''}`}>
       {/* ✅ Game Over Screen */}
       {showGameOver && (
         <GameOverScreen
@@ -480,16 +482,54 @@ export function GameSessionPage() {
         />
       )}
 
-      {/* Header */}
-      <GameHeader
-        course={course}
-        level={level}
-        currentSession={currentSession}
-        onAbandonSession={handleAbandonSession}
-      />
+      {/* Header - ✅ Hide on mobile for fullscreen experience */}
+      {!isMobile && (
+        <GameHeader
+          course={course}
+          level={level}
+          currentSession={currentSession}
+          onAbandonSession={handleAbandonSession}
+        />
+      )}
 
-      {/* Game Content */}
-      <div className="max-w-4xl mx-auto px-4 py-8 pb-32">
+      {/* Game Content - ✅ Mobile fullscreen layout */}
+      <div className={`${isMobile ? 'h-screen flex flex-col' : 'max-w-4xl mx-auto px-4 py-8 pb-32'}`}>
+        {/* ✅ Mobile header - compact version */}
+        {isMobile && (
+          <div className="flex-shrink-0 bg-black/20 backdrop-blur-xl border-b border-white/10 px-4 py-3">
+            <div className="flex items-center justify-between">
+              <button
+                onClick={handleAbandonSession}
+                className="p-2 hover:bg-white/10 rounded-lg transition-colors"
+              >
+                <X className="w-5 h-5 text-white" />
+              </button>
+              
+              <div className="text-center">
+                <div className="text-white font-bold text-sm">{level.title}</div>
+                <div className="text-gray-300 text-xs">{course.title}</div>
+              </div>
+              
+              <div className="flex items-center space-x-2 text-xs text-white">
+                <span>{currentSession.lives}❤️</span>
+                <span>{completedCount}/{totalQuestions}</span>
+              </div>
+            </div>
+            
+            {/* Mobile progress bar */}
+            <div className="mt-2">
+              <div className="w-full bg-white/20 rounded-full h-1">
+                <motion.div
+                  className="bg-gradient-to-r from-blue-400 to-purple-500 h-1 rounded-full"
+                  initial={{ width: 0 }}
+                  animate={{ width: `${progressTotal}%` }}
+                  transition={{ duration: 0.5 }}
+                />
+              </div>
+            </div>
+          </div>
+        )}
+
         <AnimatePresence mode="wait">
           <motion.div
             key={`${currentQueuePosition}-${currentQuestionIndex}`}
@@ -497,20 +537,22 @@ export function GameSessionPage() {
             animate={{ opacity: 1, x: 0 }}
             exit={{ opacity: 0, x: -50 }}
             transition={{ duration: 0.3 }}
+            className={`${isMobile ? 'flex-1 flex flex-col' : ''}`}
           >
-            <Card className="bg-white/95 dark:bg-gray-800/95 backdrop-blur-lg border border-white/20">
-              <CardContent>
-                {/* Question Header */}
-                <div className="text-center mb-6">
+            {/* ✅ Mobile: Remove card wrapper for fullscreen */}
+            {isMobile ? (
+              <div className="flex-1 flex flex-col bg-white dark:bg-gray-900 overflow-hidden">
+                {/* Question Header - Mobile */}
+                <div className="flex-shrink-0 text-center py-4 px-4 border-b border-gray-200 dark:border-gray-700">
                   <Badge variant="primary" size="lg">
                     Question {currentQueuePosition + 1} of {totalQuestions}
                   </Badge>
                 </div>
 
-                {/* Error Display */}
+                {/* Error Display - Mobile */}
                 {gameError && (
                   <motion.div
-                    className="mb-6 p-4 bg-red-50 dark:bg-red-900/20 rounded-xl border border-red-200 dark:border-red-800"
+                    className="flex-shrink-0 mx-4 mt-4 p-4 bg-red-50 dark:bg-red-900/20 rounded-xl border border-red-200 dark:border-red-800"
                     initial={{ opacity: 0, y: -10 }}
                     animate={{ opacity: 1, y: 0 }}
                   >
@@ -523,51 +565,120 @@ export function GameSessionPage() {
                   </motion.div>
                 )}
 
-                {/* Question Component */}
-                <QuestionRenderer
-                  question={currentQuestion}
-                  questionIndex={currentQuestionIndex}
-                  onAnswer={handleAnswerSelection}
-                  isSubmitting={isSubmitting}
-                  isAnswered={isCurrentQuestionCompleted}
-                  answeredQuestion={undefined} // ✅ Don't pass answered question for retry logic
-                  questionResult={questionResult}
-                />
+                {/* Question Content - Mobile fullscreen */}
+                <div className="flex-1 overflow-y-auto px-4 py-6">
+                  <QuestionRenderer
+                    question={currentQuestion}
+                    questionIndex={currentQuestionIndex}
+                    onAnswer={handleAnswerSelection}
+                    isSubmitting={isSubmitting}
+                    isAnswered={isCurrentQuestionCompleted}
+                    answeredQuestion={undefined}
+                    questionResult={questionResult}
+                  />
+                </div>
 
-                {/* ✅ NEW: Enhanced Navigation Controls */}
-                <GameNavigation
-                  currentQuestionIndex={currentQueuePosition}
-                  totalQuestions={totalQuestions}
-                  isCurrentQuestionAnswered={isCurrentQuestionCompleted}
-                  questionResult={questionResult}
-                  hasMoreUnansweredQuestions={hasMoreIncompleteQuestions}
-                  allQuestionsAnswered={allQuestionsCompleted}
-                  answeredCount={completedCount}
-                  onPreviousQuestion={handlePreviousQuestion}
-                  onNextQuestion={() => {
-                    if (currentQueuePosition < totalQuestions - 1) {
-                      setCurrentQueuePosition(currentQueuePosition + 1);
+                {/* Navigation - Mobile */}
+                <div className="flex-shrink-0 border-t border-gray-200 dark:border-gray-700 p-4">
+                  <GameNavigation
+                    currentQuestionIndex={currentQueuePosition}
+                    totalQuestions={totalQuestions}
+                    isCurrentQuestionAnswered={isCurrentQuestionCompleted}
+                    questionResult={questionResult}
+                    hasMoreUnansweredQuestions={hasMoreIncompleteQuestions}
+                    allQuestionsAnswered={allQuestionsCompleted}
+                    answeredCount={completedCount}
+                    onPreviousQuestion={handlePreviousQuestion}
+                    onNextQuestion={() => {
+                      if (currentQueuePosition < totalQuestions - 1) {
+                        setCurrentQueuePosition(currentQueuePosition + 1);
+                        setQuestionResult(null);
+                        setSelectedAnswer(null);
+                      }
+                    }}
+                    onNextUnansweredQuestion={handleNextQuestion}
+                    onFinishLevel={handleFinishLevel}
+                    onReviewMode={() => {
+                      setCurrentQueuePosition(0);
                       setQuestionResult(null);
                       setSelectedAnswer(null);
-                    }
-                  }}
-                  onNextUnansweredQuestion={handleNextQuestion}
-                  onFinishLevel={handleFinishLevel}
-                  onReviewMode={() => {
-                    setCurrentQueuePosition(0);
-                    setQuestionResult(null);
-                    setSelectedAnswer(null);
-                  }}
-                />
-              </CardContent>
-            </Card>
+                    }}
+                  />
+                </div>
+              </div>
+            ) : (
+              // Desktop: Keep card layout
+              <Card className="bg-white/95 dark:bg-gray-800/95 backdrop-blur-lg border border-white/20">
+                <CardContent>
+                  {/* Question Header */}
+                  <div className="text-center mb-6">
+                    <Badge variant="primary" size="lg">
+                      Question {currentQueuePosition + 1} of {totalQuestions}
+                    </Badge>
+                  </div>
+
+                  {/* Error Display */}
+                  {gameError && (
+                    <motion.div
+                      className="mb-6 p-4 bg-red-50 dark:bg-red-900/20 rounded-xl border border-red-200 dark:border-red-800"
+                      initial={{ opacity: 0, y: -10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                    >
+                      <div className="flex items-center space-x-3">
+                        <AlertTriangle className="w-5 h-5 text-red-600 dark:text-red-400" />
+                        <p className="text-red-800 dark:text-red-200">
+                          {gameError}
+                        </p>
+                      </div>
+                    </motion.div>
+                  )}
+
+                  {/* Question Component */}
+                  <QuestionRenderer
+                    question={currentQuestion}
+                    questionIndex={currentQuestionIndex}
+                    onAnswer={handleAnswerSelection}
+                    isSubmitting={isSubmitting}
+                    isAnswered={isCurrentQuestionCompleted}
+                    answeredQuestion={undefined}
+                    questionResult={questionResult}
+                  />
+
+                  {/* ✅ Enhanced Navigation Controls */}
+                  <GameNavigation
+                    currentQuestionIndex={currentQueuePosition}
+                    totalQuestions={totalQuestions}
+                    isCurrentQuestionAnswered={isCurrentQuestionCompleted}
+                    questionResult={questionResult}
+                    hasMoreUnansweredQuestions={hasMoreIncompleteQuestions}
+                    allQuestionsAnswered={allQuestionsCompleted}
+                    answeredCount={completedCount}
+                    onPreviousQuestion={handlePreviousQuestion}
+                    onNextQuestion={() => {
+                      if (currentQueuePosition < totalQuestions - 1) {
+                        setCurrentQueuePosition(currentQueuePosition + 1);
+                        setQuestionResult(null);
+                        setSelectedAnswer(null);
+                      }
+                    }}
+                    onNextUnansweredQuestion={handleNextQuestion}
+                    onFinishLevel={handleFinishLevel}
+                    onReviewMode={() => {
+                      setCurrentQueuePosition(0);
+                      setQuestionResult(null);
+                      setSelectedAnswer(null);
+                    }}
+                  />
+                </CardContent>
+              </Card>
+            )}
           </motion.div>
         </AnimatePresence>
       </div>
 
-      {/* ✅ NEW: Fixed Footer with Submit Button */}
-      <div className="fixed bottom-0 left-0 right-0 z-40 bg-white/95 dark:bg-gray-800/95 backdrop-blur-xl border-t border-white/20 shadow-2xl">
-        <div className="max-w-4xl mx-auto px-4 py-4">
+      {/* ✅ Fixed Footer with Submit Button - Responsive */}
+      <div className={`fixed bottom-0 left-0 right-0 z-40 bg-white/95 dark:bg-gray-800/95 backdrop-blur-xl border-t border-white/20 shadow-2xl ${isMobile ? 'pb-safe' : ''}`}>
+        <div className={`${isMobile ? 'px-4 py-3' : 'max-w-4xl mx-auto px-4 py-4'}`}>
           <div className="flex items-center justify-end">
             {/* Submit Answer Button - Only show when answer is selected and not yet submitted */}
             {selectedAnswer !== null && !questionResult && !isCurrentQuestionCompleted && (
@@ -575,7 +686,7 @@ export function GameSessionPage() {
                 onClick={handleSubmitAnswer}
                 disabled={isSubmitting}
                 variant="primary"
-                size="lg"
+                size={isMobile ? "md" : "lg"}
                 leftIcon={
                   isSubmitting ? (
                     <Loader2 className="w-5 h-5 animate-spin" />
@@ -584,6 +695,7 @@ export function GameSessionPage() {
                   )
                 }
                 className="shadow-lg"
+                fullWidth={isMobile}
               >
                 {isSubmitting ? "Submitting..." : "Submit Answer"}
               </Button>
@@ -592,15 +704,17 @@ export function GameSessionPage() {
         </div>
       </div>
 
-      {/* Floating Action Button */}
-      <motion.button
-        onClick={handleAbandonSession}
-        className="fixed bottom-8 left-8 p-4 bg-red-500 hover:bg-red-600 text-white rounded-full shadow-2xl transition-colors z-50"
-        whileHover={{ scale: 1.05 }}
-        whileTap={{ scale: 0.95 }}
-      >
-        <X className="w-6 h-6" />
-      </motion.button>
+      {/* Floating Action Button - Only on desktop */}
+      {!isMobile && (
+        <motion.button
+          onClick={handleAbandonSession}
+          className="fixed bottom-8 left-8 p-4 bg-red-500 hover:bg-red-600 text-white rounded-full shadow-2xl transition-colors z-50"
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.95 }}
+        >
+          <X className="w-6 h-6" />
+        </motion.button>
+      )}
     </div>
   );
 }

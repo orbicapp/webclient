@@ -4,6 +4,7 @@ import { CheckCircle, X } from "lucide-react";
 import { MultipleChoiceQuestion as MultipleChoiceQuestionType } from "@/services/level-service";
 import { AnsweredQuestion, QuestionResult } from "@/services/game-service";
 import Badge from "@/components/ui/Badge";
+import { useResponsive } from "@/hooks/use-responsive";
 import { cn } from "@/lib/utils/class.utils";
 
 interface MultipleChoiceQuestionProps {
@@ -25,6 +26,7 @@ export function MultipleChoiceQuestion({
   questionResult,
 }: MultipleChoiceQuestionProps) {
   const [selectedAnswer, setSelectedAnswer] = useState<number | null>(null);
+  const { isMobile } = useResponsive();
 
   // Set the previous answer if question was already answered
   useEffect(() => {
@@ -49,16 +51,18 @@ export function MultipleChoiceQuestion({
   if (!question.options) return null;
 
   return (
-    <div className="space-y-6">
+    <div className={`space-y-6 ${isMobile ? 'h-full flex flex-col' : ''}`}>
       {/* Question Title */}
-      <div className="text-center">
-        <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-4">
+      <div className={`text-center ${isMobile ? 'flex-shrink-0' : ''}`}>
+        <h2 className={`font-bold text-gray-900 dark:text-gray-100 mb-4 ${
+          isMobile ? 'text-xl' : 'text-2xl'
+        }`}>
           {question.question}
         </h2>
       </div>
 
-      {/* Options */}
-      <div className="space-y-3">
+      {/* Options - ✅ Mobile: Scrollable if needed */}
+      <div className={`space-y-3 ${isMobile ? 'flex-1 overflow-y-auto' : ''}`}>
         {question.options.map((option, index) => {
           const isSelected = selectedAnswer === index;
           const isCorrect = option.isCorrect;
@@ -72,7 +76,9 @@ export function MultipleChoiceQuestion({
               onClick={() => handleOptionClick(index)}
               disabled={isSubmitting || isAnswered}
               className={cn(
-                "w-full p-4 text-left rounded-xl border-2 transition-all duration-200",
+                `w-full text-left rounded-xl border-2 transition-all duration-200 ${
+                  isMobile ? 'p-6' : 'p-4'
+                }`,
                 showAsCorrect
                   ? "border-green-500 bg-green-50 dark:bg-green-900/20"
                   : showAsIncorrect
@@ -90,7 +96,9 @@ export function MultipleChoiceQuestion({
               <div className="flex items-center space-x-3">
                 <div
                   className={cn(
-                    "w-6 h-6 rounded-full border-2 flex items-center justify-center",
+                    `w-6 h-6 rounded-full border-2 flex items-center justify-center ${
+                      isMobile ? 'flex-shrink-0' : ''
+                    }`,
                     showAsCorrect
                       ? "border-green-500 bg-green-500"
                       : showAsIncorrect
@@ -108,7 +116,9 @@ export function MultipleChoiceQuestion({
                     <div className="w-3 h-3 bg-white rounded-full" />
                   )}
                 </div>
-                <span className="text-gray-900 dark:text-gray-100 font-medium">
+                <span className={`text-gray-900 dark:text-gray-100 font-medium ${
+                  isMobile ? 'text-lg leading-relaxed' : ''
+                }`}>
                   {option.text}
                 </span>
                 {/* Show indicators */}

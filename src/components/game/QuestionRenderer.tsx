@@ -4,6 +4,7 @@ import { Clock, CheckCircle, X, Heart } from "lucide-react";
 import { AnsweredQuestion, QuestionResult } from "@/services/game-service";
 import Badge from "@/components/ui/Badge";
 import { QuestionUnion } from "@/services/level-service";
+import { useResponsive } from "@/hooks/use-responsive";
 
 // Import specialized question components
 import { MultipleChoiceQuestion } from "./questions/MultipleChoiceQuestion";
@@ -33,14 +34,13 @@ export function QuestionRenderer({
   questionResult,
 }: QuestionRendererProps) {
   const [startTime] = useState(Date.now());
+  const { isMobile } = useResponsive();
 
   const handleAnswer = (answer: unknown) => {
     if (!isSubmitting && !isAnswered) {
       onAnswer(answer);
     }
   };
-
-  // ✅ REMOVED: Answer status badges - feedback is now handled by input colors
 
   const renderQuestionContent = () => {
     const commonProps = {
@@ -99,9 +99,11 @@ export function QuestionRenderer({
   };
 
   return (
-    <div className="space-y-6">
-      {/* Question Content */}
-      {renderQuestionContent()}
+    <div className={`space-y-6 ${isMobile ? 'h-full flex flex-col' : ''}`}>
+      {/* Question Content - ✅ Mobile: Take full available space */}
+      <div className={isMobile ? 'flex-1' : ''}>
+        {renderQuestionContent()}
+      </div>
     </div>
   );
 }

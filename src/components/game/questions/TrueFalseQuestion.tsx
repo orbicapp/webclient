@@ -4,6 +4,7 @@ import { CheckCircle, X } from "lucide-react";
 import { TrueFalseQuestion as TrueFalseQuestionType } from "@/services/level-service";
 import { AnsweredQuestion, QuestionResult } from "@/services/game-service";
 import Badge from "@/components/ui/Badge";
+import { useResponsive } from "@/hooks/use-responsive";
 import { cn } from "@/lib/utils/class.utils";
 
 interface TrueFalseQuestionProps {
@@ -25,6 +26,7 @@ export function TrueFalseQuestion({
   questionResult,
 }: TrueFalseQuestionProps) {
   const [selectedAnswer, setSelectedAnswer] = useState<boolean | null>(null);
+  const { isMobile } = useResponsive();
 
   // Set the previous answer if question was already answered
   useEffect(() => {
@@ -49,22 +51,26 @@ export function TrueFalseQuestion({
   const showFalseAsCorrect = showCorrectAnswer && correctAnswer === false;
 
   return (
-    <div className="space-y-6">
+    <div className={`space-y-6 ${isMobile ? 'h-full flex flex-col' : ''}`}>
       {/* Question Title */}
-      <div className="text-center">
-        <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-4">
+      <div className={`text-center ${isMobile ? 'flex-shrink-0' : ''}`}>
+        <h2 className={`font-bold text-gray-900 dark:text-gray-100 mb-4 ${
+          isMobile ? 'text-xl' : 'text-2xl'
+        }`}>
           {question.question}
         </h2>
       </div>
 
-      {/* True/False Options */}
-      <div className="grid grid-cols-2 gap-4">
+      {/* True/False Options - ✅ Mobile: Centered and larger */}
+      <div className={`grid grid-cols-2 gap-4 ${isMobile ? 'flex-1 content-center' : ''}`}>
         {/* True Option */}
         <button
           onClick={() => handleOptionClick(true)}
           disabled={isSubmitting || isAnswered}
           className={cn(
-            "p-6 rounded-xl border-2 transition-all duration-200 text-center",
+            `rounded-xl border-2 transition-all duration-200 text-center ${
+              isMobile ? 'p-8' : 'p-6'
+            }`,
             showTrueAsCorrect
               ? "border-green-500 bg-green-50 dark:bg-green-900/20"
               : selectedAnswer === true
@@ -77,8 +83,12 @@ export function TrueFalseQuestion({
             (isSubmitting || isAnswered) && "cursor-not-allowed"
           )}
         >
-          <CheckCircle className="w-8 h-8 mx-auto mb-2 text-green-600" />
-          <span className="font-bold text-green-900 dark:text-green-100">
+          <CheckCircle className={`mx-auto mb-2 text-green-600 ${
+            isMobile ? 'w-12 h-12' : 'w-8 h-8'
+          }`} />
+          <span className={`font-bold text-green-900 dark:text-green-100 ${
+            isMobile ? 'text-xl' : ''
+          }`}>
             True
           </span>
           {showTrueAsCorrect && (
@@ -108,7 +118,9 @@ export function TrueFalseQuestion({
           onClick={() => handleOptionClick(false)}
           disabled={isSubmitting || isAnswered}
           className={cn(
-            "p-6 rounded-xl border-2 transition-all duration-200 text-center",
+            `rounded-xl border-2 transition-all duration-200 text-center ${
+              isMobile ? 'p-8' : 'p-6'
+            }`,
             showFalseAsCorrect
               ? "border-green-500 bg-green-50 dark:bg-green-900/20"
               : selectedAnswer === false
@@ -121,8 +133,12 @@ export function TrueFalseQuestion({
             (isSubmitting || isAnswered) && "cursor-not-allowed"
           )}
         >
-          <X className="w-8 h-8 mx-auto mb-2 text-red-600" />
-          <span className="font-bold text-red-900 dark:text-red-100">
+          <X className={`mx-auto mb-2 text-red-600 ${
+            isMobile ? 'w-12 h-12' : 'w-8 h-8'
+          }`} />
+          <span className={`font-bold text-red-900 dark:text-red-100 ${
+            isMobile ? 'text-xl' : ''
+          }`}>
             False
           </span>
           {showFalseAsCorrect && (
